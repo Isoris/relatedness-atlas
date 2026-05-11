@@ -1,0 +1,67 @@
+  <!-- atlases/relatedness/pages/hub/compatibility.html
+       Compatibility sub-page — breeding partner finder. Extracted from legacy
+       Relatedness_atlas.html lines 1537-1601. -->
+  <div id="compatibility" class="page subpage" data-subtab-page>
+    <div class="page-subtitle" style="font-size: 10.5px; color: var(--ink-dim); margin-bottom: 12px;">
+      Find breeding partners that produce a target offspring karyotype at a chosen inversion candidate. Useful for planning reciprocal crosses, fixing a haplotype, or producing diagnostic trios. Sex-aware mode requires the partner to be opposite sex from the focal. Per-chromosome mode lists candidates from one chromosome only.
+    </div>
+
+    <div class="compat-config">
+      <div class="row">
+        <label>Focal individual</label>
+        <select id="compatFocal"></select>
+      </div>
+      <div class="row">
+        <label>Target karyotype</label>
+        <select id="compatTarget">
+          <option value="0/0">0/0 — homozygous reference (STD/STD)</option>
+          <option value="0/1" selected>0/1 — heterozygous (STD/INV)</option>
+          <option value="1/1">1/1 — homozygous inversion (INV/INV)</option>
+        </select>
+      </div>
+      <div class="row">
+        <label>Inversion scope</label>
+        <select id="compatInvScope">
+          <option value="single">A single chosen candidate</option>
+          <option value="chrom" selected>All candidates on one chromosome (per-chrom mode)</option>
+          <option value="all">All inversion candidates</option>
+        </select>
+      </div>
+      <div class="row" id="compatSingleRow">
+        <label>Inversion candidate</label>
+        <select id="compatInvSingle"></select>
+      </div>
+      <div class="row" id="compatChromRow">
+        <label>Chromosome</label>
+        <select id="compatChrom"></select>
+      </div>
+      <div class="row">
+        <label>Filters</label>
+        <div class="toggle-row">
+          <label class="compat-toggle">
+            <input type="checkbox" id="compatSexAware" />
+            <span>Sex-aware (require opposite sex)</span>
+          </label>
+          <label class="compat-toggle">
+            <input type="checkbox" id="compatExcludeKin" checked />
+            <span>Exclude close kin (PO/FS)</span>
+          </label>
+          <label class="compat-toggle">
+            <input type="checkbox" id="compatExcludeAmbig" checked />
+            <span>Exclude ambiguous karyotypes</span>
+          </label>
+        </div>
+      </div>
+      <div class="row">
+        <label></label>
+        <div class="compat-actions">
+          <button class="primary" id="compatRunBtn">Find compatible partners</button>
+          <button id="compatResetBtn">Reset</button>
+          <button id="compatExportBtn" title="Download as TSV">⤓ Export</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="compatSummary"></div>
+    <div id="compatResultSlot"></div>
+  </div>

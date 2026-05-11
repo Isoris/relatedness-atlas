@@ -1,0 +1,30 @@
+  <!-- atlases/relatedness/pages/hub/network.html
+       Network sub-page — SVG force-directed-ish edge graph of the active
+       family hub, plus inline previews of Karyotypes + Inversion candidates.
+       Extracted from legacy Relatedness_atlas.html lines 1430-1456. -->
+  <div id="network" class="page subpage active" data-subtab-page>
+    <div id="networkPanel">
+      <svg id="networkSvg" viewBox="0 0 800 360" preserveAspectRatio="xMidYMid meet">
+        <!-- populated by network.js -->
+      </svg>
+      <div class="net-legend">
+        <div class="lg-row"><span class="lg-line lg-strong-po"></span><span>strong PO</span></div>
+        <div class="lg-row"><span class="lg-line lg-possible-po"></span><span>possible PO</span></div>
+        <div class="lg-row"><span class="lg-line lg-line dashed lg-ambig"></span><span>ambiguous</span></div>
+        <div class="lg-row"><span class="lg-line lg-line dashed lg-conflict"></span><span>Mendelian conflict</span></div>
+      </div>
+      <div class="net-help">
+        <span style="font-size:11px;">ⓘ</span> Click node to center
+        <br/>Drag to pan
+      </div>
+    </div>
+
+    <div class="table-section-title" style="margin-top: 18px;">
+      Karyotypes <span class="sub">(genotypes at inversion candidates)</span>
+    </div>
+    <div id="karyoTableSlotInline"></div>
+
+    <div class="table-section-title">Inversion Candidates <span class="sub">(filtered)</span></div>
+    <div id="invTableSlotInline"></div>
+    <div class="pagination" id="invPaginationInline"></div>
+  </div>

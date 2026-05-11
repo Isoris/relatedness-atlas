@@ -1,0 +1,26 @@
+{
+  "$schema": "../../../../../atlas-core/core/registry_core.schema.json",
+  "_doc": "Slot inventory for the Relatedness Atlas. Slots are the cross-page selection / scope handles (atlas-wide and shared-with-atlas-core). Round 1 (2026-05-11) declares the four slots the legacy single-file pages already mutate via state.* — but does not yet wire them into AtlasState. The migration only adds _label + _doc; the AtlasState wiring is a follow-up round.",
+  "slots": {
+    "selected_individual": {
+      "_label": "selected individual",
+      "_doc": "Currently focused individual in the Population Browser tree. Drives the Inspector / Stats panel and the breadcrumb's leaf segment. Atlas-private (not shared with sibling atlases) in round 1; may be promoted to shared.activeSample in a later round if it makes sense to keep selection across atlas switches.",
+      "default": "Ind_001"
+    },
+    "selected_family": {
+      "_label": "selected family",
+      "_doc": "Currently focused family in the Population Browser tree. Drives the breadcrumb's middle segment and the Network panel's centre.",
+      "default": "Family 1"
+    },
+    "activeChromosome": {
+      "_label": "active chromosome",
+      "_doc": "Chromosome filter for the Karyotypes and Inversions tables and the Compatibility per-chrom mode. Currently lives in state.selected_chromosome; promoted to a scope_picker so it is visible in the atlas-core scopebar.",
+      "default": "all"
+    },
+    "inspector_pair": {
+      "_label": "inspector pair",
+      "_doc": "The (A, B) individual pair currently displayed in the Inspector / Stats panel and the Mendelian-check breakdown. Atlas-private.",
+      "default": { "a": "Ind_001", "b": "Ind_044" }
+    }
+  }
+}

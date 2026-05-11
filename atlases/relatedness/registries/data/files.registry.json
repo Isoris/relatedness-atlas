@@ -1,0 +1,23 @@
+{
+  "$schema": "../../../../../atlas-core/core/registry_core.schema.json",
+  "_doc": "File inventory for the Relatedness Atlas. Round 1 (2026-05-11) ships an empty file table on purpose — the round-1 mock runs entirely off baked-in DEMO data inside atlases/relatedness/shared/demo_data.js. The real file contracts (status-pill targets: .res / beagle.gz / prune / inversion candidates TSV) land in a follow-up round.",
+  "_planned_files_round_2": {
+    "res": {
+      "path_template": "/data/project/population.res",
+      "_doc": "ngsRelate 23-column .res output for the cohort. Target of the .res pillBar slot."
+    },
+    "beagle": {
+      "path_template": "/data/beagle/beagle.gz",
+      "_doc": "Cohort genotype likelihoods. Target of the beagle pillBar slot."
+    },
+    "prune": {
+      "path_template": "/data/prune.in",
+      "_doc": "NAToRA / first-degree pruning list (optional). Target of the prune pillBar slot."
+    },
+    "inversion_candidates": {
+      "path_template": "/data/inversion_candidates.tsv",
+      "_doc": "Inversion candidates TSV exported from the Inversion Atlas catalogue. Target of the inv pillBar slot."
+    }
+  },
+  "files": {}
+}

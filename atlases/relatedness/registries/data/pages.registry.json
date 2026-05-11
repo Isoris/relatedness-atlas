@@ -1,0 +1,42 @@
+{
+  "$schema": "../../../../../atlas-core/core/registry_core.schema.json",
+  "_doc": "Per-page data and slot requirements for the Relatedness Atlas. Round 1 (2026-05-11) ships labels + _doc only; requires_layers / requires_slots / preloads are out-of-scope for migrations per the kickoff rule (see 0_READ_ME_FIRST.md, 'Architectural-discipline rule (chat-38 step 17)'). Content decisions are owned by Quentin and resolved in a follow-up round once the ngsPedigree / inversion-karyotype data contracts settle.",
+  "pages": {
+    "network": {
+      "_label": "network — PO / FS / ambiguous edge graph",
+      "_doc": "SVG force-directed layout of the active hub's pairwise edges. Edge classes: strong_po (black), possible_po (blue), ambiguous (amber, dashed), mendelian_conflict (red, dashed). Click a node to centre the evidence hub on that individual; the right-column Inspector recomputes against the clicked pair. Inline previews of the Karyotypes (top of the candidate list) and Inversions (paginated 4-row table) render below the SVG.",
+      "requires_layers": [],
+      "requires_operations": [],
+      "requires_slots": [],
+      "preloads": []
+    },
+    "karyotypes": {
+      "_label": "karyotypes — per-sample genotype matrix",
+      "_doc": "Full karyotype matrix view: rows = individuals; columns = inversion candidates (subset chosen by chr filter). Cells colour-coded 0/0, 0/1, 1/1, NA. Ancestry stripe column shows the K=8 admixture decomposition for each row. STD/INV labels appear only when an inversion's named-allele convention is defined upstream.",
+      "requires_layers": [],
+      "requires_slots": [],
+      "preloads": []
+    },
+    "inversions": {
+      "_label": "inversions — candidate list table (paginated)",
+      "_doc": "All inversion candidates from the Inversion Atlas (status, chromosome, start/end Mb, length, frequency, notes). Filters: status (PASS/WARN/FAIL), chromosome, frequency threshold. Click a row to scope the network panel and the inspector to that candidate.",
+      "requires_layers": [],
+      "requires_slots": [],
+      "preloads": []
+    },
+    "mendelian": {
+      "_label": "mendelian — segregation tester (HEADLINE FEATURE)",
+      "_doc": "Tests Mendelian segregation across selected dyads (parent x offspring, binomial test) or triads (parent_a x parent_b x offspring, multinomial / chi-square). Modes: single dyad, single triad, all dyads in hub, all triads in hub. Inversion subsets: all / PASS-only / WARN-only / freq >= 0.10 / current-chromosome-only. P-value thresholds: 0.05 / 0.01 / 0.001 / Bonferroni-corrected. Categories surfaced: STRONG_PASS, PASS, WARN, FAIL, TRANSMISSION_SKEW, DRIVE_CANDIDATE, NEEDS_CROSSES, FAMILY_SUSPECT.",
+      "requires_layers": [],
+      "requires_slots": [],
+      "preloads": []
+    },
+    "compatibility": {
+      "_label": "compatibility — breeding-partner finder",
+      "_doc": "Finds breeding partners that produce a target offspring karyotype at a chosen inversion candidate. Scopes: single candidate, all candidates on one chromosome (per-chrom mode), all candidates. Filters: sex-aware (requires opposite sex), exclude close kin (PO/FS), exclude ambiguous karyotypes. Useful for planning reciprocal crosses, fixing a haplotype, or producing diagnostic trios.",
+      "requires_layers": [],
+      "requires_slots": [],
+      "preloads": []
+    }
+  }
+}

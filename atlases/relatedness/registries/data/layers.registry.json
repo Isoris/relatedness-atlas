@@ -1,0 +1,49 @@
+{
+  "$schema": "../../../../../atlas-core/core/registry_core.schema.json",
+  "_doc": "Layer inventory for the Relatedness Atlas. Round 1 (2026-05-11) ships an empty layer table on purpose: the round-1 mock runs entirely off baked-in DEMO data inside atlases/relatedness/shared/demo_data.js. The real data contracts (.res file from ngsRelate, beagle.gz cohort genotype likelihoods, NAToRA prune file, inversion candidates TSV) land in a follow-up round when Quentin owns the registry content decisions.",
+  "_planned_layers_round_2": {
+    "res_pairwise": {
+      "tier": "hot",
+      "preload_on": "atlas_open",
+      "source": "file",
+      "path": "data/relatedness/pairwise_relationship_classification.tsv",
+      "_doc": "ngsPedigree Stage 1 output. 23 columns of pairwise k0/k1/k2/kinship/IBS0/PO_distance/relationship_class. Drives the Inspector / Network panels."
+    },
+    "family_hub_roster": {
+      "tier": "hot",
+      "preload_on": "atlas_open",
+      "source": "file",
+      "path": "data/relatedness/family_hub_roster.tsv",
+      "_doc": "ngsPedigree Stage 1 output. Per-individual family / hub / role assignments. Drives the Population Browser tree."
+    },
+    "per_chrom_qc": {
+      "tier": "warm",
+      "preload_on": "page_mount:mendelian",
+      "source": "file",
+      "path": "data/relatedness/per_chrom_qc.tsv",
+      "_doc": "ngsPedigree Stage 2 output. Per-chromosome Mendelian-conflict QC columns for each dyad/triad. Feeds the right-column Mendelian-check breakdown."
+    },
+    "chrom_inheritance_map": {
+      "tier": "warm",
+      "preload_on": "page_mount:mendelian",
+      "source": "file",
+      "path": "data/relatedness/chrom_inheritance_map.tsv",
+      "_doc": "ngsPedigree Stage 3 output. Per-chromosome inheritance assignments per offspring. Consumed by the Mendelian tab."
+    },
+    "inversion_karyotypes": {
+      "tier": "hot",
+      "preload_on": "atlas_open",
+      "source": "file",
+      "path": "data/inversion_karyotypes.tsv",
+      "_doc": "Inversion Atlas / scrubber output. Per-sample x per-candidate karyotype matrix. Drives the Karyotypes tab and the Mendelian tester."
+    },
+    "ancestry_q": {
+      "tier": "warm",
+      "preload_on": "atlas_open",
+      "source": "file",
+      "path": "data/ancestry_q.tsv",
+      "_doc": "Cohort K=N NGSadmix Q-matrix. Drives the Karyotypes ancestry stripe and the ancestry palette pill."
+    }
+  },
+  "layers": {}
+}

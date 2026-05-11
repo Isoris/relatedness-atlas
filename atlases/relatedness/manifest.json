@@ -1,0 +1,97 @@
+{
+  "atlas_id": "relatedness",
+  "atlas_name": "Relatedness Atlas",
+  "atlas_version": "2026-05-11-round1",
+  "atlas_description": "Family / Individual evidence hub — consumer of ngsPedigree outputs (pairwise_relationship_classification.tsv, family_hub_roster.tsv, per-chromosome QC, chromosome inheritance map) plus an inversion karyotype TSV from the Inversion Atlas. 226-sample pure C. gariepinus hatchery cohort.",
+  "_paired_with": {
+    "analysis_repo": "C:/Users/quent/Desktop/ngsPedigree",
+    "_doc": "Producer/consumer pair. ngsPedigree is the analysis side (Stage 1 graph annotator, Stage 2 per-chromosome QC, Stage 3 chromosome inheritance map). The relatedness atlas is the consumer / browser UI. The legacy Relatedness_atlas.{html,js} files live in BOTH repos (ngsPedigree/pages/ and relatedness-atlas/) and are kept byte-identical; the relatedness-atlas/atlases/ tree is the migration target. Same producer/consumer pattern as inversion-popgen-toolkit + inversion-atlas, catfish-diversity-analysis + diversity-atlas, etc."
+  },
+  "_round_1_note": "First migration round. Single stage 'hub' with five pages (one per sub-tab of the legacy Relatedness_atlas.html mockup): network, karyotypes, inversions, mendelian, compatibility. Each page extracts the matching §6-§9b section from the legacy Relatedness_atlas.js. Shared chrome (Population Browser tree §4, Population Summary §5, Inspector / Stats §10, Loaded files §11) lives in shared/ and is rendered on every page mount. Registry content (requires_layers / requires_slots / preloads) is OUT-OF-SCOPE per the kickoff rule (see 0_READ_ME_FIRST.md) — registries only carry _label + _doc + atlas_id this round.",
+  "pages": [
+    {
+      "id": "network",
+      "label": "network",
+      "stage": "hub",
+      "fragment": "atlases/relatedness/pages/hub/network.html",
+      "module": "atlases/relatedness/pages/hub/network.js",
+      "tooltip": "PO / FS / ambiguous / Mendelian-conflict edges in the current hub. Click any node to centre the evidence hub on that individual."
+    },
+    {
+      "id": "karyotypes",
+      "label": "karyotypes",
+      "stage": "hub",
+      "fragment": "atlases/relatedness/pages/hub/karyotypes.html",
+      "module": "atlases/relatedness/pages/hub/karyotypes.js",
+      "tooltip": "Per-sample genotype calls at every inversion candidate. Scan ancestry composition alongside karyotype patterns."
+    },
+    {
+      "id": "inversions",
+      "label": "inversions",
+      "stage": "hub",
+      "fragment": "atlases/relatedness/pages/hub/inversions.html",
+      "module": "atlases/relatedness/pages/hub/inversions.js",
+      "tooltip": "All inversion candidates from the Inversion Atlas — filter by status, chromosome, length, frequency."
+    },
+    {
+      "id": "mendelian",
+      "label": "mendelian",
+      "stage": "hub",
+      "fragment": "atlases/relatedness/pages/hub/mendelian.html",
+      "module": "atlases/relatedness/pages/hub/mendelian.js",
+      "tooltip": "Mendelian segregation tester. Pick a dyad or triad, choose inversion subset, run binomial / multinomial. The headline feature."
+    },
+    {
+      "id": "compatibility",
+      "label": "compatibility",
+      "stage": "hub",
+      "fragment": "atlases/relatedness/pages/hub/compatibility.html",
+      "module": "atlases/relatedness/pages/hub/compatibility.js",
+      "tooltip": "Breeding-partner finder. Pick a focal individual + target karyotype + scope; lists compatible partners with sex-aware / exclude-kin filters."
+    }
+  ],
+  "registries": {
+    "layers": "atlases/relatedness/registries/data/layers.registry.json",
+    "files": "atlases/relatedness/registries/data/files.registry.json",
+    "operations": "atlases/relatedness/registries/data/operations.registry.json",
+    "pages": "atlases/relatedness/registries/data/pages.registry.json",
+    "slots": "atlases/relatedness/registries/data/slots.registry.json"
+  },
+  "shared_modules": {
+    "demo_data": "atlases/relatedness/shared/demo_data.js",
+    "state": "atlases/relatedness/shared/state.js",
+    "utils": "atlases/relatedness/shared/utils.js",
+    "chrome": "atlases/relatedness/shared/chrome.js",
+    "pop_tree": "atlases/relatedness/shared/pop_tree.js",
+    "pop_summary": "atlases/relatedness/shared/pop_summary.js",
+    "inspector": "atlases/relatedness/shared/inspector.js",
+    "loaded_files": "atlases/relatedness/shared/loaded_files.js"
+  },
+  "server": {
+    "_doc": "Relatedness Atlas Round 1 does NOT ship its own server. The atlas reads ngsPedigree outputs as static files via the shared atlas-core unified server (see atlas-core/server/SERVER_README.md). Future rounds may add a /api/relatedness/compute endpoint if the Mendelian / Compatibility testers need to push to a background worker.",
+    "entry": null,
+    "default_url": "http://localhost:8000"
+  },
+  "css_dir": "atlases/relatedness/css/",
+  "stylesheets": [
+    "atlases/relatedness/css/relatedness.css"
+  ],
+  "_stylesheets_doc": "Atlas-wide stylesheet, extracted verbatim from the legacy Relatedness_atlas.html <style> block. Future work: split into per-page stylesheets (css/pages/<page>.css) and reference them from each page entry's `stylesheet` field — the router loads page-stylesheet on mount.",
+  "scope_pickers": [
+    {
+      "slot": "activeChromosome",
+      "label": "chromosome",
+      "options": ["all"],
+      "shared": false,
+      "_doc": "Chr filter rendered as a select inside the legacy #subTabBar. In the round-1 single-file mock all 28 chromosomes (Chr01..Chr28) are populated dynamically from DEMO.chromosomes. Promoted into AtlasState so the cross-tab filter persists across page switches."
+    }
+  ],
+  "stages": [
+    {
+      "id": "hub",
+      "label": "evidence hub",
+      "order": 1,
+      "_doc": "Family / Individual Evidence Hub — the five sub-tabs of the legacy mockup. Future rounds may add a 'review' stage for manual call decisions and a 'catalogue' stage for the per-family roster export."
+    }
+  ]
+}

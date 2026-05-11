@@ -1,0 +1,63 @@
+  <!-- atlases/relatedness/pages/hub/mendelian.html
+       Mendelian sub-page — the headline analytical feature. Tests Mendelian
+       segregation for selected dyads or triads at every inversion candidate.
+       Extracted from legacy Relatedness_atlas.html lines 1475-1535. -->
+  <div id="mendelian" class="page subpage" data-subtab-page>
+    <div class="page-subtitle" style="font-size: 10.5px; color: var(--ink-dim); margin-bottom: 12px;">
+      Test Mendelian segregation for selected dyads (parent–offspring) or triads (parent₁–parent₂–offspring) at every inversion candidate. Computes observed vs expected karyotype proportions and a P-value (binomial for dyads, multinomial-exact / chi-square for triads). Cohort variants run the test across every dyad or triad in the current hub and combine results with Stouffer's method.
+    </div>
+
+    <div class="mend-config">
+      <div class="row">
+        <label>Selection mode</label>
+        <select id="mendMode">
+          <option value="dyad">Dyad — parent × offspring (binomial)</option>
+          <option value="triad">Triad — parent₁ × parent₂ → offspring (multinomial)</option>
+          <option value="all_dyads">All dyads in current hub (cohort test)</option>
+          <option value="all_triads">All triads in current hub (cohort test)</option>
+        </select>
+      </div>
+      <div class="row" id="rowParent1">
+        <label id="lblParent1">Parent</label>
+        <select id="mendParent1"></select>
+      </div>
+      <div class="row" id="rowParent2" style="display:none;">
+        <label>Parent 2</label>
+        <select id="mendParent2"></select>
+      </div>
+      <div class="row" id="rowOffspring">
+        <label>Offspring</label>
+        <select id="mendOffspring"></select>
+      </div>
+      <div class="row">
+        <label>Inversion subset</label>
+        <select id="mendInvSubset">
+          <option value="all">All candidates</option>
+          <option value="status_pass">Status = PASS only</option>
+          <option value="status_warn">Status = WARN only</option>
+          <option value="freq_high">Frequency ≥ 0.10</option>
+          <option value="chrom_only">Current chromosome only</option>
+        </select>
+      </div>
+      <div class="row">
+        <label>P-value threshold</label>
+        <select id="mendAlpha">
+          <option value="0.05">α = 0.05</option>
+          <option value="0.01">α = 0.01</option>
+          <option value="0.001">α = 0.001</option>
+          <option value="bonferroni">Bonferroni-corrected</option>
+        </select>
+      </div>
+      <div class="row">
+        <label></label>
+        <div class="actions">
+          <button class="primary" id="mendRunBtn">Run test</button>
+          <button id="mendResetBtn">Reset</button>
+          <button id="mendExportBtn" title="Download results as TSV">⤓ Export</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="mend-summary" id="mendSummary"></div>
+    <div id="mendResultSlot"></div>
+  </div>

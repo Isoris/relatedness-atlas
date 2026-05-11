@@ -1,0 +1,31 @@
+{
+  "$schema": "../../../../../atlas-core/core/registry_core.schema.json",
+  "_doc": "Operations inventory for the Relatedness Atlas. Round 1 (2026-05-11) ships an empty operations table. The Mendelian segregation tester and the Compatibility partner-finder run entirely in-browser today (binomial / multinomial / chi-square stats over the karyotype matrix). Future rounds may promote heavy operations to server-side compute (e.g. cohort-wide drive scan over 50k variants).",
+  "_planned_operations_round_2": {
+    "mendelian_dyad_test": {
+      "kind": "browser_compute",
+      "input": "karyotype_matrix + dyad",
+      "output": "binomial p-value + observed/expected counts",
+      "_doc": "Binomial Mendelian test for a single (parent, offspring) dyad across the inversion subset."
+    },
+    "mendelian_triad_test": {
+      "kind": "browser_compute",
+      "input": "karyotype_matrix + triad",
+      "output": "multinomial-exact / chi-square p-value + observed/expected matrix",
+      "_doc": "Multinomial Mendelian test for a single (parent_a, parent_b, offspring) triad."
+    },
+    "cohort_mendelian_scan": {
+      "kind": "browser_compute",
+      "input": "karyotype_matrix + all dyads OR all triads in current hub",
+      "output": "per-inversion p-value table + category (PASS / WARN / FAIL / SKEW / DRIVE_CANDIDATE / NEEDS_CROSSES / FAMILY_SUSPECT)",
+      "_doc": "Cohort-wide Mendelian scan across all candidates. Likely promoted to a server endpoint if it becomes the bottleneck."
+    },
+    "compatibility_search": {
+      "kind": "browser_compute",
+      "input": "focal_individual + target_karyotype + (single | chrom | all) scope + filters",
+      "output": "compatible-partner table",
+      "_doc": "Breeding-partner finder. Returns all partners whose cross with the focal would produce the target karyotype with non-zero probability."
+    }
+  },
+  "operations": {}
+}
