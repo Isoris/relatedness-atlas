@@ -14,6 +14,11 @@
 //   GET  /api/jobs/{job_id}     — poll long-running compute job status
 //   GET  /api/health            — server health (probe / startup check)
 //
+//   POST /api/actions           — submit an action manifest (action pipeline)
+//   GET  /api/actions/{id}      — read the latest action log entry
+//   GET  /api/layers            — list/filter the layer envelope index
+//   GET  /api/layers/{layer_id} — fetch one envelope (full JSON)
+//
 // Static fetches (`fetch('atlases/relatedness/data/foo.tsv')`) hit the
 // server's static mount directly and bypass /file/* — that's the fast path
 // for read-only data already inside the assembled workspace. Use
@@ -144,6 +149,94 @@ export async function waitForJob(job_id, { intervalMs = JOB_POLL_INTERVAL_MS,
     }
     await _sleep(intervalMs);
   }
+}
+
+// ---------------------------------------------------------------------------
+// Action pipeline — POST /api/actions, GET /api/actions/{id}, /api/layers
+// ---------------------------------------------------------------------------
+// Pages use these to consume action-pipeline outputs (relatedness staging
+// envelopes, normalized ngsrelate_pairs_v1 envelopes, etc.) without going
+// through hardcoded file paths. The contract is in
+// atlas-core/toolkit_registries/PIPELINE_FLOW.md; the endpoints are in
+// atlas-core/server/atlas_server.py. Mirrors atlas-core/core/layer_api.js
+// — kept inline here so the relatedness atlas stays self-contained (no
+// cross-package JS imports; atlas-core stays a runtime/server dependency).
+
+// GET /api/layers — filter the envelope index.
+//   filters: { layer_type, dataset_id, stage, status, limit }
+// Returns: { layers: [...index_rows], n, total }
+// Each row: { layer_id, layer_type, schema_version, stage, dataset_id,
+//             status, created_at, path }.
+export async function listLayers(filters = {}) {
+  const q = new URLSearchParams();
+  for (const k of ['layer_type', 'dataset_id', 'stage', 'status']) {
+    const v = filters[k];
+    if (v !== undefined && v !== null && v !== '') q.set(k, String(v));
+  }
+  if (filters.limit !== undefined && filters.limit !== null) {
+    q.set('limit', String(Number(filters.limit) | 0));
+  }
+  const qs = q.toString();
+  const url = `${BASE}/api/layers${qs ? '?' + qs : ''}`;
+  const resp = await fetch(url);
+  if (!resp.ok) throw new ApiError(resp.status, url, await _safeText(resp));
+  return resp.json();
+}
+
+// GET /api/layers/{layer_id} — fetch one full envelope.
+export async function getLayer(layer_id) {
+  if (!layer_id) throw new Error('api_client.getLayer: layer_id required');
+  const url = `${BASE}/api/layers/${encodeURIComponent(layer_id)}`;
+  const resp = await fetch(url);
+  if (!resp.ok) throw new ApiError(resp.status, url, await _safeText(resp));
+  return resp.json();
+}
+
+// Convenience: most-recent envelope of `layer_type` matching the
+// optional dataset_id / stage / status filters. Returns null when no
+// match exists (NOT an error — pages should branch on null).
+export async function resolveLatestLayer(layer_type, opts = {}) {
+  if (!layer_type) throw new Error('api_client.resolveLatestLayer: layer_type required');
+  const list = await listLayers({ ...opts, layer_type });
+  const rows = (list && list.layers) || [];
+  if (rows.length === 0) return null;
+  // Server returns most-recent-last. Pick the tail.
+  return getLayer(rows[rows.length - 1].layer_id);
+}
+
+// POST /api/actions — submit an action manifest. Atlas resolution
+// precedence (server-side): ?atlas=… > manifest.atlas_id >
+// master_config.atlas.active_atlas.
+// Returns: { ok, action_id, atlas_id, produced_layers }.
+export async function submitAction(manifest, { atlas } = {}) {
+  if (!manifest || typeof manifest !== 'object') {
+    throw new Error('api_client.submitAction: manifest object required');
+  }
+  const q = atlas ? `?atlas=${encodeURIComponent(atlas)}` : '';
+  const url = `${BASE}/api/actions${q}`;
+  const resp = await fetch(url, {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body:    JSON.stringify(manifest),
+  });
+  if (!resp.ok) throw new ApiError(resp.status, url, await _safeText(resp));
+  return resp.json();
+}
+
+// GET /api/actions/{action_id} — latest log entry.
+export async function getActionLog(action_id) {
+  if (!action_id) throw new Error('api_client.getActionLog: action_id required');
+  const url = `${BASE}/api/actions/${encodeURIComponent(action_id)}`;
+  const resp = await fetch(url);
+  if (!resp.ok) throw new ApiError(resp.status, url, await _safeText(resp));
+  return resp.json();
+}
+
+// Generate an action_id matching ^act_[A-Za-z0-9_]+$.
+export function newActionId(tag) {
+  const ms = Date.now();
+  const tail = tag || Math.random().toString(36).slice(2, 5).padEnd(3, '0');
+  return `act_${ms}_${tail}`;
 }
 
 // ---------------------------------------------------------------------------

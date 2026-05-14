@@ -7,6 +7,14 @@
       "stage":          "staging",
       "parser":         "extractors.relatedness_tsv.extract",
       "input_format":   "tsv"
+    },
+    {
+      "extractor_id":   "extract_ngsrelate_pairs_v1",
+      "layer_type":     "ngsrelate_pairs",
+      "schema_version": "ngsrelate_pairs_v1",
+      "stage":          "normalized",
+      "parser":         "extractors.normalize_relatedness.extract",
+      "input_format":   "json"
     }
   ]
 }

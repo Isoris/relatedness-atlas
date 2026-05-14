@@ -1,0 +1,31 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "normalize_relatedness_v1.schema.json",
+  "title": "normalize_relatedness_v1 — promote a staging_relatedness_v0 envelope to ngsrelate_pairs_v1",
+  "description": "Validates POST /api/actions when type='normalize_relatedness'. Reads a previously-captured staging_relatedness_v0 envelope (by layer_id), maps its rows to the canonical ngsRelate column set, type-coerces, and emits a typed ngsrelate_pairs_v1 envelope. Lineage is preserved via provenance.source_layer_ids. This is the worked example of PIPELINE_FLOW.md §'Reversibility — staging today, normalized tomorrow' for relatedness.",
+  "type": "object",
+  "required": ["target"],
+  "additionalProperties": true,
+  "properties": {
+    "target": {
+      "type": "object",
+      "required": ["source_layer_id"],
+      "additionalProperties": true,
+      "properties": {
+        "source_layer_id":  { "type": "string", "minLength": 1, "description": "layer_id of the staging_relatedness_v0 envelope to promote." },
+        "source_layer_ids": { "type": "array", "items": { "type": "string" }, "description": "Optional alias — multi-source converters use this; single-source actions use source_layer_id." }
+      }
+    },
+    "params": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "column_map": {
+          "type": "object",
+          "additionalProperties": { "type": "string" },
+          "description": "Maps source column names (as they appear in the staging payload's rows) to the canonical ngsrelate_pairs_v1 column names: ind1, ind2, n_sites, theta, king, rab, ibs0, ibs1, ibs2. Defaults match raw ngsRelate output (a→ind1, b→ind2, theta→theta, KING→king, R→rab, nSites→n_sites, IBS0/1/2→ibs0/1/2)."
+        }
+      }
+    }
+  }
+}

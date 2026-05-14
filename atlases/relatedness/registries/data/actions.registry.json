@@ -4,6 +4,11 @@
       "runner":      "runners.import_tsv.import_tsv",
       "schema_in":   "import_relatedness_tsv_v1",
       "description": "Read an ngsRelate / ngsPedigree / mendelian / NAToRA / evalAdmix TSV and emit a staging_relatedness_v0 layer. Bridges toolkit_registries/relatedness/01_registry/analysis_results.tsv pointers into the layer envelope contract."
+    },
+    "normalize_relatedness": {
+      "runner":      "runners.normalize_relatedness.normalize",
+      "schema_in":   "normalize_relatedness_v1",
+      "description": "Promote a staging_relatedness_v0 envelope to a typed ngsrelate_pairs_v1 envelope. Reads target.source_layer_id from the workspace layers index, maps columns (a/b/theta/KING/R/nSites/IBS0/1/2), coerces types, validates against ngsrelate_pairs_v1. Worked example of PIPELINE_FLOW.md §'Reversibility — staging today, normalized tomorrow'."
     }
   }
 }

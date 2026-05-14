@@ -1,0 +1,41 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "ngsrelate_pairs_v1.schema.json",
+  "title": "ngsrelate_pairs_v1 — normalized pairwise ngsRelate output",
+  "description": "Typed payload for normalized ngsRelate pairwise relatedness results. One row per sample-pair with canonical column names + numeric coercion. Produced by 'normalize_relatedness' from a staging_relatedness_v0 envelope; lineage tracked in envelope.provenance.source_layer_ids.",
+  "type": "object",
+  "required": ["pairs", "summary"],
+  "additionalProperties": true,
+  "properties": {
+    "pairs": {
+      "type": "array",
+      "description": "One row per sample pair.",
+      "items": {
+        "type": "object",
+        "required": ["ind1", "ind2"],
+        "additionalProperties": true,
+        "properties": {
+          "ind1":    { "type": "string", "description": "First sample id (ngsRelate column 'a')." },
+          "ind2":    { "type": "string", "description": "Second sample id (ngsRelate column 'b')." },
+          "n_sites": { "type": ["integer", "null"], "minimum": 0 },
+          "theta":   { "type": ["number",  "null"], "description": "Pairwise relatedness estimate (theta)." },
+          "king":    { "type": ["number",  "null"], "description": "KING-robust kinship coefficient." },
+          "rab":     { "type": ["number",  "null"], "description": "ngsRelate R statistic." },
+          "ibs0":    { "type": ["number",  "null"] },
+          "ibs1":    { "type": ["number",  "null"] },
+          "ibs2":    { "type": ["number",  "null"] }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": ["n_pairs"],
+      "additionalProperties": true,
+      "properties": {
+        "n_pairs":      { "type": "integer", "minimum": 0 },
+        "n_samples":    { "type": "integer", "minimum": 0 },
+        "median_theta": { "type": ["number", "null"] }
+      }
+    }
+  }
+}
