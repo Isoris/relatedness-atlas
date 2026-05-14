@@ -1,31 +1,108 @@
 {
   "$schema": "../../../../../atlas-core/core/registry_core.schema.json",
-  "_doc": "Operations inventory for the Relatedness Atlas. Round 1 (2026-05-11) ships an empty operations table. The Mendelian segregation tester and the Compatibility partner-finder run entirely in-browser today (binomial / multinomial / chi-square stats over the karyotype matrix). Future rounds may promote heavy operations to server-side compute (e.g. cohort-wide drive scan over 50k variants).",
-  "_planned_operations_round_2": {
+  "_doc": "Operations the Relatedness Atlas exposes. Each entry declares the contract for either a browser-side compute (kind='browser_compute') or a server-side compute called via POST /compute/<server_endpoint> (kind='server_compute'). Round 1 ships every operation as browser_compute — the testers run entirely in-browser today. Round 2 will mark the heavy ones (cohort_mendelian_scan) as ALSO available server_compute and the api_client probes which path to take at mount time.\n\nServer-side dispatch contract (atlas-core/server/atlas_server.py):\n  POST /compute/<server_endpoint>   body: <args> as JSON   returns: { ok:true, result:<result> }\nFor long-running operations the server returns { ok:true, result:{ job_id, status:'pending', ... } } and the client polls GET /api/jobs/<job_id>?include_result=1 until status='done'.\n\nThe other chat working on atlas_server.py registers these names in COMPUTE_REGISTRY (see atlases/relatedness/server/RELATEDNESS_ENDPOINTS.md for the matching server-side contract).",
+  "operations": {
     "mendelian_dyad_test": {
+      "_label": "Mendelian dyad test (single parent × offspring)",
+      "_doc": "Binomial-exact transmission test on parent-heterozygous sites + binomial consistency test on hard Mendelian violations. Cheap — runs in-browser. server_endpoint is provided as a fallback for forensic reproducibility (server-side run with logged provenance for the manuscript).",
       "kind": "browser_compute",
-      "input": "karyotype_matrix + dyad",
-      "output": "binomial p-value + observed/expected counts",
-      "_doc": "Binomial Mendelian test for a single (parent, offspring) dyad across the inversion subset."
+      "browser_module": "atlases/relatedness/pages/hub/mendelian.js",
+      "browser_function": "runDyadTest",
+      "server_endpoint": "relatedness_mendelian_dyad_test",
+      "input_schema": {
+        "parent_id":      "string  — sample_id of the parent",
+        "offspring_id":   "string  — sample_id of the offspring",
+        "candidate_list": "string[] — inversion candidate IDs to test"
+      },
+      "output_schema": {
+        "mode":           "literal 'dyad'",
+        "n_total":        "int",
+        "n_consistent":   "int",
+        "n_inconsistent": "int",
+        "n_informative":  "int   — sites where parent is 0/1",
+        "n_zero":         "int   — offspring inherited allele 0",
+        "n_one":          "int   — offspring inherited allele 1",
+        "transmission_p": "float — two-sided binomial vs 0.5",
+        "consistency_p":  "float — binomial vs ~2% error baseline",
+        "detail":         "Array<{candidate, p_kt, o_kt, status}>"
+      }
     },
+
     "mendelian_triad_test": {
+      "_label": "Mendelian triad test (parent₁ × parent₂ → offspring)",
+      "_doc": "Multinomial / chi-square 1:2:1 segregation test. Cheap — runs in-browser. Server endpoint provided for logged-provenance reruns.",
       "kind": "browser_compute",
-      "input": "karyotype_matrix + triad",
-      "output": "multinomial-exact / chi-square p-value + observed/expected matrix",
-      "_doc": "Multinomial Mendelian test for a single (parent_a, parent_b, offspring) triad."
+      "browser_module": "atlases/relatedness/pages/hub/mendelian.js",
+      "browser_function": "runTriadTest",
+      "server_endpoint": "relatedness_mendelian_triad_test",
+      "input_schema": {
+        "parent1_id":     "string",
+        "parent2_id":     "string",
+        "offspring_id":   "string",
+        "candidate_list": "string[]"
+      },
+      "output_schema": {
+        "mode":              "literal 'triad'",
+        "n_total":           "int",
+        "n_consistent":      "int",
+        "n_inconsistent":    "int",
+        "consistency_p":     "float",
+        "n_het_het":         "int",
+        "n_het_het_obs00":   "int",
+        "n_het_het_obs01":   "int",
+        "n_het_het_obs11":   "int",
+        "chi2":              "float",
+        "chi2_p":            "float",
+        "chi2_df":           "int",
+        "detail":            "Array<{candidate, p1_kt, p2_kt, o_kt, expected, status}>"
+      }
     },
+
     "cohort_mendelian_scan": {
+      "_label": "Cohort Mendelian scan (every inversion candidate × every dyad/triad)",
+      "_doc": "The four-stage hierarchical scoring (Stage 1 family validation → Stage 2 local Mendelian → Stage 3 X-of-Y verdict → Stage 4 transmission test) run over the full candidate × triad cross-product. THIS is the operation that may be promoted to server_compute in round 2: the 248-candidate × 13-triad demo is ~3000 evaluations which is fine in-browser, but a 5000-candidate × 80-triad real cohort is 400k evaluations and may block the main thread. Server-side it runs as a background job (returns job_id; poll GET /api/jobs/<id>).",
       "kind": "browser_compute",
-      "input": "karyotype_matrix + all dyads OR all triads in current hub",
-      "output": "per-inversion p-value table + category (PASS / WARN / FAIL / SKEW / DRIVE_CANDIDATE / NEEDS_CROSSES / FAMILY_SUSPECT)",
-      "_doc": "Cohort-wide Mendelian scan across all candidates. Likely promoted to a server endpoint if it becomes the bottleneck."
+      "browser_module": "atlases/relatedness/pages/hub/inversions.js",
+      "browser_function": "scoreInversion",
+      "server_endpoint": "relatedness_cohort_mendelian_scan",
+      "server_async": true,
+      "input_schema": {
+        "candidate_ids":  "string[] | null   — null = every candidate",
+        "triad_ids":      "string[] | null   — null = every triad in the current hub",
+        "alpha":          "float            — significance threshold for category assignment",
+        "include_suspect_trios": "bool       — if false, drop trio_qc.valid=false trios"
+      },
+      "output_schema": {
+        "n_candidates":   "int",
+        "scores":         "Array<scoreInversion-shape>  // see browser_function output"
+      }
     },
+
     "compatibility_search": {
+      "_label": "Compatibility search (breeding-partner finder)",
+      "_doc": "Given a focal individual + target offspring karyotype + inversion scope, returns every other individual whose cross with the focal could produce the target. Cheap — runs in-browser. Server endpoint is provided for reproducibility-log reruns.",
       "kind": "browser_compute",
-      "input": "focal_individual + target_karyotype + (single | chrom | all) scope + filters",
-      "output": "compatible-partner table",
-      "_doc": "Breeding-partner finder. Returns all partners whose cross with the focal would produce the target karyotype with non-zero probability."
+      "browser_module": "atlases/relatedness/pages/hub/compatibility.js",
+      "browser_function": "runCompatibilitySearch",
+      "server_endpoint": "relatedness_compatibility_search",
+      "input_schema": {
+        "focal_id":         "string",
+        "target_karyotype": "'0/0' | '0/1' | '1/1'",
+        "scope":            "'single' | 'chrom' | 'all'",
+        "inv_single":       "string | null",
+        "chrom":            "string | null",
+        "sex_aware":        "bool",
+        "exclude_kin":      "bool",
+        "exclude_ambig":    "bool"
+      },
+      "output_schema": {
+        "focal":              "string",
+        "target":             "string",
+        "invSet":             "Array<{candidate, chromosome, ...}>",
+        "sex_data_available": "bool",
+        "sex_filter_applied": "bool",
+        "results":            "Array<{partner_id, n_guaranteed, n_possible, n_impossible, n_unknown, verdict, perInv}>"
+      }
     }
-  },
-  "operations": {}
+  }
 }

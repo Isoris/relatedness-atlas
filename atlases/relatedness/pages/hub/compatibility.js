@@ -16,7 +16,11 @@ import { $, el } from '../../shared/utils.js';
 import { DEMO } from '../../shared/demo_data.js';
 import { state } from '../../shared/state.js';
 import { sexBadgeHtml } from '../../shared/sex_badge.js';
+import { computeAndWait, isComputeAvailable } from '../../shared/api_client.js';
 import { _setActiveState } from './compatibility/_state.js';
+
+const SERVER_ENDPOINT = 'relatedness_compatibility_search';
+let _serverComputeAvailable = false;
 
 // ─── §9b verbatim body ────────────────────────────────────────────────────
 
@@ -97,7 +101,7 @@ function getCompatInversionSet() {
   }
 }
 
-function runCompatibilitySearch() {
+async function runCompatibilitySearch() {
   const focalId  = $('#compatFocal').value;
   const targetKt = $('#compatTarget').value;
   const invSet   = getCompatInversionSet();
@@ -115,6 +119,31 @@ function runCompatibilitySearch() {
     exclude_amb: excludeAmb,
     last_results: null,
   };
+
+  // Server fast path — if /compute/relatedness_compatibility_search is
+  // registered we dispatch there. The endpoint returns the same shape
+  // renderCompatibilityResults() expects.
+  if (_serverComputeAvailable) {
+    try {
+      const args = {
+        focal_id:         focalId,
+        target_karyotype: targetKt,
+        scope:            $('#compatInvScope').value,
+        inv_single:       $('#compatInvSingle').value,
+        chrom:            $('#compatChrom').value,
+        sex_aware:        sexAware,
+        exclude_kin:      excludeKin,
+        exclude_ambig:    excludeAmb,
+      };
+      const result = await computeAndWait(SERVER_ENDPOINT, args);
+      state.compat.last_results = result;
+      renderCompatibilityResults();
+      return;
+    } catch (err) {
+      console.warn('[compatibility] server compute failed, falling back in-browser:', err);
+      // fall through to local path
+    }
+  }
 
   let candidates = DEMO.individuals.filter(p => p !== focalId);
 
@@ -354,6 +383,11 @@ function wireCompatibility() {
 export async function mount(root, atlasState, registry) {
   _setActiveState({ atlasState, registry });
   populateCompatSelectors();
+
+  // Probe the server endpoint in the background — covered by the fallback.
+  isComputeAvailable(SERVER_ENDPOINT)
+    .then(v => { _serverComputeAvailable = v; })
+    .catch(err => console.warn('[compatibility] server probe failed:', err));
 
   // If pre-seeded by Inversions tab "→ Compatibility planner" action.
   if (state.compat.scope) $('#compatInvScope').value = state.compat.scope;

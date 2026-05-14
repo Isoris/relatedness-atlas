@@ -1,23 +1,78 @@
 {
   "$schema": "../../../../../atlas-core/core/registry_core.schema.json",
-  "_doc": "File inventory for the Relatedness Atlas. Round 1 (2026-05-11) ships an empty file table on purpose — the round-1 mock runs entirely off baked-in DEMO data inside atlases/relatedness/shared/demo_data.js. The real file contracts (status-pill targets: .res / beagle.gz / prune / inversion candidates TSV) land in a follow-up round.",
-  "_planned_files_round_2": {
+  "_doc": "File inventory for the Relatedness Atlas. Round 1 (2026-05-11) ships only the demo-data files (baked into shared/demo_data.js) — the file table below lists the four ngsPedigree-produced files the pillBar slots will target in round 2. Reads go through the atlas-core unified server's static mount (workspace-relative paths, no /file/ prefix) OR through the sandboxed /file/{path} endpoint (longer error messages, allowlisted writes); the loaders in shared/loaders/ accept either. See atlases/relatedness/server/RELATEDNESS_ENDPOINTS.md for the server-side contract.",
+  "files": {
     "res": {
-      "path_template": "/data/project/population.res",
-      "_doc": "ngsRelate 23-column .res output for the cohort. Target of the .res pillBar slot."
+      "_label": "ngsRelate / ngsPedigree pairwise output",
+      "pillBar_slot": "res",
+      "path_template": "data/relatedness/pairwise_relationship_classification.tsv",
+      "loader": "atlases/relatedness/shared/loaders/res_pairwise.js::loadResPairwise",
+      "produced_by": "ngsPedigree Stage 1 (STEP_PED_01_annotate_relationships.py)",
+      "endpoint": "GET /file/{path_template}  (or static-mount fast path /{path_template})",
+      "_doc": "23-column pairwise table from ngsPedigree Stage 1. Drives the Inspector / Stats panel and the Network panel's edge classes."
+    },
+    "family_hub_roster": {
+      "_label": "ngsPedigree family hub roster",
+      "pillBar_slot": "res",
+      "path_template": "data/relatedness/family_hub_roster.tsv",
+      "loader": "atlases/relatedness/shared/loaders/family_hub_roster.js::loadFamilyHubRoster",
+      "produced_by": "ngsPedigree Stage 1",
+      "endpoint": "GET /file/{path_template}",
+      "_doc": "One row per individual with family_id, hub assignment, role. Drives the Population Browser tree."
+    },
+    "per_chrom_qc": {
+      "_label": "ngsPedigree per-chromosome QC",
+      "pillBar_slot": "res",
+      "path_template": "data/relatedness/per_chrom_qc.tsv",
+      "loader": "atlases/relatedness/shared/loaders/per_chrom_qc.js::loadPerChromQc",
+      "produced_by": "ngsPedigree Stage 2 (STEP_PED_02_per_chromosome_qc.py)",
+      "endpoint": "GET /file/{path_template}",
+      "_doc": "Per-chromosome PASS/WARN/FAIL conflict counts per dyad/triad + genome-wide trio QC fields (po_a, po_b, gw_mend_error, anc_dist, valid). Drives the right-column Mendelian-check breakdown."
+    },
+    "inversion_karyotypes": {
+      "_label": "Inversion Atlas karyotype matrix",
+      "pillBar_slot": "inv",
+      "path_template": "data/relatedness/inversion_karyotypes.tsv",
+      "loader": "atlases/relatedness/shared/loaders/inversion_karyotypes.js::loadInversionKaryotypes",
+      "produced_by": "Inversion Atlas catalogue export",
+      "endpoint": "GET /file/{path_template}",
+      "_doc": "Long-format TSV: one row per (sample_id, inversion_id) with karyotype ('0/0'|'0/1'|'1/1'|'NA') + quality. Drives the Karyotypes tab, the Mendelian tester, and the four-stage scoring on the Inversions tab."
+    },
+    "inversion_catalogue": {
+      "_label": "Inversion Atlas candidate catalogue",
+      "pillBar_slot": "inv",
+      "path_template": "data/relatedness/inversion_catalogue.tsv",
+      "loader": "atlases/relatedness/shared/loaders/inversion_karyotypes.js::loadInversionKaryotypes (via inversion_catalogue_path)",
+      "produced_by": "Inversion Atlas catalogue export",
+      "endpoint": "GET /file/{path_template}",
+      "_doc": "Sidecar of inversion_karyotypes.tsv: per-candidate coordinates (chromosome, start_mb, end_mb, length_mb, frequency, status, notes). When absent the karyotype loader falls back to id-only with NaN coords."
+    },
+    "ancestry_q": {
+      "_label": "Cohort ancestry Q-matrix",
+      "pillBar_slot": "ancestry",
+      "path_template": "data/relatedness/ancestry_q.tsv",
+      "loader": "TODO (round 2) — sample_id × K columns; drives the Karyotypes ancestry stripe",
+      "produced_by": "NGSadmix Q-matrix export (population atlas catalogue)",
+      "endpoint": "GET /file/{path_template}",
+      "_doc": "Optional — when absent the page falls back to the synthetic ancestry palette in shared/demo_data.js."
     },
     "beagle": {
-      "path_template": "/data/beagle/beagle.gz",
-      "_doc": "Cohort genotype likelihoods. Target of the beagle pillBar slot."
+      "_label": "Cohort BEAGLE genotype likelihoods",
+      "pillBar_slot": "beagle",
+      "path_template": "data/relatedness/cohort.beagle.gz",
+      "loader": "TODO (round 2) — only the per-chromosome inheritance map is consumed; full beagle is server-side only",
+      "produced_by": "ANGSD -doGlf 2",
+      "endpoint": "GET /file/{path_template}",
+      "_doc": "Optional pillBar slot. The atlas never reads the full file directly — ngsPedigree Stage 3 derives the per-chromosome inheritance map from it server-side."
     },
     "prune": {
-      "path_template": "/data/prune.in",
-      "_doc": "NAToRA / first-degree pruning list (optional). Target of the prune pillBar slot."
-    },
-    "inversion_candidates": {
-      "path_template": "/data/inversion_candidates.tsv",
-      "_doc": "Inversion candidates TSV exported from the Inversion Atlas catalogue. Target of the inv pillBar slot."
+      "_label": "NAToRA pruning list",
+      "pillBar_slot": "prune",
+      "path_template": "data/relatedness/natora_prune.in",
+      "loader": "TODO (round 2) — single-column sample list; passed to the cohort Mendelian scan as the 'unrelated' subset",
+      "produced_by": "NAToRA (catfish-population-analysis Module 01)",
+      "endpoint": "GET /file/{path_template}",
+      "_doc": "Optional pillBar slot. When loaded, the cohort Mendelian scan uses the pruned subset as the baseline."
     }
-  },
-  "files": {}
+  }
 }

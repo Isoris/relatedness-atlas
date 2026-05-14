@@ -58,19 +58,32 @@
     "slots": "atlases/relatedness/registries/data/slots.registry.json"
   },
   "shared_modules": {
-    "demo_data": "atlases/relatedness/shared/demo_data.js",
-    "state": "atlases/relatedness/shared/state.js",
-    "utils": "atlases/relatedness/shared/utils.js",
-    "chrome": "atlases/relatedness/shared/chrome.js",
-    "pop_tree": "atlases/relatedness/shared/pop_tree.js",
-    "pop_summary": "atlases/relatedness/shared/pop_summary.js",
-    "inspector": "atlases/relatedness/shared/inspector.js",
-    "loaded_files": "atlases/relatedness/shared/loaded_files.js"
+    "demo_data":       "atlases/relatedness/shared/demo_data.js",
+    "state":           "atlases/relatedness/shared/state.js",
+    "utils":           "atlases/relatedness/shared/utils.js",
+    "chrome":          "atlases/relatedness/shared/chrome.js",
+    "pop_tree":        "atlases/relatedness/shared/pop_tree.js",
+    "pop_summary":     "atlases/relatedness/shared/pop_summary.js",
+    "inspector":       "atlases/relatedness/shared/inspector.js",
+    "loaded_files":    "atlases/relatedness/shared/loaded_files.js",
+    "karyotype_table": "atlases/relatedness/shared/karyotype_table.js",
+    "stats":           "atlases/relatedness/shared/stats.js",
+    "sex_badge":       "atlases/relatedness/shared/sex_badge.js",
+    "page_hooks":      "atlases/relatedness/shared/page_hooks.js",
+    "api_client":      "atlases/relatedness/shared/api_client.js",
+    "loaders":         "atlases/relatedness/shared/loaders/index.js"
   },
   "server": {
-    "_doc": "Relatedness Atlas Round 1 does NOT ship its own server. The atlas reads ngsPedigree outputs as static files via the shared atlas-core unified server (see atlas-core/server/SERVER_README.md). Future rounds may add a /api/relatedness/compute endpoint if the Mendelian / Compatibility testers need to push to a background worker.",
+    "_doc": "Relatedness Atlas does NOT ship its own server binary — it consumes the atlas-core unified server (atlas-core/server/atlas_server.py) via three contracts: (1) static reads of the assembled workspace for ngsPedigree data files; (2) sandboxed reads via GET /file/{path}; (3) POST /compute/<name> dispatch for Mendelian / Compatibility computes (see atlases/relatedness/server/RELATEDNESS_ENDPOINTS.md for the per-endpoint contract — the source of truth for the sister chat working on atlas_server.py). The atlas-side falls back to in-browser compute when an endpoint is missing, so the atlas is fully usable today without the server-side handlers.",
     "entry": null,
-    "default_url": "http://localhost:8000"
+    "default_url": "http://localhost:8000",
+    "endpoints_contract": "atlases/relatedness/server/RELATEDNESS_ENDPOINTS.md",
+    "compute_endpoints": {
+      "relatedness_mendelian_dyad_test":   { "sync": true,  "browser_fallback": "pages/hub/mendelian.js::runDyadTest" },
+      "relatedness_mendelian_triad_test":  { "sync": true,  "browser_fallback": "pages/hub/mendelian.js::runTriadTest" },
+      "relatedness_cohort_mendelian_scan": { "sync": false, "browser_fallback": "pages/hub/inversions.js::scoreInversion (per-candidate loop)" },
+      "relatedness_compatibility_search":  { "sync": true,  "browser_fallback": "pages/hub/compatibility.js::runCompatibilitySearch" }
+    }
   },
   "css_dir": "atlases/relatedness/css/",
   "stylesheets": [

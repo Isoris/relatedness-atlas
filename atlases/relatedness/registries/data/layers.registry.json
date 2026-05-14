@@ -1,49 +1,61 @@
 {
   "$schema": "../../../../../atlas-core/core/registry_core.schema.json",
-  "_doc": "Layer inventory for the Relatedness Atlas. Round 1 (2026-05-11) ships an empty layer table on purpose: the round-1 mock runs entirely off baked-in DEMO data inside atlases/relatedness/shared/demo_data.js. The real data contracts (.res file from ngsRelate, beagle.gz cohort genotype likelihoods, NAToRA prune file, inversion candidates TSV) land in a follow-up round when Quentin owns the registry content decisions.",
-  "_planned_layers_round_2": {
+  "_doc": "Layer inventory for the Relatedness Atlas. A 'layer' is a logical, in-memory shape that pages consume; a 'file' (see files.registry.json) is its on-disk source. Round 1 (2026-05-11) declares the five round-2 layers and their loaders; the runtime currently runs entirely off baked DEMO data in shared/demo_data.js, but the loaders in shared/loaders/ are wired and tested against the same schemas so the swap-in is a one-liner per page.",
+  "_tier_legend": {
+    "hot":  "RAM-pinned at atlas_open; pages read directly; <1ms",
+    "warm": "IndexedDB-cached at trigger event; first read async ~50ms",
+    "cold": "Fetched on demand; spinner allowed"
+  },
+  "layers": {
     "res_pairwise": {
+      "_label": "Pairwise relationship classification",
       "tier": "hot",
       "preload_on": "atlas_open",
       "source": "file",
-      "path": "data/relatedness/pairwise_relationship_classification.tsv",
-      "_doc": "ngsPedigree Stage 1 output. 23 columns of pairwise k0/k1/k2/kinship/IBS0/PO_distance/relationship_class. Drives the Inspector / Network panels."
+      "source_file": "res",
+      "loader": "atlases/relatedness/shared/loaders/res_pairwise.js::loadResPairwise",
+      "schema": "res_pairwise_v1",
+      "_doc": "ngsPedigree Stage 1 output. Drives the Inspector / Stats panel and the Network panel's edge classes."
     },
     "family_hub_roster": {
+      "_label": "Family hub roster",
       "tier": "hot",
       "preload_on": "atlas_open",
       "source": "file",
-      "path": "data/relatedness/family_hub_roster.tsv",
-      "_doc": "ngsPedigree Stage 1 output. Per-individual family / hub / role assignments. Drives the Population Browser tree."
+      "source_file": "family_hub_roster",
+      "loader": "atlases/relatedness/shared/loaders/family_hub_roster.js::loadFamilyHubRoster",
+      "schema": "family_hub_roster_v1",
+      "_doc": "ngsPedigree Stage 1 output. Drives the Population Browser tree."
     },
     "per_chrom_qc": {
+      "_label": "Per-chromosome Mendelian QC",
       "tier": "warm",
       "preload_on": "page_mount:mendelian",
       "source": "file",
-      "path": "data/relatedness/per_chrom_qc.tsv",
-      "_doc": "ngsPedigree Stage 2 output. Per-chromosome Mendelian-conflict QC columns for each dyad/triad. Feeds the right-column Mendelian-check breakdown."
-    },
-    "chrom_inheritance_map": {
-      "tier": "warm",
-      "preload_on": "page_mount:mendelian",
-      "source": "file",
-      "path": "data/relatedness/chrom_inheritance_map.tsv",
-      "_doc": "ngsPedigree Stage 3 output. Per-chromosome inheritance assignments per offspring. Consumed by the Mendelian tab."
+      "source_file": "per_chrom_qc",
+      "loader": "atlases/relatedness/shared/loaders/per_chrom_qc.js::loadPerChromQc",
+      "schema": "per_chrom_qc_v1",
+      "_doc": "ngsPedigree Stage 2 output. Feeds the right-column Mendelian-check breakdown and the trio_qc map used by the Inversions page's four-stage scoring."
     },
     "inversion_karyotypes": {
+      "_label": "Per-sample inversion karyotype matrix",
       "tier": "hot",
       "preload_on": "atlas_open",
       "source": "file",
-      "path": "data/inversion_karyotypes.tsv",
-      "_doc": "Inversion Atlas / scrubber output. Per-sample x per-candidate karyotype matrix. Drives the Karyotypes tab and the Mendelian tester."
+      "source_file": "inversion_karyotypes",
+      "loader": "atlases/relatedness/shared/loaders/inversion_karyotypes.js::loadInversionKaryotypes",
+      "schema": "inversion_karyotypes_v1",
+      "_doc": "Inversion Atlas catalogue export. Drives the Karyotypes tab, the Mendelian tester, and the four-stage scoring on the Inversions tab."
     },
     "ancestry_q": {
+      "_label": "Cohort ancestry Q-matrix",
       "tier": "warm",
       "preload_on": "atlas_open",
       "source": "file",
-      "path": "data/ancestry_q.tsv",
-      "_doc": "Cohort K=N NGSadmix Q-matrix. Drives the Karyotypes ancestry stripe and the ancestry palette pill."
+      "source_file": "ancestry_q",
+      "loader": "TODO (round 2)",
+      "schema": "ancestry_q_v1",
+      "_doc": "Optional. Drives the Karyotypes ancestry stripe. Falls back to the synthetic palette in shared/demo_data.js when absent."
     }
-  },
-  "layers": {}
+  }
 }

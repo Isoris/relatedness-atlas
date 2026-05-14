@@ -25,7 +25,21 @@ import {
   binomialPValueTwoSided, chiSquarePValue, expectedOffspringPrior,
 } from '../../shared/stats.js';
 import { on } from '../../shared/page_hooks.js';
+import { computeAndWait, isComputeAvailable } from '../../shared/api_client.js';
 import { _setActiveState } from './mendelian/_state.js';
+
+// Server-side fallback. Pages probe at mount() and remember the answer in
+// _serverComputeAvailable; if the server's COMPUTE_REGISTRY has the matching
+// endpoint, runMendelianTest() dispatches there instead of computing in
+// the main thread. See atlases/relatedness/server/RELATEDNESS_ENDPOINTS.md
+// for the server-side contract (the other chat working on atlas_server.py).
+const SERVER_ENDPOINTS = {
+  dyad:       'relatedness_mendelian_dyad_test',
+  triad:      'relatedness_mendelian_triad_test',
+  all_dyads:  'relatedness_cohort_mendelian_scan',
+  all_triads: 'relatedness_cohort_mendelian_scan',
+};
+let _serverComputeAvailable = { dyad: false, triad: false, all_dyads: false, all_triads: false };
 
 // ─── §9 verbatim body (with event wiring promoted into wireMendelian()) ──
 
@@ -171,10 +185,27 @@ function getMendCandidates() {
   return list;
 }
 
-function runMendelianTest() {
+async function runMendelianTest() {
   const mode = state.mend.mode;
   const candidates = getMendCandidates();
   const fam = DEMO.families.find(f => f.family_id === state.selected_family) || DEMO.families[0];
+
+  // Server fast path — when the matching /compute/<endpoint> is registered
+  // we hand off and let the server return the exact same shape. Round 1 the
+  // server doesn't have any of these registered yet, so this never fires.
+  if (_serverComputeAvailable[mode]) {
+    try {
+      const args = _buildServerArgs(mode, candidates, fam);
+      const result = await computeAndWait(SERVER_ENDPOINTS[mode], args);
+      state.mend.last_result = result;
+      renderMendResult(result);
+      return;
+    } catch (err) {
+      console.warn('[mendelian] server compute failed, falling back in-browser:', err);
+      // fall through to the local path
+    }
+  }
+
   let result;
   if (mode === 'dyad') {
     result = runDyadTest(state.mend.parent1, state.mend.offspring, candidates);
@@ -198,6 +229,33 @@ function runMendelianTest() {
   }
   state.mend.last_result = result;
   renderMendResult(result);
+}
+
+function _buildServerArgs(mode, candidates, fam) {
+  const cand_ids = candidates.map(c => c.candidate);
+  if (mode === 'dyad') {
+    return {
+      parent_id:      state.mend.parent1,
+      offspring_id:   state.mend.offspring,
+      candidate_list: cand_ids,
+    };
+  }
+  if (mode === 'triad') {
+    return {
+      parent1_id:     state.mend.parent1,
+      parent2_id:     state.mend.parent2,
+      offspring_id:   state.mend.offspring,
+      candidate_list: cand_ids,
+    };
+  }
+  // cohort
+  return {
+    candidate_ids: cand_ids,
+    triad_ids:     null,                      // null = every triad in current hub
+    alpha:         parseFloat(state.mend.alpha) || 0.05,
+    include_suspect_trios: false,
+    family_id:     fam.family_id,
+  };
 }
 
 function combineCohortDyads(results, hub) {
@@ -509,6 +567,13 @@ export async function mount(root, atlasState, registry) {
   populateMendSelectors();
   updateMendModeUI();
   wireMendelian();
+
+  // Probe each /compute/<endpoint> in parallel. Fire-and-forget — the
+  // result lands in _serverComputeAvailable before the user clicks Run
+  // (or shortly after; the in-browser fallback covers either way).
+  Promise.all(Object.entries(SERVER_ENDPOINTS).map(async ([mode, endpoint]) => {
+    _serverComputeAvailable[mode] = await isComputeAvailable(endpoint);
+  })).catch(err => console.warn('[mendelian] server probe failed:', err));
 
   // If the user arrived here via the Inversions tab's "open in Mendelian"
   // action, _pendingMode / _pendingFromInversion was pre-seeded by
