@@ -57,6 +57,37 @@ export const state = {
     last_results: null,
   },
 
+  // BDMI / incompatibility-screen state. Six toggles (one per test) plus the
+  // scope, distortion alpha, heterokaryotype-rule selector, and the last
+  // results blob. Same direct-mutation pattern as state.mend / state.compat;
+  // when an Inversions row eventually pre-seeds the BDMI tab the seeded
+  // candidate goes into state.bdmi.focus_candidate.
+  bdmi: {
+    scope:        'all',
+    mend_source:  'triads',
+    alpha:        '0.01',
+    het_rule:     'abs_deficit',
+    screens_enabled: {
+      mend: true, miss: true, het: true, anc: true, lr: true, pheno: false,
+    },
+    focus_candidate: null,
+    last_results:    null,
+  },
+
+  // Chromosome regime inheritance — linked-inversion control + meiotic-drive
+  // vs underdominance classifier. Same pattern: chromosome + focal candidate
+  // pre-seedable from the Inversions tab; the last_results blob caches the
+  // partner-table / mechanism-classifier output so navigating away does not
+  // wipe it.
+  regimes: {
+    chromosome:       null,
+    focal:            null,
+    min_n:            '10',
+    couple_threshold: '0.50',
+    last_results:     null,
+    last_mechanism:   null,
+  },
+
   // pillBar source state (round 1: mock).
   loaded_files: [
     { kind: 'res',    path: '/data/project/population.res',     loaded: true },

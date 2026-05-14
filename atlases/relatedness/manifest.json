@@ -48,6 +48,22 @@
       "fragment": "atlases/relatedness/pages/hub/compatibility.html",
       "module": "atlases/relatedness/pages/hub/compatibility.js",
       "tooltip": "Breeding-partner finder. Pick a focal individual + target karyotype + scope; lists compatible partners with sex-aware / exclude-kin filters."
+    },
+    {
+      "id": "bdmi",
+      "label": "BDMI screen",
+      "stage": "hub",
+      "fragment": "atlases/relatedness/pages/hub/bdmi.html",
+      "module": "atlases/relatedness/pages/hub/bdmi.js",
+      "tooltip": "Bateson-Dobzhansky-Muller incompatibility screen. Runs six population-genetic tests per inversion candidate (Mendelian distortion, missing class, het deficit, ancestry interaction, long-range forbidden combinations, phenotype association) and assigns a confidence ladder weak/moderate/strong/very-strong."
+    },
+    {
+      "id": "regimes",
+      "label": "regime inheritance",
+      "stage": "hub",
+      "fragment": "atlases/relatedness/pages/hub/regimes.html",
+      "module": "atlases/relatedness/pages/hub/regimes.js",
+      "tooltip": "Chromosome regime inheritance — tests whether a focal inversion's distortion is explained by linkage to another inversion on the same chromosome (haplotype-regime coupling), then classifies the residual signal as meiotic-drive-like vs underdominance-like via cross-type comparison. Prevents over-calling BDMI / drive / underdominance from coupled inversions."
     }
   ],
   "registries": {

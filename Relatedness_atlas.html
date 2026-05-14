@@ -1418,6 +1418,8 @@
       <button data-subtab="inversions">Inversions</button>
       <button data-subtab="mendelian">Mendelian</button>
       <button data-subtab="compatibility">Compatibility</button>
+      <button data-subtab="bdmi" title="Bateson-Dobzhansky-Muller incompatibility screen">BDMI screen</button>
+      <button data-subtab="regimes" title="Chromosome regime inheritance — linked inversions, drive vs underdominance, breeding risk">Regime inheritance</button>
       <div class="sub-tab-spacer"></div>
       <div class="chr-filter">
         <span>Chr filter:</span>
@@ -1598,6 +1600,208 @@
 
       <div id="compatSummary"></div>
       <div id="compatResultSlot"></div>
+    </div>
+
+    <!-- BDMI / incompatibility-screen sub-page — the inheritance-side test
+         bench for inversion candidates flagged by the Inversion Atlas. The
+         heavy lifting lives in atlases/relatedness/pages/hub/bdmi.{html,js};
+         this is the in-shell placeholder so the legacy single-file mock can
+         host the tab during round 1. Markup mirrors bdmi.html one-for-one
+         so wiring is identical whether you're running the modular atlas
+         shell or the legacy file. -->
+    <div id="subpage-bdmi" class="subpage" data-subtab-page>
+      <div class="page-subtitle" style="font-size: 10.5px; color: var(--ink-dim); margin-bottom: 12px;">
+        Bateson–Dobzhansky–Muller incompatibility (BDMI) screen. For each inversion candidate, runs six population-genetic tests that flag candidate incompatibility regions: Mendelian segregation distortion, missing karyotype classes, heterozygote excess / deficit, ancestry × genotype interaction, long-range forbidden haplotype combinations, and (when phenotype data exist) phenotype association. Results combine into a per-candidate confidence ladder (weak → moderate → strong → very strong). WGS-only signals are correlative — controlled crosses are required for validation.
+      </div>
+
+      <div class="bdmi-config">
+        <div class="row">
+          <label>Candidate scope</label>
+          <select id="bdmiScope">
+            <option value="all">All inversion candidates</option>
+            <option value="status_pass">Status = PASS only</option>
+            <option value="status_warn">Status = WARN only</option>
+            <option value="freq_high">Frequency ≥ 0.10</option>
+            <option value="chrom_only">Current chromosome only</option>
+          </select>
+        </div>
+        <div class="row">
+          <label>Mendelian source</label>
+          <select id="bdmiMendSource">
+            <option value="triads">Triads in DEMO.triads (preferred)</option>
+            <option value="hub_dyads">Dyads from current family hub</option>
+          </select>
+        </div>
+        <div class="row">
+          <label>Distortion α</label>
+          <select id="bdmiAlpha">
+            <option value="0.05">α = 0.05</option>
+            <option value="0.01" selected>α = 0.01</option>
+            <option value="0.001">α = 0.001</option>
+          </select>
+        </div>
+        <div class="row">
+          <label>Heterokaryotype</label>
+          <select id="bdmiHetRule">
+            <option value="abs_deficit">|obs − exp(2pq)| / exp ≥ 0.30</option>
+            <option value="z_deficit">z (HWE chi²) p &lt; 0.05</option>
+          </select>
+        </div>
+        <div class="row">
+          <label>Screens to run</label>
+          <div class="toggle-row">
+            <label class="bdmi-toggle"><input type="checkbox" id="bdmiUseMend" checked /><span>Mendelian distortion (Test A)</span></label>
+            <label class="bdmi-toggle"><input type="checkbox" id="bdmiUseMiss" checked /><span>Missing class (Test B)</span></label>
+            <label class="bdmi-toggle"><input type="checkbox" id="bdmiUseHet"  checked /><span>Het deficit/excess (Test C)</span></label>
+            <label class="bdmi-toggle"><input type="checkbox" id="bdmiUseAnc"  checked /><span>Ancestry interaction (Test D)</span></label>
+            <label class="bdmi-toggle"><input type="checkbox" id="bdmiUseLR"   checked /><span>Long-range forbidden (Test E)</span></label>
+            <label class="bdmi-toggle"><input type="checkbox" id="bdmiUsePheno"        /><span>Phenotype assoc. (Test F)</span></label>
+          </div>
+        </div>
+        <div class="row">
+          <label></label>
+          <div class="bdmi-actions">
+            <button class="primary" id="bdmiRunBtn">Run BDMI screen</button>
+            <button id="bdmiResetBtn">Reset</button>
+            <button id="bdmiExportBtn" title="Download per-candidate score table as TSV">⤓ Export TSV</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="bdmiDataSource" class="data-source-badge" style="
+           font-size: 12px;
+           color: #666;
+           margin: 4px 0 8px;
+           padding: 4px 8px;
+           background: #f5f5f5;
+           border-left: 3px solid #ccc;
+           border-radius: 2px;
+           line-height: 1.4;
+           min-height: 1em;">◌  Phenotype layer not loaded — Test F (phenotype association) cannot exceed "missing" until survival/growth/fertility TSV is wired in.</div>
+
+      <div class="bdmi-summary" id="bdmiSummary"></div>
+
+      <div class="bdmi-ladder">
+        <div class="bdmi-ladder-row">
+          <span class="bdmi-confidence-pill weak">weak</span>
+          <span>high FST / old inversion / low recombination only — no inheritance evidence yet</span>
+        </div>
+        <div class="bdmi-ladder-row">
+          <span class="bdmi-confidence-pill moderate">moderate</span>
+          <span>missing genotype class or heterozygote deficit (Tests B / C fire)</span>
+        </div>
+        <div class="bdmi-ladder-row">
+          <span class="bdmi-confidence-pill strong">strong</span>
+          <span>Mendelian distortion or ancestry-dependent depletion (Tests A / D / E fire)</span>
+        </div>
+        <div class="bdmi-ladder-row">
+          <span class="bdmi-confidence-pill very-strong">very strong</span>
+          <span>phenotype / survival / fertility association (Test F fires) — requires phenotype layer</span>
+        </div>
+        <div class="bdmi-ladder-row">
+          <span class="bdmi-confidence-pill validated">validated</span>
+          <span>controlled crosses show reduced fitness for a specific genotype combination — out of scope for WGS</span>
+        </div>
+      </div>
+
+      <div id="bdmiResultSlot"></div>
+      <div id="bdmiDetailSlot"></div>
+
+      <div class="bdmi-manuscript ie-conclusion tier-moderate">
+        <div class="verdict">MANUSCRIPT PHRASING</div>
+        Although direct validation of Bateson–Dobzhansky–Muller incompatibilities
+        requires controlled crosses or fitness measurements, the present dataset
+        allows candidate incompatibility regions to be screened by testing for
+        segregation distortion, depletion of expected inversion genotype classes,
+        ancestry-dependent karyotype frequencies, and long-range non-random
+        associations between inversion arrangements and genomic backgrounds.
+      </div>
+    </div>
+
+    <!-- Chromosome Regime Inheritance — sub-tab #7. Inheritance-side control
+         page for the BDMI screen. Four sections: A. focal HWE marginal,
+         B. linked inversion regime control, C. meiotic drive vs
+         underdominance classifier, D. breeding-risk interpretation. Markup
+         mirrors atlases/relatedness/pages/hub/regimes.html one-for-one. -->
+    <div id="subpage-regimes" class="subpage" data-subtab-page>
+      <div class="page-subtitle" style="font-size: 10.5px; color: var(--ink-dim); margin-bottom: 12px;">
+        For linked inversions on the same chromosome, apparent distortion at one candidate should be tested <em>conditionally</em> on the other candidate or on the inferred long-range haplotype regime. If the distortion disappears after conditioning, the signal is better interpreted as haplotype-regime coupling than as independent underdominance, meiotic drive, or BDMI. Once a residual signal survives the regime control, the cross-type classifier separates <b>meiotic drive</b> (the parent transmits one arrangement too often) from <b>underdominance</b> (the heterozygote offspring class is depleted regardless of cross).
+      </div>
+
+      <div class="regimes-config">
+        <div class="row">
+          <label>Chromosome</label>
+          <select id="regimesChrom"></select>
+        </div>
+        <div class="row">
+          <label>Focal inversion</label>
+          <select id="regimesFocal"></select>
+        </div>
+        <div class="row">
+          <label>Min joint n</label>
+          <select id="regimesMinN">
+            <option value="5">n ≥ 5</option>
+            <option value="10" selected>n ≥ 10</option>
+            <option value="20">n ≥ 20</option>
+          </select>
+        </div>
+        <div class="row">
+          <label>Couple threshold</label>
+          <select id="regimesCoupleThr">
+            <option value="0.30">Cramér's V ≥ 0.30</option>
+            <option value="0.50" selected>Cramér's V ≥ 0.50</option>
+            <option value="0.70">Cramér's V ≥ 0.70</option>
+          </select>
+        </div>
+        <div class="row">
+          <label></label>
+          <div class="regimes-actions">
+            <button class="primary" id="regimesRunBtn">Run regime test</button>
+            <button id="regimesResetBtn">Reset</button>
+            <button id="regimesExportBtn" title="Download linked_inversion_regimes.tsv">⤓ Regimes TSV</button>
+            <button id="regimesExportMechBtn" title="Download segregation_mechanism_classifier.tsv">⤓ Mechanism TSV</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="bdmi-summary" id="regimesSummary"></div>
+
+      <div class="table-section-title">A. Single inversion Mendelian distortion <span class="sub">(focal HWE marginal)</span></div>
+      <div id="regimesFocalDistortionSlot"></div>
+
+      <div class="table-section-title" style="margin-top: 14px;">B. Linked inversion regime control <span class="sub">(coupling + conditional distortion)</span></div>
+      <div id="regimesPartnerTableSlot"></div>
+      <div id="regimesJointTableSlot"></div>
+
+      <div class="ie-conclusion tier-moderate" id="regimesVerdictSlot" style="display:none;">
+        <div class="verdict">REGIME VERDICT</div>
+        <div id="regimesVerdictBody"></div>
+      </div>
+
+      <div class="table-section-title" style="margin-top: 18px;">C. Meiotic drive vs underdominance <span class="sub">(cross-type classifier)</span></div>
+      <div class="page-subtitle" style="font-size: 10px; color: var(--ink-dim); margin-bottom: 8px;">
+        Aggregates DEMO.triads by parent cross-type at the focal candidate. <b>Drive candidate</b> = AB parent under-transmits the same allele across crosses. <b>Underdominance candidate</b> = the AB offspring class is depleted regardless of cross direction. The classifier defers to Section B when the focal is regime-explained.
+      </div>
+      <div id="regimesMechSummarySlot"></div>
+      <div id="regimesMechTableSlot"></div>
+      <div class="ie-conclusion tier-moderate" id="regimesMechVerdictSlot" style="display:none;">
+        <div class="verdict">MECHANISM VERDICT</div>
+        <div id="regimesMechVerdictBody"></div>
+      </div>
+
+      <div class="table-section-title" style="margin-top: 18px;">D. Breeding-risk interpretation <span class="sub">(decision hierarchy)</span></div>
+      <div class="ie-conclusion tier-weak">
+        <div class="verdict">INTERPRETATION HIERARCHY</div>
+        Before calling a candidate <b>underdominance</b>, <b>meiotic drive</b>, or <b>BDMI</b>, check these in order:
+        <ol style="margin: 6px 0 0 18px; padding: 0; line-height: 1.6;">
+          <li>Single-inversion distortion (Section A — focal HWE marginal).</li>
+          <li>Conditional on nearby inversion (Section B — partner table).</li>
+          <li>Conditional on same-chromosome haplotype regime (Section B — coupled / explained / residual verdict).</li>
+          <li>Conditional on genome-wide ancestry (cross-page — BDMI Test D).</li>
+          <li>Conditional on family / pedigree (cross-page — Mendelian tab cohort dyads / triads).</li>
+          <li>Only then assign a mechanistic label (Section C — drive vs underdominance), and only after that go to BDMI / incompatibility (BDMI tab).</li>
+        </ol>
+      </div>
     </div>
   </div>
 

@@ -37,6 +37,20 @@
       "requires_layers": [],
       "requires_slots": [],
       "preloads": []
+    },
+    "bdmi": {
+      "_label": "bdmi — Bateson-Dobzhansky-Muller incompatibility screen",
+      "_doc": "Per-candidate incompatibility screen. Test A: Mendelian segregation distortion across triads (or hub dyads). Test B: missing karyotype class (obs<5% when HWE exp>=15%). Test C: heterozygote excess/deficit relative to 2pq (|dev|>=30% or HWE chi-square p<0.05). Test D: ancestry x genotype contingency chi-square against dominant K-component. Test E: long-range forbidden combinations - minimum obs/exp ratio across cross-chromosome candidate pairs (<0.10 fires). Test F: phenotype association (stub until DEMO.phenotype or a normalized phenotype envelope is wired in). Confidence ladder: weak (none fire) -> moderate (B or C) -> strong (A or D or E) -> very strong (F) -> validated (out-of-scope for WGS, requires controlled crosses).",
+      "requires_layers": [],
+      "requires_slots": [],
+      "preloads": []
+    },
+    "regimes": {
+      "_label": "regimes — chromosome regime inheritance (linked inversions + mechanism classifier)",
+      "_doc": "Core-genetics control page for the BDMI screen. Section A: focal marginal Mendelian distortion (HWE chi-square). Section B: linked inversion regime control - for every other candidate on the same chromosome, computes a 3x3 joint genotype table, Cramer's V, mutual information, missing recombinant haplotype count, and the conditional-distortion combined p-value (Fisher's method across partner strata). Verdict: regime-coupled / regime-explained / regime-residual / regime-independent / regime-unknown. Section C: meiotic-drive vs underdominance classifier - aggregates triads in DEMO.triads by cross type (AA x AB, AB x BB, AB x AB) and asks whether the depletion follows the parent-transmitted allele (drive candidate) or the offspring AB class (underdominance candidate). Section D: breeding-risk interpretation, with the explicit hierarchy 'distortion -> linked-regime explained? -> drive vs underdominance -> BDMI'. Exports segregation_mechanism_classifier.tsv and linked_inversion_regimes.tsv.",
+      "requires_layers": [],
+      "requires_slots": [],
+      "preloads": []
     }
   }
 }
