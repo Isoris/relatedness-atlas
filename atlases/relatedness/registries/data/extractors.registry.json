@@ -1,0 +1,12 @@
+{
+  "extractors": [
+    {
+      "extractor_id":   "extract_staging_relatedness_v0",
+      "layer_type":     "relatedness_result",
+      "schema_version": "staging_relatedness_v0",
+      "stage":          "staging",
+      "parser":         "extractors.relatedness_tsv.extract",
+      "input_format":   "tsv"
+    }
+  ]
+}

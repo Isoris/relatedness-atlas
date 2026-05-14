@@ -1,0 +1,29 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "import_relatedness_tsv_v1.schema.json",
+  "title": "import_relatedness_tsv_v1 — manifest contract for relatedness TSV captures",
+  "description": "Validates POST /api/actions when type='import_relatedness_tsv'. Reads an ngsRelate / ngsPedigree / mendelian TSV from disk and emits a staging_relatedness_v0 layer. Designed to bridge the toolkit_registries/relatedness/ TSV minimum (analysis_results.tsv references) into the envelope world without re-running engines.",
+  "type": "object",
+  "required": ["target"],
+  "additionalProperties": true,
+  "properties": {
+    "target": {
+      "type": "object",
+      "required": ["path", "analysis"],
+      "additionalProperties": true,
+      "properties": {
+        "path":     { "type": "string", "minLength": 1, "description": "Workspace-relative path to the TSV." },
+        "analysis": { "type": "string", "enum": ["ngsrelate", "ngspedigree", "mendelian", "natora", "evaladmix"] },
+        "scope":    { "type": "string", "description": "Optional free-form scope (e.g. 'per_chromosome:LG12', 'whole_genome')." }
+      }
+    },
+    "params": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "has_header": { "type": "boolean", "default": true },
+        "max_rows":   { "type": "integer", "minimum": 1 }
+      }
+    }
+  }
+}

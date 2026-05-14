@@ -1,0 +1,17 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "staging_relatedness_v0.schema.json",
+  "title": "staging_relatedness_v0 — loose capture of one relatedness TSV",
+  "description": "Staging payload for ngsRelate / ngsPedigree / mendelian / NAToRA / evalAdmix TSVs. Captures columns + rows verbatim; promote to per-analysis normalized schemas (ngsrelate_pairs_v1, mendelian_results_v1, …) once the per-page renderers stabilise on their column set.",
+  "type": "object",
+  "required": ["analysis", "columns", "rows"],
+  "additionalProperties": true,
+  "properties": {
+    "analysis": { "type": "string" },
+    "scope":    { "type": "string" },
+    "columns":  { "type": "array", "items": { "type": "string" } },
+    "rows":     { "type": "array", "items": { "type": "object", "additionalProperties": true } },
+    "source":   { "type": "string" },
+    "n_rows":   { "type": "integer", "minimum": 0 }
+  }
+}

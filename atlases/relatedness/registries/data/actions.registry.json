@@ -1,0 +1,9 @@
+{
+  "actions": {
+    "import_relatedness_tsv": {
+      "runner":      "runners.import_tsv.import_tsv",
+      "schema_in":   "import_relatedness_tsv_v1",
+      "description": "Read an ngsRelate / ngsPedigree / mendelian / NAToRA / evalAdmix TSV and emit a staging_relatedness_v0 layer. Bridges toolkit_registries/relatedness/01_registry/analysis_results.tsv pointers into the layer envelope contract."
+    }
+  }
+}
