@@ -16,7 +16,7 @@ import { $, el } from '../../shared/utils.js';
 import { DEMO } from '../../shared/demo_data.js';
 import { state } from '../../shared/state.js';
 import { sexBadgeHtml } from '../../shared/sex_badge.js';
-import { computeAndWait, isComputeAvailable } from '../../shared/api_client.js';
+import { computeAndWait, isComputeAvailable, resolveLatestLayer } from '../../shared/api_client.js';
 import { _setActiveState } from './compatibility/_state.js';
 
 const SERVER_ENDPOINT = 'relatedness_compatibility_search';
@@ -378,6 +378,45 @@ function wireCompatibility() {
   $('#compatExportBtn').addEventListener('click', exportCompatibilityTsv);
 }
 
+// ─── Envelope-aware data source detection (2026-05-14) ──────────────────
+// Probes the atlas-core action pipeline for the latest normalized
+// ngsrelate_pairs envelope. When one exists, the page advertises it
+// above the planner — the "Exclude close kin (PO/FS)" filter could
+// eventually consult those pairs instead of demo data.
+
+async function _findRelatednessEnvelope(atlasState) {
+  const dataset_id = (atlasState && atlasState.cohort) || undefined;
+  try {
+    return await resolveLatestLayer('ngsrelate_pairs', {
+      dataset_id, stage: 'normalized',
+    });
+  } catch (_e) { return null; }
+}
+
+function _renderDataSourceBadge(envelope) {
+  const slot = $('#compatibilityDataSource');
+  if (!slot) return;
+  if (envelope == null) {
+    slot.className = 'data-source-badge demo';
+    slot.textContent =
+      '◌  Close-kin filter is using DEMO data ' +
+      '(no ngsrelate_pairs envelope for this cohort).';
+    slot.title = 'Run normalize_relatedness against a staging_relatedness_v0 ' +
+                 'envelope to make this filter use real pairwise theta.';
+    return;
+  }
+  const n = (envelope.payload && envelope.payload.summary
+              && envelope.payload.summary.n_pairs) || 0;
+  slot.className = 'data-source-badge live';
+  slot.textContent =
+    `●  ngsrelate_pairs envelope available: ${n} pair${n === 1 ? '' : 's'} ` +
+    `from ${envelope.layer_id} (close-kin filter can use this).`;
+  slot.title = `Provenance: action_id=${envelope.provenance?.action_id || '?'}` +
+               (envelope.provenance?.source_layer_ids
+                ? `, source_layer_ids=[${envelope.provenance.source_layer_ids.join(', ')}]`
+                : '');
+}
+
 // ─── Lifecycle ────────────────────────────────────────────────────────────
 
 export async function mount(root, atlasState, registry) {
@@ -388,6 +427,13 @@ export async function mount(root, atlasState, registry) {
   isComputeAvailable(SERVER_ENDPOINT)
     .then(v => { _serverComputeAvailable = v; })
     .catch(err => console.warn('[compatibility] server probe failed:', err));
+
+  // Envelope probe runs asynchronously after the synchronous setup so the
+  // page is interactive immediately; the badge updates when the probe
+  // resolves. Any failure (404, offline, CORS) silently degrades to DEMO.
+  _findRelatednessEnvelope(atlasState)
+    .then(_renderDataSourceBadge)
+    .catch(() => _renderDataSourceBadge(null));
 
   // If pre-seeded by Inversions tab "→ Compatibility planner" action.
   if (state.compat.scope) $('#compatInvScope').value = state.compat.scope;

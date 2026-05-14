@@ -3,6 +3,23 @@
        family hub, plus inline previews of Karyotypes + Inversion candidates.
        Extracted from legacy Relatedness_atlas.html lines 1430-1456. -->
   <div id="network" class="page subpage active" data-subtab-page>
+    <!-- Envelope-aware data source indicator (2026-05-14). Populated by
+         network.js::_renderDataSourceBadge — empty when no envelope probe
+         has run yet, "live" when a normalized ngsrelate_pairs envelope is
+         found, "demo" otherwise. Styled inline so no CSS file needs touching;
+         the .data-source-badge selector can be promoted to css/atlas.css
+         once more pages adopt the pattern. -->
+    <div id="networkDataSource" class="data-source-badge" style="
+         font-size: 12px;
+         color: #666;
+         margin: 4px 0 8px;
+         padding: 4px 8px;
+         background: #f5f5f5;
+         border-left: 3px solid #ccc;
+         border-radius: 2px;
+         line-height: 1.4;
+         min-height: 1em;"></div>
+
     <div id="networkPanel">
       <svg id="networkSvg" viewBox="0 0 800 360" preserveAspectRatio="xMidYMid meet">
         <!-- populated by network.js -->

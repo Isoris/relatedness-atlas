@@ -62,6 +62,23 @@
       </div>
     </div>
 
+    <!-- Envelope-aware data source indicator (2026-05-14). Populated by
+         compatibility.js::_renderDataSourceBadge. Empty until the page
+         mounts; "live" badge when a normalized ngsrelate_pairs envelope
+         is found, "demo" otherwise. Styled inline so no CSS file needs
+         touching; promotable to css/atlas.css when more pages adopt the
+         pattern (network.js already uses the same convention). -->
+    <div id="compatibilityDataSource" class="data-source-badge" style="
+         font-size: 12px;
+         color: #666;
+         margin: 4px 0 8px;
+         padding: 4px 8px;
+         background: #f5f5f5;
+         border-left: 3px solid #ccc;
+         border-radius: 2px;
+         line-height: 1.4;
+         min-height: 1em;"></div>
+
     <div id="compatSummary"></div>
     <div id="compatResultSlot"></div>
   </div>
