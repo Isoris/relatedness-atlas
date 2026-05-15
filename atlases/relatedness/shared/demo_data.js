@@ -304,3 +304,95 @@ DEMO.trio_qc = {
     DEMO.ancestry_q[ind] = raw.map(v => v / sum);
   }
 })();
+
+// ──────────────────────────────────────────────────────────────────────
+// Recombination event counts — synthetic per-window NCO (population layer)
+// and CO (pedigree layer), plus per-window-pair DCO. Drives the four
+// recombination pages (eligibility / resolution / coincidence /
+// inversion_signature). The grid is intentionally coarse: 5 Mb windows,
+// ~50 Mb per chromosome, so 10 windows × 28 chromosomes = 280 windows.
+//
+// Per-chromosome generation:
+//   - Baseline:           NCO_pop_per_Mb ~ 2.4,  CO_ped_per_Mb ~ 0.6
+//   - Inside an inversion span flagged 'pass' or 'fail': CO is multiplied
+//     by 0.05 (the heterokaryotypic-suppression prediction). NCO is
+//     unchanged (sequence-driven DSB competence preserved).
+//   - Inside a 'warn' inversion span: NCO mildly elevated, CO ≈ flank →
+//     the "reject as real inversion" pattern from the cross-layer rule.
+//   - DCO per pair: Poisson-ish on (CO_i · CO_j / n_meioses) so the
+//     coefficient of coincidence is ≈ 1 outside inversions and ↓ inside.
+// ──────────────────────────────────────────────────────────────────────
+DEMO.recomb_window_mb = 5;
+DEMO.recomb_chrom_length_mb = 50;
+DEMO.recomb_n_meioses = (DEMO.triads || []).length || 13;
+DEMO.recomb_windows = {};
+DEMO.recomb_pairs = {};
+
+(function genRecomb() {
+  const WIN = DEMO.recomb_window_mb;
+  const CHR_LEN = DEMO.recomb_chrom_length_mb;
+  const N_WIN_PER_CHR = Math.round(CHR_LEN / WIN);
+  const N_MEIOSES = DEMO.recomb_n_meioses;
+  // Deterministic pseudo-random per (chrom, window) seed.
+  function rand(seed) {
+    const r = Math.abs(Math.sin(seed * 12.9898 + 4.1414)) * 43758.5453 % 1;
+    return r;
+  }
+  // Inversion spans by chromosome so we can decorate the corresponding
+  // windows with the heterokaryotype-suppression signature.
+  const spansByChrom = {};
+  for (const inv of DEMO.inversion_candidates_full) {
+    if (!spansByChrom[inv.chromosome]) spansByChrom[inv.chromosome] = [];
+    spansByChrom[inv.chromosome].push(inv);
+  }
+  for (const chrom of DEMO.chromosomes) {
+    const seed_base = hashStr(chrom);
+    const wins = [];
+    for (let i = 0; i < N_WIN_PER_CHR; i++) {
+      const start_mb = i * WIN;
+      const end_mb = (i + 1) * WIN;
+      let nco_per_mb = 2.0 + rand(seed_base + i * 7) * 1.0;     // 2.0 – 3.0
+      let co_per_mb  = 0.5 + rand(seed_base + i * 11) * 0.4;    // 0.5 – 0.9
+      let inside_inv = null;
+      for (const inv of spansByChrom[chrom] || []) {
+        if (inv.start_mb < end_mb && inv.end_mb > start_mb) { inside_inv = inv; break; }
+      }
+      if (inside_inv) {
+        if (inside_inv.status === 'pass' || inside_inv.status === 'fail') {
+          co_per_mb *= 0.05;                 // strong CO suppression
+        } else if (inside_inv.status === 'warn') {
+          nco_per_mb *= 1.20;                // mildly elevated NCO, CO unchanged
+        }
+      }
+      const n_NCO_pop = Math.round(nco_per_mb * WIN);
+      const n_CO_ped  = Math.max(0, Math.round(co_per_mb  * WIN));
+      wins.push({
+        chromosome: chrom, idx: i, start_mb, end_mb,
+        n_NCO_pop, n_CO_ped,
+        inside_inversion: inside_inv ? inside_inv.candidate : null,
+        inv_status: inside_inv ? inside_inv.status : null,
+      });
+    }
+    DEMO.recomb_windows[chrom] = wins;
+
+    // Pair-wise DCO. Expected under independence: r_i · r_j · N_meioses,
+    // where r_i is CO frequency per meiosis. Inside an inversion span we
+    // multiply by ~0 so C → 0; outside we sample around the expectation.
+    const pairs = [];
+    for (let i = 0; i < wins.length; i++) {
+      for (let j = i + 1; j < wins.length; j++) {
+        const wi = wins[i], wj = wins[j];
+        const r_i = wi.n_CO_ped / N_MEIOSES;
+        const r_j = wj.n_CO_ped / N_MEIOSES;
+        const expected = r_i * r_j * N_MEIOSES;
+        const jitter = rand(seed_base + i * 101 + j * 13) * 0.6 + 0.7;  // 0.7 – 1.3
+        let n_DCO = expected > 0 ? Math.round(expected * jitter) : 0;
+        // Inside-inversion suppression of DCO is automatic via CO suppression.
+        // For the showcase: pairs straddling the inversion break boundary
+        // show very few DCOs.
+        pairs.push({ i, j, n_DCO });
+      }
+    }
+    DEMO.recomb_pairs[chrom] = pairs;
+  }
+})();

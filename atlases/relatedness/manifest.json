@@ -72,6 +72,38 @@
       "fragment": "atlases/relatedness/pages/hub/meiosis.html",
       "module": "atlases/relatedness/pages/hub/meiosis.js",
       "tooltip": "Meiotic crossover observables. Single CO (r1, r2), double CO (r12), coefficient of coincidence C, interference I = 1 - C. Documents the d / x identifiability limitation: from offspring genotype data alone the precondition probability d and exchange probability x are not separable. Per-inversion-carrier CO frequency is a stub until a per-individual CO call layer arrives."
+    },
+    {
+      "id": "eligibility",
+      "label": "eligibility",
+      "stage": "hub",
+      "fragment": "atlases/relatedness/pages/hub/eligibility.html",
+      "module": "atlases/relatedness/pages/hub/eligibility.js",
+      "tooltip": "Eligibility (p map) — per-window NCO/Mb across one chromosome. NCO traces the precondition / DSB substrate layer; high NCO = plentiful substrate, low NCO = ancient cold region. Inversion footprints overlaid. Karyotype matrix surfaced below so you can see who carries which arrangement."
+    },
+    {
+      "id": "resolution",
+      "label": "resolution",
+      "stage": "hub",
+      "fragment": "atlases/relatedness/pages/hub/resolution.html",
+      "module": "atlases/relatedness/pages/hub/resolution.js",
+      "tooltip": "Resolution (x map) — per-window CO/(NCO+CO) share. Closest visible proxy for the latent exchange probability x. Windows with too few events are greyed out. Inside an active heterokaryotypic inversion: resolution drops sharply while NCO is preserved (Eligibility page). Karyotype matrix surfaced below."
+    },
+    {
+      "id": "coincidence",
+      "label": "coincidence",
+      "stage": "hub",
+      "fragment": "atlases/relatedness/pages/hub/coincidence.html",
+      "module": "atlases/relatedness/pages/hub/coincidence.js",
+      "tooltip": "Coincidence — 2D per-window-pair heatmap of C = r12 / (r1*r2) for one chromosome (Sandler interference map). C ~ 1 = independence; C < 1 = positive interference (the normal pattern); C >> 1 = negative interference (usually artefact). Click any cell to inspect the pair. Karyotype matrix surfaced below."
+    },
+    {
+      "id": "inversion_signature",
+      "label": "inversion signature",
+      "stage": "hub",
+      "fragment": "atlases/relatedness/pages/hub/inversion_signature.html",
+      "module": "atlases/relatedness/pages/hub/inversion_signature.js",
+      "tooltip": "Inversion signature — three stacked tracks for one chromosome (NCO/Mb, CO/meiosis, resolution) plus per-candidate verdict cards. Cross-layer rule: NCO ~ flank + CO suppressed = consistent with active inversion; CO not suppressed = reject; both low = ancient cold region; NCO elevated = ambiguous. Karyotype matrix surfaced below."
     }
   ],
   "registries": {
@@ -95,7 +127,9 @@
     "sex_badge":       "atlases/relatedness/shared/sex_badge.js",
     "page_hooks":      "atlases/relatedness/shared/page_hooks.js",
     "api_client":      "atlases/relatedness/shared/api_client.js",
-    "loaders":         "atlases/relatedness/shared/loaders/index.js"
+    "loaders":         "atlases/relatedness/shared/loaders/index.js",
+    "recomb_data":     "atlases/relatedness/shared/recomb_data.js",
+    "recomb_track":    "atlases/relatedness/shared/recomb_track.js"
   },
   "server": {
     "_doc": "Relatedness Atlas does NOT ship its own server binary — it consumes the atlas-core unified server (atlas-core/server/atlas_server.py) via three contracts: (1) static reads of the assembled workspace for ngsPedigree data files; (2) sandboxed reads via GET /file/{path}; (3) POST /compute/<name> dispatch for Mendelian / Compatibility computes (see atlases/relatedness/server/RELATEDNESS_ENDPOINTS.md for the per-endpoint contract — the source of truth for the sister chat working on atlas_server.py). The atlas-side falls back to in-browser compute when an endpoint is missing, so the atlas is fully usable today without the server-side handlers.",

@@ -99,6 +99,17 @@ export const state = {
     last_result: null,
   },
 
+  // Recombination pages — Eligibility (p map), Resolution (x map),
+  // Coincidence (Sandler interference), Inversion signature (three-track
+  // diagnostic). All four pages share one slice of state because they
+  // navigate the same chromosome × inversion-highlight axis. Default
+  // chromosome is Chr28 so INV_001's showcase suppression pattern is
+  // visible immediately on first mount.
+  recomb: {
+    chromosome:          'Chr28',
+    highlight_inversion: null,
+  },
+
   // pillBar source state (round 1: mock).
   loaded_files: [
     { kind: 'res',    path: '/data/project/population.res',     loaded: true },

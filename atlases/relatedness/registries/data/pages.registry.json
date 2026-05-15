@@ -58,6 +58,34 @@
       "requires_layers": [],
       "requires_slots": [],
       "preloads": []
+    },
+    "eligibility": {
+      "_label": "eligibility — per-window NCO/Mb (p map)",
+      "_doc": "Per-chromosome track of NCO rate per Mb computed from the population layer (phased haplotypes). NCO is the messenger for the meiotic precondition step p (DSB / pairing substrate availability). Inversion footprints overlaid as coloured strips: pass / warn / fail. Prediction inside a true heterokaryotypic inversion: NCO ~ flank (sequence-driven DSB competence is preserved). Karyotype matrix surfaced below for the active chromosome so the user can see per-individual calls. Source: DEMO.recomb_windows (synthetic until ngsTracts / NCO-tract envelopes are wired in).",
+      "requires_layers": [],
+      "requires_slots": [],
+      "preloads": []
+    },
+    "resolution": {
+      "_label": "resolution — per-window CO/(NCO+CO) (x map)",
+      "_doc": "Per-chromosome track of CO share given a precondition was met = CO / (NCO + CO), computed from the pedigree layer (CO) and population layer (NCO). Closest visible proxy for the latent exchange / resolution probability x. Windows with total events below the configurable min-n threshold are greyed out (insufficient power, not a real zero). Inversion footprints overlaid. Prediction inside an active heterokaryotypic inversion: resolution drops sharply (loop pairing suppresses CO designation / recovery) while NCO is preserved on the Eligibility page. Karyotype matrix surfaced below. Source: DEMO.recomb_windows.",
+      "requires_layers": [],
+      "requires_slots": [],
+      "preloads": []
+    },
+    "coincidence": {
+      "_label": "coincidence — 2D pair heatmap (Sandler interference)",
+      "_doc": "Per-window-pair coefficient of coincidence C = r12 / (r1 * r2) drawn as a 2D heatmap for one chromosome. C ~ 1 = independence; C < 1 = positive interference (fewer DCOs than expected - the normal meiotic pattern); C >> 1 = negative interference (usually a sample-size or genotyping artefact). Off-diagonal cells inside an inversion span go to C -> 0 or undefined - the loop disrupts the precondition / resolution chain so the joint exchange rate collapses. Cells are clickable: the inspector shows the pair detail (r1, r2, observed n_DCO, expected n_DCO under independence, C, I). Band-max filter restricts the matrix to |i-j| <= k physical-distance bands. Karyotype matrix surfaced below. Source: DEMO.recomb_pairs.",
+      "requires_layers": [],
+      "requires_slots": [],
+      "preloads": []
+    },
+    "inversion_signature": {
+      "_label": "inversion_signature — three-track diagnostic figure",
+      "_doc": "Three stacked per-window tracks for one chromosome: A) NCO/Mb (eligibility / p map), B) CO/meiosis (pedigree-layer recombination), C) CO/(NCO+CO) (resolution / x map). Each inversion candidate on the active chromosome gets an inside-vs-flank verdict card using the cross-layer rule from the Sandler translation: 'CONSISTENT WITH INVERSION' (NCO ~ flank, CO ~ 0.05 x flank) / 'REJECT - NO CO SUPPRESSION' / 'ANCIENT COLD REGION' / 'AMBIGUOUS - NCO ELEVATED'. Karyotype matrix surfaced below so carriers vs homokaryotypes are visible. This is the minimum-viable cross-layer diagnostic figure the user asked for - one chromosome, three tracks, inversion footprint overlaid, verdicts inline.",
+      "requires_layers": [],
+      "requires_slots": [],
+      "preloads": []
     }
   }
 }
