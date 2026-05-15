@@ -88,4 +88,24 @@
       <div class="verdict">CROSS-PAGE LINKS</div>
       Reduced single-CO / double-CO inside inversion spans is one of the standard expectations for paracentric / pericentric inversions in heterokaryotypes. The <b>Regime inheritance</b> tab tests whether linked inversions inherit as one block — low CO between two coupled inversions is consistent with that. The <b>BDMI screen</b> tab interprets heterokaryotype deficits (Test C) and long-range forbidden combinations (Test E) — both are downstream consequences of suppressed recombination in inversion carriers.
     </div>
+
+    <!-- ── Section E — geometry note (sequence vs orientation) ────────────── -->
+    <div class="table-section-title" style="margin-top: 18px;">E. Why inversions suppress observable CO <span class="sub">(geometry, not nucleotides)</span></div>
+    <div class="ie-conclusion tier-moderate">
+      <div class="verdict">SEQUENCE-PRESERVING, GEOMETRY-ALTERING</div>
+      <p style="margin: 0 0 8px 0;"><em>Inversions preserve most local nucleotide content, so they may not necessarily alter intrinsic DSB motif potential; however, in heterokaryotypes they alter homologous pairing geometry, which can reduce crossover designation / resolution and the recovery of crossover products while still allowing NCO / gene-conversion tracts.</em></p>
+      <p style="margin: 0 0 8px 0;">
+        Normal homolog:&nbsp;&nbsp;<code>A B C D E F G H</code><br/>
+        Inverted homolog: <code>A B F E D C G H</code>
+      </p>
+      <p style="margin: 0 0 8px 0;">Same nucleotides, different orientation — so to align homologous bases the chromosome must form an <b>inversion loop</b>. The loop changes synapsis, strand-invasion geometry, crossover designation, crossover resolution, and the recoverability of recombinant chromatids. DSBs and gene conversion can still occur <em>inside</em> the inversion; what disappears from the observable count is the <em>resolved crossover product</em>.</p>
+      <p style="margin: 0;">Mapped onto the latent two-step model from Section B:</p>
+      <ul style="margin: 4px 0 0 18px; padding: 0; line-height: 1.55;">
+        <li><b>d (precondition)</b> — partly preserved when sequence-driven DSB competence is unchanged. But the inversion loop can still disrupt synapsis / homolog engagement, so d is not fully spared.</li>
+        <li><b>x (exchange / resolution)</b> — typically the larger change. Crossover products that arise inside the loop are unbalanced and lost from the observable offspring set; NCO / gene-conversion tracts can still come through.</li>
+      </ul>
+      <p style="margin: 8px 0 0 0; color: var(--ink-dim); font-size: 10.5px;">
+        This module owns the inheritance-side observables (r₁, r₂, r₁₂, C, I). The loop / synapsis / breakpoint geometry itself lives in the sibling atlas (Inversion Atlas — geometry page). Do not duplicate the biology here; cross-link to it instead.
+      </p>
+    </div>
   </div>
