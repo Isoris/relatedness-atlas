@@ -1241,3 +1241,369 @@
     transition: color 80ms, border-color 80ms;
   }
   footer a:hover { color: var(--ink); border-color: var(--accent); }
+
+  /* ── BDMI / incompatibility screen ─────────────────────────────────────── */
+  .bdmi-config {
+    background: var(--panel-2); border: 1px solid var(--rule);
+    border-radius: 4px; padding: 12px 14px;
+    margin-bottom: 14px;
+  }
+  .bdmi-config .row {
+    display: grid; grid-template-columns: 150px 1fr; gap: 12px 14px;
+    align-items: center; margin-bottom: 8px;
+  }
+  .bdmi-config .row:last-child { margin-bottom: 0; }
+  .bdmi-config label {
+    font-size: 10.5px; color: var(--ink-dim);
+    letter-spacing: 0.04em;
+  }
+  .bdmi-config select {
+    background: var(--panel); color: var(--ink);
+    border: 1px solid var(--rule); border-radius: 3px;
+    padding: 5px 9px; font-family: var(--mono); font-size: 10.5px;
+    width: 100%;
+  }
+  .bdmi-config select:focus { outline: none; border-color: var(--accent); }
+  .bdmi-config .toggle-row {
+    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+  }
+  .bdmi-toggle {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 10.5px; color: var(--ink-dim); cursor: pointer;
+    user-select: none;
+  }
+  .bdmi-toggle input[type="checkbox"] {
+    width: 14px; height: 14px; accent-color: var(--accent);
+    cursor: pointer; margin: 0;
+  }
+  .bdmi-actions {
+    display: flex; gap: 8px; margin-top: 4px;
+  }
+  .bdmi-actions button {
+    background: var(--panel-3); color: var(--ink);
+    border: 1px solid var(--rule); border-radius: 3px;
+    padding: 5px 14px; font-family: var(--mono); font-size: 10.5px;
+    cursor: pointer; letter-spacing: 0.04em;
+  }
+  .bdmi-actions button.primary {
+    background: var(--accent); color: white; border-color: var(--accent);
+  }
+  html[data-theme="light"] .bdmi-actions button.primary { color: white; }
+  .bdmi-actions button:hover { border-color: var(--accent); }
+
+  .bdmi-summary {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 8px; margin-bottom: 14px;
+  }
+
+  .bdmi-ladder {
+    background: var(--panel);
+    border: 1px solid var(--rule); border-radius: 3px;
+    padding: 10px 14px; margin-bottom: 14px;
+    display: flex; flex-direction: column; gap: 4px;
+    font-size: 10.5px; color: var(--ink-dim);
+  }
+  .bdmi-ladder-row {
+    display: grid; grid-template-columns: 110px 1fr;
+    align-items: center; gap: 10px;
+  }
+
+  .bdmi-confidence-pill {
+    display: inline-block; padding: 2px 8px;
+    border-radius: 3px; font-size: 9.5px; font-weight: 600;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    font-family: var(--mono); text-align: center;
+    min-width: 84px;
+  }
+  .bdmi-confidence-pill.weak        { background: rgba(138, 148, 163, 0.18); color: var(--ink-dim); }
+  .bdmi-confidence-pill.moderate    { background: rgba(232, 196,  76, 0.20); color: var(--warn); }
+  .bdmi-confidence-pill.strong      { background: rgba(224,  85,  92, 0.18); color: var(--bad); }
+  .bdmi-confidence-pill.very-strong {
+    background: linear-gradient(90deg, rgba(124, 58, 237, 0.20), rgba(190, 18, 60, 0.20));
+    color: #be123c; border: 1px solid rgba(124, 58, 237, 0.45);
+  }
+  .bdmi-confidence-pill.validated   {
+    background: rgba(95, 212, 154, 0.20); color: var(--good);
+    border: 1px solid rgba(95, 212, 154, 0.45);
+  }
+  html[data-theme="light"] .bdmi-confidence-pill.very-strong { color: #9f1239; }
+
+  .bdmi-screen-pill {
+    display: inline-block; min-width: 44px; text-align: center;
+    padding: 1px 6px; border-radius: 2px;
+    font-size: 10px; font-family: var(--mono);
+  }
+  .bdmi-screen-pill.off  { background: transparent; color: var(--ink-dimmer); }
+  .bdmi-screen-pill.pass { background: rgba(138, 148, 163, 0.10); color: var(--ink-dim); }
+  .bdmi-screen-pill.fire { background: rgba(224, 85, 92, 0.18); color: var(--bad); font-weight: 600; }
+
+  .data-table.bdmi-table th,
+  .data-table.bdmi-table td {
+    font-size: 10px;
+  }
+
+  .bdmi-detail {
+    margin-top: 14px;
+    background: var(--panel-2);
+    border: 1px solid var(--rule); border-radius: 4px;
+    padding: 12px 14px;
+  }
+  .bdmi-detail-title {
+    font-size: 12px; color: var(--ink); margin-bottom: 10px;
+    border-bottom: 1px solid var(--rule); padding-bottom: 8px;
+  }
+  .bdmi-detail-block {
+    border-left: 3px solid var(--rule);
+    padding: 6px 12px; margin-bottom: 8px;
+    background: var(--panel);
+  }
+  .bdmi-detail-block.fire {
+    border-left-color: var(--bad);
+  }
+  .bdmi-detail-block-title {
+    font-size: 10.5px; color: var(--ink-dim);
+    letter-spacing: 0.04em; margin-bottom: 4px;
+  }
+  .bdmi-detail-block-body {
+    font-size: 10.5px; color: var(--ink); font-family: var(--mono);
+    line-height: 1.5;
+  }
+  .bdmi-detail-block-verdict {
+    font-size: 9.5px; font-weight: 600;
+    letter-spacing: 0.06em; margin-top: 4px;
+    text-transform: uppercase;
+  }
+
+  .bdmi-manuscript {
+    margin-top: 18px;
+    font-style: italic;
+  }
+
+  /* ── Linked Inversion Regimes ───────────────────────────────────────────
+     The "core genetics" companion to the BDMI screen: tests whether apparent
+     distortion at one inversion is explained by linkage to another inversion
+     on the same chromosome (long-range haplotype regime coupling) before
+     calling underdominance / drive / BDMI. */
+  .regimes-config {
+    background: var(--panel-2); border: 1px solid var(--rule);
+    border-radius: 4px; padding: 12px 14px; margin-bottom: 14px;
+  }
+  .regimes-config .row {
+    display: grid; grid-template-columns: 150px 1fr; gap: 12px 14px;
+    align-items: center; margin-bottom: 8px;
+  }
+  .regimes-config .row:last-child { margin-bottom: 0; }
+  .regimes-config label {
+    font-size: 10.5px; color: var(--ink-dim);
+    letter-spacing: 0.04em;
+  }
+  .regimes-config select {
+    background: var(--panel); color: var(--ink);
+    border: 1px solid var(--rule); border-radius: 3px;
+    padding: 5px 9px; font-family: var(--mono); font-size: 10.5px;
+    width: 100%;
+  }
+  .regimes-config select:focus { outline: none; border-color: var(--accent); }
+  .regimes-actions {
+    display: flex; gap: 8px; margin-top: 4px;
+  }
+  .regimes-actions button {
+    background: var(--panel-3); color: var(--ink);
+    border: 1px solid var(--rule); border-radius: 3px;
+    padding: 5px 14px; font-family: var(--mono); font-size: 10.5px;
+    cursor: pointer; letter-spacing: 0.04em;
+  }
+  .regimes-actions button.primary {
+    background: var(--accent); color: white; border-color: var(--accent);
+  }
+  html[data-theme="light"] .regimes-actions button.primary { color: white; }
+  .regimes-actions button:hover { border-color: var(--accent); }
+
+  .regimes-joint-table {
+    margin-top: 12px;
+    border-collapse: collapse; font-family: var(--mono);
+    font-size: 10.5px;
+  }
+  .regimes-joint-table th, .regimes-joint-table td {
+    border: 1px solid var(--rule); padding: 4px 10px; text-align: center;
+  }
+  .regimes-joint-table th {
+    background: var(--panel-2); color: var(--ink-dim);
+    font-weight: 500; letter-spacing: 0.04em;
+  }
+  .regimes-joint-table td.cell-missing {
+    background: rgba(224, 85, 92, 0.14); color: var(--bad);
+    font-weight: 600;
+  }
+  .regimes-joint-table td.cell-coupled {
+    background: rgba(95, 212, 154, 0.14); color: var(--good);
+  }
+  .regimes-joint-table td.cell-recombinant {
+    background: rgba(232, 196, 76, 0.14); color: var(--warn);
+  }
+  .regimes-joint-caption {
+    font-size: 10px; color: var(--ink-dim);
+    margin-top: 4px; font-family: var(--mono);
+  }
+
+  .regimes-verdict-pill {
+    display: inline-block; padding: 2px 8px;
+    border-radius: 3px; font-size: 9.5px; font-weight: 600;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    font-family: var(--mono); min-width: 130px; text-align: center;
+  }
+  .regimes-verdict-pill.regime-coupled    { background: rgba(95, 212, 154, 0.18); color: var(--good); }
+  .regimes-verdict-pill.regime-independent { background: rgba(138, 148, 163, 0.18); color: var(--ink-dim); }
+  .regimes-verdict-pill.regime-explained  { background: rgba(124, 58, 237, 0.18); color: #7c3aed; }
+  .regimes-verdict-pill.regime-residual   { background: rgba(224, 85, 92, 0.18); color: var(--bad); }
+  .regimes-verdict-pill.regime-unknown    { background: rgba(232, 196, 76, 0.14); color: var(--warn); }
+  html[data-theme="light"] .regimes-verdict-pill.regime-explained { color: #6d28d9; }
+
+  /* ── Meiosis — single CO / double CO / coincidence ────────────────────── */
+  .meiosis-config {
+    background: var(--panel-2); border: 1px solid var(--rule);
+    border-radius: 4px; padding: 12px 14px; margin-bottom: 14px;
+  }
+  .meiosis-config .row {
+    display: grid; grid-template-columns: 240px 1fr; gap: 12px 14px;
+    align-items: center; margin-bottom: 8px;
+  }
+  .meiosis-config .row:last-child { margin-bottom: 0; }
+  .meiosis-config label {
+    font-size: 10.5px; color: var(--ink-dim);
+    letter-spacing: 0.04em;
+  }
+  .meiosis-config input[type="number"] {
+    background: var(--panel); color: var(--ink);
+    border: 1px solid var(--rule); border-radius: 3px;
+    padding: 5px 9px; font-family: var(--mono); font-size: 10.5px;
+    width: 160px;
+  }
+  .meiosis-config input[type="number"]:focus {
+    outline: none; border-color: var(--accent);
+  }
+  .meiosis-actions {
+    display: flex; gap: 8px; margin-top: 4px;
+  }
+  .meiosis-actions button {
+    background: var(--panel-3); color: var(--ink);
+    border: 1px solid var(--rule); border-radius: 3px;
+    padding: 5px 14px; font-family: var(--mono); font-size: 10.5px;
+    cursor: pointer; letter-spacing: 0.04em;
+  }
+  .meiosis-actions button.primary {
+    background: var(--accent); color: white; border-color: var(--accent);
+  }
+  html[data-theme="light"] .meiosis-actions button.primary { color: white; }
+  .meiosis-actions button:hover { border-color: var(--accent); }
+
+  .meiosis-caption {
+    font-size: 10px; color: var(--ink-dim);
+    margin-top: 6px; font-family: var(--mono); line-height: 1.5;
+  }
+  .data-table.meiosis-ref td,
+  .data-table.meiosis-ref th {
+    font-size: 10.5px;
+  }
+
+  /* ── Recombination pages (Eligibility / Resolution / Coincidence /
+        Inversion signature) ───────────────────────────────────────────── */
+  .recomb-config {
+    background: var(--panel-2); border: 1px solid var(--rule);
+    border-radius: 4px; padding: 10px 12px; margin-bottom: 12px;
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 8px 14px;
+  }
+  .recomb-config .row {
+    display: grid; grid-template-columns: 130px 1fr; gap: 10px;
+    align-items: center;
+  }
+  .recomb-config label {
+    font-size: 10.5px; color: var(--ink-dim); letter-spacing: 0.04em;
+  }
+  .recomb-config select {
+    background: var(--panel); color: var(--ink);
+    border: 1px solid var(--rule); border-radius: 3px;
+    padding: 4px 8px; font-family: var(--mono); font-size: 10.5px;
+    width: 100%;
+  }
+  .recomb-config select:focus { outline: none; border-color: var(--accent); }
+
+  .recomb-track-wrap {
+    background: var(--panel); border: 1px solid var(--rule);
+    border-radius: 4px; padding: 10px 12px; margin-bottom: 12px;
+  }
+  .recomb-track-svg {
+    width: 100%; height: 90px; display: block;
+  }
+  .recomb-heatmap-svg {
+    width: 520px; max-width: 100%; height: 520px; display: block;
+  }
+  .recomb-legend {
+    margin-top: 6px; font-size: 10px; color: var(--ink-dim);
+  }
+
+  .invsig-track-label {
+    font-size: 10px; color: var(--ink-dim);
+    letter-spacing: 0.04em; margin-bottom: 2px;
+    font-family: var(--mono);
+  }
+
+  /* Inversion footprint shading is set per-rect by recomb_track.js; this
+     just keeps the cells crisp at every zoom level. */
+  .recomb-cell, .recomb-coin-cell, .recomb-inv {
+    shape-rendering: crispEdges;
+  }
+  .recomb-coin-cell { transition: stroke-width 60ms ease-out; }
+  .recomb-coin-cell:hover { stroke: var(--accent); stroke-width: 1.5; }
+
+  /* ── Focal inversion × meiosis scan ──────────────────────────────────── */
+  .fms-readiness {
+    background: var(--panel); border: 1px solid var(--rule);
+    border-radius: 4px; padding: 10px 14px;
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .fms-readiness-row {
+    display: grid; grid-template-columns: 110px 1fr;
+    align-items: center; gap: 10px;
+    font-size: 10.5px; color: var(--ink);
+  }
+  .fms-readiness-pill {
+    display: inline-block; padding: 2px 8px;
+    border-radius: 3px; font-size: 9.5px; font-weight: 600;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    font-family: var(--mono); text-align: center;
+  }
+  .fms-readiness-pill.ready    { background: rgba(95, 212, 154, 0.18); color: var(--good); }
+  .fms-readiness-pill.blocked  { background: rgba(138, 148, 163, 0.18); color: var(--ink-dim); }
+  .fms-readiness-label { color: var(--ink-dim); }
+  .fms-readiness-footer {
+    font-family: var(--mono); font-size: 10px; color: var(--ink-dim);
+    margin-top: 4px; padding-top: 4px; border-top: 1px solid var(--rule);
+  }
+
+  .fms-rel-pill {
+    display: inline-block; padding: 1px 8px;
+    border-radius: 2px; font-size: 9.5px; font-weight: 600;
+    letter-spacing: 0.06em; font-family: var(--mono);
+  }
+  .fms-rel-pill.intra { background: rgba(124, 58, 237, 0.18); color: #7c3aed; }
+  .fms-rel-pill.inter { background: rgba(63, 185, 212, 0.18); color: var(--accent-2); }
+  html[data-theme="light"] .fms-rel-pill.intra { color: #6d28d9; }
+
+  /* ── Inversion priority page ────────────────────────────────────────── */
+  .prio-bucket-pill {
+    display: inline-block; padding: 2px 8px;
+    border-radius: 3px; font-size: 9.5px; font-weight: 600;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    font-family: var(--mono); text-align: center; min-width: 100px;
+  }
+  .prio-bucket-pill.ship {
+    background: rgba(95, 212, 154, 0.20); color: var(--good);
+    border: 1px solid rgba(95, 212, 154, 0.45);
+  }
+  .prio-bucket-pill.hold { background: rgba(232, 196, 76, 0.20); color: var(--warn); }
+  .prio-bucket-pill.drop { background: rgba(138, 148, 163, 0.18); color: var(--ink-dim); }
+  .data-table.prio-table th, .data-table.prio-table td { font-size: 10px; }
+
+

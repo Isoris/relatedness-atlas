@@ -1,0 +1,123 @@
+  <!-- atlases/relatedness/pages/hub/bdmi.html
+       BDMI / incompatibility screen — sub-tab #6.
+
+       Tests inversion karyotypes for Bateson-Dobzhansky-Muller-incompatibility-
+       like signatures. The Relatedness Atlas is the right home for this page
+       because every test is about inheritance, transmission, and breeding
+       consequences — the Inversion Atlas discovers candidates, the Relatedness
+       Atlas asks whether they behave correctly in families. -->
+  <div id="bdmi" class="page subpage" data-subtab-page>
+    <div class="page-subtitle" style="font-size: 10.5px; color: var(--ink-dim); margin-bottom: 12px;">
+      Bateson–Dobzhansky–Muller incompatibility (BDMI) screen. For each inversion candidate, runs six population-genetic tests that flag candidate incompatibility regions: Mendelian segregation distortion, missing karyotype classes, heterozygote excess / deficit, ancestry × genotype interaction, long-range forbidden haplotype combinations, and (when phenotype data exist) phenotype association. Results combine into a per-candidate confidence ladder (weak → moderate → strong → very strong). WGS-only signals are correlative — controlled crosses are required for validation. Read the manuscript-ready phrasing in the footer below.
+    </div>
+
+    <div class="bdmi-config">
+      <div class="row">
+        <label>Candidate scope</label>
+        <select id="bdmiScope">
+          <option value="all">All inversion candidates</option>
+          <option value="status_pass">Status = PASS only</option>
+          <option value="status_warn">Status = WARN only</option>
+          <option value="freq_high">Frequency ≥ 0.10</option>
+          <option value="chrom_only">Current chromosome only</option>
+        </select>
+      </div>
+      <div class="row">
+        <label>Mendelian source</label>
+        <select id="bdmiMendSource">
+          <option value="triads">Triads in DEMO.triads (preferred)</option>
+          <option value="hub_dyads">Dyads from current family hub</option>
+        </select>
+      </div>
+      <div class="row">
+        <label>Distortion α</label>
+        <select id="bdmiAlpha">
+          <option value="0.05">α = 0.05</option>
+          <option value="0.01" selected>α = 0.01</option>
+          <option value="0.001">α = 0.001</option>
+        </select>
+      </div>
+      <div class="row">
+        <label>Heterokaryotype</label>
+        <select id="bdmiHetRule">
+          <option value="abs_deficit">|obs − exp(2pq)| / exp ≥ 0.30</option>
+          <option value="z_deficit">z (HWE chi²) p &lt; 0.05</option>
+        </select>
+      </div>
+      <div class="row">
+        <label>Screens to run</label>
+        <div class="toggle-row">
+          <label class="bdmi-toggle"><input type="checkbox" id="bdmiUseMend" checked /><span>Mendelian distortion (Test A)</span></label>
+          <label class="bdmi-toggle"><input type="checkbox" id="bdmiUseMiss" checked /><span>Missing class (Test B)</span></label>
+          <label class="bdmi-toggle"><input type="checkbox" id="bdmiUseHet"  checked /><span>Het deficit/excess (Test C)</span></label>
+          <label class="bdmi-toggle"><input type="checkbox" id="bdmiUseAnc"  checked /><span>Ancestry interaction (Test D)</span></label>
+          <label class="bdmi-toggle"><input type="checkbox" id="bdmiUseLR"   checked /><span>Long-range forbidden (Test E)</span></label>
+          <label class="bdmi-toggle"><input type="checkbox" id="bdmiUsePheno"        /><span>Phenotype assoc. (Test F)</span></label>
+        </div>
+      </div>
+      <div class="row">
+        <label></label>
+        <div class="bdmi-actions">
+          <button class="primary" id="bdmiRunBtn">Run BDMI screen</button>
+          <button id="bdmiResetBtn">Reset</button>
+          <button id="bdmiExportBtn" title="Download per-candidate score table as TSV">⤓ Export TSV</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Data-source badge — phenotype/survival/fertility usually absent ── -->
+    <div id="bdmiDataSource" class="data-source-badge" style="
+         font-size: 12px;
+         color: #666;
+         margin: 4px 0 8px;
+         padding: 4px 8px;
+         background: #f5f5f5;
+         border-left: 3px solid #ccc;
+         border-radius: 2px;
+         line-height: 1.4;
+         min-height: 1em;">◌  Phenotype layer not loaded — Test F (phenotype association) cannot exceed "missing" until survival/growth/fertility TSV is wired in.</div>
+
+    <!-- Summary cells (counts per confidence level, just like mendelian) -->
+    <div class="bdmi-summary" id="bdmiSummary"></div>
+
+    <!-- Confidence ladder legend -->
+    <div class="bdmi-ladder">
+      <div class="bdmi-ladder-row">
+        <span class="bdmi-confidence-pill weak">weak</span>
+        <span>high FST / old inversion / low recombination only — no inheritance evidence yet</span>
+      </div>
+      <div class="bdmi-ladder-row">
+        <span class="bdmi-confidence-pill moderate">moderate</span>
+        <span>missing genotype class or heterozygote deficit (Tests B / C fire)</span>
+      </div>
+      <div class="bdmi-ladder-row">
+        <span class="bdmi-confidence-pill strong">strong</span>
+        <span>Mendelian distortion or ancestry-dependent depletion (Tests A / D / E fire)</span>
+      </div>
+      <div class="bdmi-ladder-row">
+        <span class="bdmi-confidence-pill very-strong">very strong</span>
+        <span>phenotype / survival / fertility association (Test F fires) — requires phenotype layer</span>
+      </div>
+      <div class="bdmi-ladder-row">
+        <span class="bdmi-confidence-pill validated">validated</span>
+        <span>controlled crosses show reduced fitness for a specific genotype combination — out of scope for WGS</span>
+      </div>
+    </div>
+
+    <!-- Per-candidate results table -->
+    <div id="bdmiResultSlot"></div>
+
+    <!-- Per-candidate drill-down (mounted when a row is clicked) -->
+    <div id="bdmiDetailSlot"></div>
+
+    <!-- Manuscript-ready interpretation footer -->
+    <div class="bdmi-manuscript ie-conclusion tier-moderate">
+      <div class="verdict">MANUSCRIPT PHRASING</div>
+      Although direct validation of Bateson–Dobzhansky–Muller incompatibilities
+      requires controlled crosses or fitness measurements, the present dataset
+      allows candidate incompatibility regions to be screened by testing for
+      segregation distortion, depletion of expected inversion genotype classes,
+      ancestry-dependent karyotype frequencies, and long-range non-random
+      associations between inversion arrangements and genomic backgrounds.
+    </div>
+  </div>

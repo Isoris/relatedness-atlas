@@ -1,0 +1,61 @@
+  <!-- atlases/relatedness/pages/hub/marker_test_designer.html
+       Interchromosomal Marker Test Designer (#15).
+
+       Converts a candidate interchromosomal meiosis effect into a
+       practical marker panel for the Pass-2 marker-validation phase
+       (10k–50k catfish). Two marker types:
+         1. focal-inversion-state markers (tag SNPs + breakpoint markers)
+         2. transmission/recombination markers on tested chromosomes
+            (ordered triplets m1-m2-m3 → intervals A and B → CO/DCO/C)
+  -->
+  <div id="marker_test_designer" class="page subpage" data-subtab-page>
+    <div class="page-subtitle" style="font-size: 10.5px; color: var(--ink-dim); margin-bottom: 12px;">
+      <b>Interchromosomal Marker Test Designer.</b> For one focal inversion, designs the marker panel that converts a candidate interchromosomal meiosis effect into a Pass-2 validation experiment (10k–50k catfish). Two marker layers: (1) <b>focal-inversion-state markers</b> — tag SNPs + breakpoint markers used to classify parents as het vs non-het; (2) <b>transmission / recombination markers</b> — ordered triplets <code>m₁ → m₂ → m₃</code> on each tested chromosome so that two intervals A and B support CO, DCO, and coefficient-of-coincidence estimation in offspring panels. Per tested chromosome: READY / PARTIAL / LOW_POWER / MISSING. Export three TSVs (focal markers, interchromosomal test markers, test-design summary).
+    </div>
+
+    <div class="recomb-config">
+      <div class="row">
+        <label>Focal inversion</label>
+        <select id="mdFocal"></select>
+      </div>
+      <div class="row">
+        <label>Tested chromosomes</label>
+        <select id="mdTested">
+          <option value="non_focal" selected>all except focal chrom</option>
+          <option value="all">all chromosomes</option>
+          <option value="focal_only">focal chrom only</option>
+        </select>
+      </div>
+      <div class="row">
+        <label></label>
+        <div class="bdmi-actions">
+          <button class="primary" id="mdRunBtn">Design panel</button>
+          <button id="mdResetBtn">Reset</button>
+          <button id="mdExportBtn" title="Export the three TSVs concatenated as one file">⤓ Export TSVs</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 1. Focal-inversion status block -->
+    <div class="table-section-title">Focal inversion status <span class="sub">(classify parents as het / non-het)</span></div>
+    <div class="bdmi-summary" id="mdFocalStatus"></div>
+    <div id="mdFocalMarkers"></div>
+
+    <!-- 2. Panel summary across tested chromosomes -->
+    <div class="table-section-title" style="margin-top: 14px;">Tested-chromosome panel <span class="sub">(transmission / recombination markers)</span></div>
+    <div class="bdmi-summary" id="mdPanelSummary"></div>
+    <div id="mdPerChromSlot"></div>
+
+    <!-- 3. Test design table — interval pairs A / B per chromosome -->
+    <div class="table-section-title" style="margin-top: 14px;">Test design <span class="sub">(interval pairs A, B; expected informative families; status)</span></div>
+    <div id="mdTestDesignSlot"></div>
+
+    <!-- 4. Overall panel verdict -->
+    <div id="mdPanelVerdict"></div>
+
+    <!-- Manuscript-ready phrasing footer -->
+    <div class="ie-conclusion tier-weak" style="margin-top: 14px;">
+      <div class="verdict">PAGE PURPOSE</div>
+      This page converts a candidate interchromosomal meiosis effect into a practical marker panel: one set of markers to classify the focal inversion in parents, and another set of markers to detect transmitted CO/DCO patterns on other chromosomes in large offspring panels. Pass-1 (this atlas + WGS) discovers and ranks; Pass-2 (this panel) validates at scale.
+    </div>
+  </div>

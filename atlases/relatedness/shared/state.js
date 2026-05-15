@@ -57,6 +57,85 @@ export const state = {
     last_results: null,
   },
 
+  // BDMI / incompatibility-screen state. Six toggles (one per test) plus the
+  // scope, distortion alpha, heterokaryotype-rule selector, and the last
+  // results blob. Same direct-mutation pattern as state.mend / state.compat;
+  // when an Inversions row eventually pre-seeds the BDMI tab the seeded
+  // candidate goes into state.bdmi.focus_candidate.
+  bdmi: {
+    scope:        'all',
+    mend_source:  'triads',
+    alpha:        '0.01',
+    het_rule:     'abs_deficit',
+    screens_enabled: {
+      mend: true, miss: true, het: true, anc: true, lr: true, pheno: false,
+    },
+    focus_candidate: null,
+    last_results:    null,
+  },
+
+  // Chromosome regime inheritance — linked-inversion control + meiotic-drive
+  // vs underdominance classifier. Same pattern: chromosome + focal candidate
+  // pre-seedable from the Inversions tab; the last_results blob caches the
+  // partner-table / mechanism-classifier output so navigating away does not
+  // wipe it.
+  regimes: {
+    chromosome:       null,
+    focal:            null,
+    min_n:            '10',
+    couple_threshold: '0.50',
+    last_results:     null,
+    last_mechanism:   null,
+  },
+
+  // Meiotic crossover observables (single CO, double CO, C, I). Only the
+  // observable / derived quantities are stored — the latent two-step model
+  // (precondition d, exchange x) is documented in pages/hub/meiosis.{html,js}
+  // but never estimated, because genotype data underdetermines it.
+  meiosis: {
+    r1:  0.10,
+    r2:  0.20,
+    r12: 0.005,
+    last_result: null,
+  },
+
+  // Recombination pages — Eligibility (p map), Resolution (x map),
+  // Coincidence (Sandler interference), Inversion signature (three-track
+  // diagnostic). All four pages share one slice of state because they
+  // navigate the same chromosome × inversion-highlight axis. Default
+  // chromosome is Chr28 so INV_001's showcase suppression pattern is
+  // visible immediately on first mount.
+  recomb: {
+    chromosome:          'Chr28',
+    highlight_inversion: null,
+  },
+
+  // Focal inversion × meiosis coincidence scan (seed of future Meiosis Atlas).
+  // Held in the Relatedness Atlas only because the family-hub layer is
+  // already here — the analysis migrates as-is once Meiosis Atlas exists.
+  focal_meiosis: {
+    focal_inv:     'INV_001',
+    scope:         'both',     // 'intra' / 'inter' / 'both'
+    n_perm:        1000,
+    control_local: true,
+    unit:          'parental_meiosis',  // 'parental_meiosis' | 'individual'
+    last_results:  null,
+  },
+
+  // Inversion priority — Pass-1 → Pass-2 bridge.
+  priority: {
+    bucket:       'ship_to_pass2',   // 'all' / 'ship_to_pass2' / 'hold' / 'drop'
+    top_n:        20,
+    last_results: null,
+  },
+
+  // Marker Test Designer — focal inversion + tested chromosomes panel design.
+  marker_designer: {
+    focal_inv:        'INV_001',
+    tested_chroms:    null,         // null = all-except-focal
+    last_design:      null,
+  },
+
   // pillBar source state (round 1: mock).
   loaded_files: [
     { kind: 'res',    path: '/data/project/population.res',     loaded: true },

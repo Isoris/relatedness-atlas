@@ -1,0 +1,96 @@
+  <!-- atlases/relatedness/pages/hub/regimes.html
+       Chromosome Regime Inheritance — sub-tab #7.
+
+       One strong inheritance-side page, four sections:
+         A. Single inversion Mendelian distortion (focal HWE marginal)
+         B. Linked inversion regime control (Cramér's V + conditional p)
+         C. Meiotic-drive vs underdominance classifier (cross-type aggregate)
+         D. Breeding-risk interpretation hierarchy
+
+       The page protects the BDMI screen from over-calling drive /
+       underdominance / incompatibility when the signal is actually
+       long-range haplotype regime coupling. -->
+  <div id="regimes" class="page subpage" data-subtab-page>
+    <div class="page-subtitle" style="font-size: 10.5px; color: var(--ink-dim); margin-bottom: 12px;">
+      For linked inversions on the same chromosome, apparent distortion at one candidate should be tested <em>conditionally</em> on the other candidate or on the inferred long-range haplotype regime. If the distortion disappears after conditioning, the signal is better interpreted as haplotype-regime coupling than as independent underdominance, meiotic drive, or BDMI. Once a residual signal survives the regime control, the cross-type classifier separates <b>meiotic drive</b> (the parent transmits one arrangement too often) from <b>underdominance</b> (the heterozygote offspring class is depleted regardless of cross).
+    </div>
+
+    <div class="regimes-config">
+      <div class="row">
+        <label>Chromosome</label>
+        <select id="regimesChrom"></select>
+      </div>
+      <div class="row">
+        <label>Focal inversion</label>
+        <select id="regimesFocal"></select>
+      </div>
+      <div class="row">
+        <label>Min joint n</label>
+        <select id="regimesMinN">
+          <option value="5">n ≥ 5</option>
+          <option value="10" selected>n ≥ 10</option>
+          <option value="20">n ≥ 20</option>
+        </select>
+      </div>
+      <div class="row">
+        <label>Couple threshold</label>
+        <select id="regimesCoupleThr">
+          <option value="0.30">Cramér's V ≥ 0.30</option>
+          <option value="0.50" selected>Cramér's V ≥ 0.50</option>
+          <option value="0.70">Cramér's V ≥ 0.70</option>
+        </select>
+      </div>
+      <div class="row">
+        <label></label>
+        <div class="regimes-actions">
+          <button class="primary" id="regimesRunBtn">Run regime test</button>
+          <button id="regimesResetBtn">Reset</button>
+          <button id="regimesExportBtn" title="Download linked_inversion_regimes.tsv">⤓ Regimes TSV</button>
+          <button id="regimesExportMechBtn" title="Download segregation_mechanism_classifier.tsv">⤓ Mechanism TSV</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="bdmi-summary" id="regimesSummary"></div>
+
+    <!-- ── Section A — focal marginal distortion ─────────────────────────── -->
+    <div class="table-section-title">A. Single inversion Mendelian distortion <span class="sub">(focal HWE marginal)</span></div>
+    <div id="regimesFocalDistortionSlot"></div>
+
+    <!-- ── Section B — linked regime control ─────────────────────────────── -->
+    <div class="table-section-title" style="margin-top: 14px;">B. Linked inversion regime control <span class="sub">(coupling + conditional distortion)</span></div>
+    <div id="regimesPartnerTableSlot"></div>
+    <div id="regimesJointTableSlot"></div>
+
+    <div class="ie-conclusion tier-moderate" id="regimesVerdictSlot" style="display:none;">
+      <div class="verdict">REGIME VERDICT</div>
+      <div id="regimesVerdictBody"></div>
+    </div>
+
+    <!-- ── Section C — meiotic-drive vs underdominance classifier ─────────── -->
+    <div class="table-section-title" style="margin-top: 18px;">C. Meiotic drive vs underdominance <span class="sub">(cross-type classifier)</span></div>
+    <div class="page-subtitle" style="font-size: 10px; color: var(--ink-dim); margin-bottom: 8px;">
+      Aggregates DEMO.triads by parent cross-type at the focal candidate. <b>Drive candidate</b> = AB parent under-transmits the same allele across crosses (AB depleted in AA×AB <em>but</em> AB elevated in AB×BB when A is over-transmitted). <b>Underdominance candidate</b> = the AB offspring class is depleted regardless of cross direction (AA×AB, AB×BB, AB×AB all show AB deficit). The classifier defers to Section B when the focal is regime-explained.
+    </div>
+    <div id="regimesMechSummarySlot"></div>
+    <div id="regimesMechTableSlot"></div>
+    <div class="ie-conclusion tier-moderate" id="regimesMechVerdictSlot" style="display:none;">
+      <div class="verdict">MECHANISM VERDICT</div>
+      <div id="regimesMechVerdictBody"></div>
+    </div>
+
+    <!-- ── Section D — breeding-risk interpretation hierarchy ─────────────── -->
+    <div class="table-section-title" style="margin-top: 18px;">D. Breeding-risk interpretation <span class="sub">(decision hierarchy)</span></div>
+    <div class="ie-conclusion tier-weak">
+      <div class="verdict">INTERPRETATION HIERARCHY</div>
+      Before calling a candidate <b>underdominance</b>, <b>meiotic drive</b>, or <b>BDMI</b>, check these in order:
+      <ol style="margin: 6px 0 0 18px; padding: 0; line-height: 1.6;">
+        <li>Single-inversion distortion (Section A — focal HWE marginal).</li>
+        <li>Conditional on nearby inversion (Section B — partner table).</li>
+        <li>Conditional on same-chromosome haplotype regime (Section B — coupled / explained / residual verdict).</li>
+        <li>Conditional on genome-wide ancestry (cross-page — BDMI Test D).</li>
+        <li>Conditional on family / pedigree (cross-page — Mendelian tab cohort dyads / triads).</li>
+        <li>Only then assign a mechanistic label (Section C — drive vs underdominance), and only after that go to BDMI / incompatibility (BDMI tab).</li>
+      </ol>
+    </div>
+  </div>

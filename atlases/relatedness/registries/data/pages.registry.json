@@ -37,6 +37,76 @@
       "requires_layers": [],
       "requires_slots": [],
       "preloads": []
+    },
+    "bdmi": {
+      "_label": "bdmi — Bateson-Dobzhansky-Muller incompatibility screen",
+      "_doc": "Per-candidate incompatibility screen. Test A: Mendelian segregation distortion across triads (or hub dyads). Test B: missing karyotype class (obs<5% when HWE exp>=15%). Test C: heterozygote excess/deficit relative to 2pq (|dev|>=30% or HWE chi-square p<0.05). Test D: ancestry x genotype contingency chi-square against dominant K-component. Test E: long-range forbidden combinations - minimum obs/exp ratio across cross-chromosome candidate pairs (<0.10 fires). Test F: phenotype association (stub until DEMO.phenotype or a normalized phenotype envelope is wired in). Confidence ladder: weak (none fire) -> moderate (B or C) -> strong (A or D or E) -> very strong (F) -> validated (out-of-scope for WGS, requires controlled crosses).",
+      "requires_layers": [],
+      "requires_slots": [],
+      "preloads": []
+    },
+    "regimes": {
+      "_label": "regimes — chromosome regime inheritance (linked inversions + mechanism classifier)",
+      "_doc": "Core-genetics control page for the BDMI screen. Section A: focal marginal Mendelian distortion (HWE chi-square). Section B: linked inversion regime control - for every other candidate on the same chromosome, computes a 3x3 joint genotype table, Cramer's V, mutual information, missing recombinant haplotype count, and the conditional-distortion combined p-value (Fisher's method across partner strata). Verdict: regime-coupled / regime-explained / regime-residual / regime-independent / regime-unknown. Section C: meiotic-drive vs underdominance classifier - aggregates triads in DEMO.triads by cross type (AA x AB, AB x BB, AB x AB) and asks whether the depletion follows the parent-transmitted allele (drive candidate) or the offspring AB class (underdominance candidate). Section D: breeding-risk interpretation, with the explicit hierarchy 'distortion -> linked-regime explained? -> drive vs underdominance -> BDMI'. Exports segregation_mechanism_classifier.tsv and linked_inversion_regimes.tsv.",
+      "requires_layers": [],
+      "requires_slots": [],
+      "preloads": []
+    },
+    "meiosis": {
+      "_label": "meiosis — crossover observables (single CO, double CO, coincidence, interference)",
+      "_doc": "Parks the meiotic crossover model so it does not get lost. Section A: r1, r2, r12 inputs and computes C = r12 / (r1 * r2) and I = 1 - C. Section B: observable vs latent reference table - r1, r2, r12, C, I are observable / derived; a, b, d, x (precondition + exchange) are latent and not estimated from genotype data alone (3 equations, 4 unknowns - identifiability limitation). Section C: per-inversion-carrier CO frequency - stub until a per-individual CO call layer arrives (ngsPedigree Stage 3 chromosome inheritance map, or a cytological SPO11 / MLH1 layer). Section D: cross-page links to Regime inheritance and BDMI. Section E: geometry note - inversions preserve local nucleotide content but alter pairing geometry in heterokaryotypes; the inversion loop is what reduces observable crossover products while still allowing NCO / gene-conversion tracts. d (precondition) partly preserved, x (exchange / resolution) is the larger change. The loop / synapsis / breakpoint-geometry biology itself lives in the sibling Inversion Atlas geometry page; this module only owns the inheritance-side observables and cross-links out.",
+      "requires_layers": [],
+      "requires_slots": [],
+      "preloads": []
+    },
+    "eligibility": {
+      "_label": "eligibility — per-window NCO/Mb (p map)",
+      "_doc": "Per-chromosome track of NCO rate per Mb computed from the population layer (phased haplotypes). NCO is the messenger for the meiotic precondition step p (DSB / pairing substrate availability). Inversion footprints overlaid as coloured strips: pass / warn / fail. Prediction inside a true heterokaryotypic inversion: NCO ~ flank (sequence-driven DSB competence is preserved). Karyotype matrix surfaced below for the active chromosome so the user can see per-individual calls. Source: DEMO.recomb_windows (synthetic until ngsTracts / NCO-tract envelopes are wired in).",
+      "requires_layers": [],
+      "requires_slots": [],
+      "preloads": []
+    },
+    "resolution": {
+      "_label": "resolution — per-window CO/(NCO+CO) (x map)",
+      "_doc": "Per-chromosome track of CO share given a precondition was met = CO / (NCO + CO), computed from the pedigree layer (CO) and population layer (NCO). Closest visible proxy for the latent exchange / resolution probability x. Windows with total events below the configurable min-n threshold are greyed out (insufficient power, not a real zero). Inversion footprints overlaid. Prediction inside an active heterokaryotypic inversion: resolution drops sharply (loop pairing suppresses CO designation / recovery) while NCO is preserved on the Eligibility page. Karyotype matrix surfaced below. Source: DEMO.recomb_windows.",
+      "requires_layers": [],
+      "requires_slots": [],
+      "preloads": []
+    },
+    "coincidence": {
+      "_label": "coincidence — 2D pair heatmap (Sandler interference)",
+      "_doc": "Per-window-pair coefficient of coincidence C = r12 / (r1 * r2) drawn as a 2D heatmap for one chromosome. C ~ 1 = independence; C < 1 = positive interference (fewer DCOs than expected - the normal meiotic pattern); C >> 1 = negative interference (usually a sample-size or genotyping artefact). Off-diagonal cells inside an inversion span go to C -> 0 or undefined - the loop disrupts the precondition / resolution chain so the joint exchange rate collapses. Cells are clickable: the inspector shows the pair detail (r1, r2, observed n_DCO, expected n_DCO under independence, C, I). Band-max filter restricts the matrix to |i-j| <= k physical-distance bands. Karyotype matrix surfaced below. Source: DEMO.recomb_pairs.",
+      "requires_layers": [],
+      "requires_slots": [],
+      "preloads": []
+    },
+    "inversion_signature": {
+      "_label": "inversion_signature — three-track diagnostic figure",
+      "_doc": "Three stacked per-window tracks for one chromosome: A) NCO/Mb (eligibility / p map), B) CO/meiosis (pedigree-layer recombination), C) CO/(NCO+CO) (resolution / x map). Each inversion candidate on the active chromosome gets an inside-vs-flank verdict card using the cross-layer rule from the Sandler translation: 'CONSISTENT WITH INVERSION' (NCO ~ flank, CO ~ 0.05 x flank) / 'REJECT - NO CO SUPPRESSION' / 'ANCIENT COLD REGION' / 'AMBIGUOUS - NCO ELEVATED'. Karyotype matrix surfaced below so carriers vs homokaryotypes are visible. This is the minimum-viable cross-layer diagnostic figure the user asked for - one chromosome, three tracks, inversion footprint overlaid, verdicts inline.",
+      "requires_layers": [],
+      "requires_slots": [],
+      "preloads": []
+    },
+    "focal_meiosis_scan": {
+      "_label": "focal_meiosis_scan — inversion x meiosis coincidence scan",
+      "_doc": "Focal inversion x meiosis interchromosomal-effect scan. For each focal inversion candidate, compares the coefficient of coincidence on every tested chromosome between carriers (heterokaryotype or homozygous-alt) and matched non-carriers (homozygous-ref), using a family-aware permutation null (carrier labels shuffled within family hubs, preserving each hub's carrier count). Causal unit toggle: parental_meiosis (parent of triad, per the user's spec - default) vs individual karyotype (legacy). Per row: focal_inv, focal_chr, tested_chr, relation (intra/inter), n_carriers, n_controls, n_pairs, C_carrier, C_control, delta_C, p_perm, carrier_share_in_hub, local_inv_controlled, status. Status: STRONG / MODERATE / WEAK / NO EFFECT / FAMILY CONFOUNDED (top-hub share >= 80%). Adds five cards per run: causal ladder (L0..L5), confounder profile (ancestry L1, burden delta, hub balance), per-family direction concordance, negative-control null (random fake-focal labels), dose / genotype-class preview. TRANSIENT HOME: seed page of the future Meiosis Atlas.",
+      "requires_layers": [],
+      "requires_slots": [],
+      "preloads": []
+    },
+    "inversion_priority": {
+      "_label": "inversion_priority — Pass-1 -> Pass-2 bridge",
+      "_doc": "Per-inversion priority table aggregating every signal computed by the other pages: intra-chromosomal CO effect (from Inversion-signature inside-vs-flank ratio), interchromosomal |delta_C| (from a fast pass over Inv x meiosis carrier/control), Mendelian distortion (binomial p across DEMO.triads, same as BDMI Test A), family hub spread, marker readiness. Composite priority_score with weights intra 0.30, inter 0.25, mendel 0.20, family 0.15, marker 0.10. Bucket: SHIP -> PASS 2 / HOLD / DROP. Use the page to pick the 5-20 inversions for marker-validation at scale (10k-50k catfish).",
+      "requires_layers": [],
+      "requires_slots": [],
+      "preloads": []
+    },
+    "marker_test_designer": {
+      "_label": "marker_test_designer — Interchromosomal Marker Test Designer",
+      "_doc": "Converts a candidate interchromosomal meiosis effect into a practical marker panel. For a focal inversion: (1) focal-inversion-state markers (tag SNPs + breakpoint markers) used to classify parents as het vs non-het; (2) transmission/recombination markers on each tested chromosome arranged as ordered triplets m1-m2-m3 so that two intervals A and B can support CO, DCO, and C estimation in offspring panels. Status per tested chromosome: READY / PARTIAL / BLOCKED / MISSING / LOW_POWER. Outputs three TSVs (focal markers, interchromosomal test markers, test-design summary with N families needed and expected DCO power).",
+      "requires_layers": [],
+      "requires_slots": [],
+      "preloads": []
     }
   }
 }

@@ -1418,6 +1418,16 @@
       <button data-subtab="inversions">Inversions</button>
       <button data-subtab="mendelian">Mendelian</button>
       <button data-subtab="compatibility">Compatibility</button>
+      <button data-subtab="bdmi" title="Bateson-Dobzhansky-Muller incompatibility screen">BDMI screen</button>
+      <button data-subtab="regimes" title="Chromosome regime inheritance — linked inversions, drive vs underdominance, breeding risk">Regime inheritance</button>
+      <button data-subtab="meiosis" title="Meiotic crossover observables — single CO, double CO, coincidence, interference (d / x latent)">Meiosis</button>
+      <button data-subtab="eligibility" title="Eligibility — per-window NCO/Mb track (p map)">Eligibility</button>
+      <button data-subtab="resolution" title="Resolution — per-window CO/(NCO+CO) (x map)">Resolution</button>
+      <button data-subtab="coincidence" title="Coincidence — 2D pair heatmap of C = r12 / (r1·r2)">Coincidence</button>
+      <button data-subtab="inversion_signature" title="Inversion signature — three-track diagnostic + per-candidate verdicts">Inv signature</button>
+      <button data-subtab="focal_meiosis_scan" title="Focal inversion × meiosis coincidence scan — intra/inter chromosomal effects, family-aware permutation null">Inv × meiosis</button>
+      <button data-subtab="inversion_priority" title="Pass-1 → Pass-2 bridge: priority ranking + SHIP/HOLD/DROP buckets">Priority</button>
+      <button data-subtab="marker_test_designer" title="Interchromosomal Marker Test Designer — focal classifier + recombination-marker triplets">Marker designer</button>
       <div class="sub-tab-spacer"></div>
       <div class="chr-filter">
         <span>Chr filter:</span>
@@ -1598,6 +1608,554 @@
 
       <div id="compatSummary"></div>
       <div id="compatResultSlot"></div>
+    </div>
+
+    <!-- BDMI / incompatibility-screen sub-page — the inheritance-side test
+         bench for inversion candidates flagged by the Inversion Atlas. The
+         heavy lifting lives in atlases/relatedness/pages/hub/bdmi.{html,js};
+         this is the in-shell placeholder so the legacy single-file mock can
+         host the tab during round 1. Markup mirrors bdmi.html one-for-one
+         so wiring is identical whether you're running the modular atlas
+         shell or the legacy file. -->
+    <div id="subpage-bdmi" class="subpage" data-subtab-page>
+      <div class="page-subtitle" style="font-size: 10.5px; color: var(--ink-dim); margin-bottom: 12px;">
+        Bateson–Dobzhansky–Muller incompatibility (BDMI) screen. For each inversion candidate, runs six population-genetic tests that flag candidate incompatibility regions: Mendelian segregation distortion, missing karyotype classes, heterozygote excess / deficit, ancestry × genotype interaction, long-range forbidden haplotype combinations, and (when phenotype data exist) phenotype association. Results combine into a per-candidate confidence ladder (weak → moderate → strong → very strong). WGS-only signals are correlative — controlled crosses are required for validation.
+      </div>
+
+      <div class="bdmi-config">
+        <div class="row">
+          <label>Candidate scope</label>
+          <select id="bdmiScope">
+            <option value="all">All inversion candidates</option>
+            <option value="status_pass">Status = PASS only</option>
+            <option value="status_warn">Status = WARN only</option>
+            <option value="freq_high">Frequency ≥ 0.10</option>
+            <option value="chrom_only">Current chromosome only</option>
+          </select>
+        </div>
+        <div class="row">
+          <label>Mendelian source</label>
+          <select id="bdmiMendSource">
+            <option value="triads">Triads in DEMO.triads (preferred)</option>
+            <option value="hub_dyads">Dyads from current family hub</option>
+          </select>
+        </div>
+        <div class="row">
+          <label>Distortion α</label>
+          <select id="bdmiAlpha">
+            <option value="0.05">α = 0.05</option>
+            <option value="0.01" selected>α = 0.01</option>
+            <option value="0.001">α = 0.001</option>
+          </select>
+        </div>
+        <div class="row">
+          <label>Heterokaryotype</label>
+          <select id="bdmiHetRule">
+            <option value="abs_deficit">|obs − exp(2pq)| / exp ≥ 0.30</option>
+            <option value="z_deficit">z (HWE chi²) p &lt; 0.05</option>
+          </select>
+        </div>
+        <div class="row">
+          <label>Screens to run</label>
+          <div class="toggle-row">
+            <label class="bdmi-toggle"><input type="checkbox" id="bdmiUseMend" checked /><span>Mendelian distortion (Test A)</span></label>
+            <label class="bdmi-toggle"><input type="checkbox" id="bdmiUseMiss" checked /><span>Missing class (Test B)</span></label>
+            <label class="bdmi-toggle"><input type="checkbox" id="bdmiUseHet"  checked /><span>Het deficit/excess (Test C)</span></label>
+            <label class="bdmi-toggle"><input type="checkbox" id="bdmiUseAnc"  checked /><span>Ancestry interaction (Test D)</span></label>
+            <label class="bdmi-toggle"><input type="checkbox" id="bdmiUseLR"   checked /><span>Long-range forbidden (Test E)</span></label>
+            <label class="bdmi-toggle"><input type="checkbox" id="bdmiUsePheno"        /><span>Phenotype assoc. (Test F)</span></label>
+          </div>
+        </div>
+        <div class="row">
+          <label></label>
+          <div class="bdmi-actions">
+            <button class="primary" id="bdmiRunBtn">Run BDMI screen</button>
+            <button id="bdmiResetBtn">Reset</button>
+            <button id="bdmiExportBtn" title="Download per-candidate score table as TSV">⤓ Export TSV</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="bdmiDataSource" class="data-source-badge" style="
+           font-size: 12px;
+           color: #666;
+           margin: 4px 0 8px;
+           padding: 4px 8px;
+           background: #f5f5f5;
+           border-left: 3px solid #ccc;
+           border-radius: 2px;
+           line-height: 1.4;
+           min-height: 1em;">◌  Phenotype layer not loaded — Test F (phenotype association) cannot exceed "missing" until survival/growth/fertility TSV is wired in.</div>
+
+      <div class="bdmi-summary" id="bdmiSummary"></div>
+
+      <div class="bdmi-ladder">
+        <div class="bdmi-ladder-row">
+          <span class="bdmi-confidence-pill weak">weak</span>
+          <span>high FST / old inversion / low recombination only — no inheritance evidence yet</span>
+        </div>
+        <div class="bdmi-ladder-row">
+          <span class="bdmi-confidence-pill moderate">moderate</span>
+          <span>missing genotype class or heterozygote deficit (Tests B / C fire)</span>
+        </div>
+        <div class="bdmi-ladder-row">
+          <span class="bdmi-confidence-pill strong">strong</span>
+          <span>Mendelian distortion or ancestry-dependent depletion (Tests A / D / E fire)</span>
+        </div>
+        <div class="bdmi-ladder-row">
+          <span class="bdmi-confidence-pill very-strong">very strong</span>
+          <span>phenotype / survival / fertility association (Test F fires) — requires phenotype layer</span>
+        </div>
+        <div class="bdmi-ladder-row">
+          <span class="bdmi-confidence-pill validated">validated</span>
+          <span>controlled crosses show reduced fitness for a specific genotype combination — out of scope for WGS</span>
+        </div>
+      </div>
+
+      <div id="bdmiResultSlot"></div>
+      <div id="bdmiDetailSlot"></div>
+
+      <div class="bdmi-manuscript ie-conclusion tier-moderate">
+        <div class="verdict">MANUSCRIPT PHRASING</div>
+        Although direct validation of Bateson–Dobzhansky–Muller incompatibilities
+        requires controlled crosses or fitness measurements, the present dataset
+        allows candidate incompatibility regions to be screened by testing for
+        segregation distortion, depletion of expected inversion genotype classes,
+        ancestry-dependent karyotype frequencies, and long-range non-random
+        associations between inversion arrangements and genomic backgrounds.
+      </div>
+    </div>
+
+    <!-- Chromosome Regime Inheritance — sub-tab #7. Inheritance-side control
+         page for the BDMI screen. Four sections: A. focal HWE marginal,
+         B. linked inversion regime control, C. meiotic drive vs
+         underdominance classifier, D. breeding-risk interpretation. Markup
+         mirrors atlases/relatedness/pages/hub/regimes.html one-for-one. -->
+    <div id="subpage-regimes" class="subpage" data-subtab-page>
+      <div class="page-subtitle" style="font-size: 10.5px; color: var(--ink-dim); margin-bottom: 12px;">
+        For linked inversions on the same chromosome, apparent distortion at one candidate should be tested <em>conditionally</em> on the other candidate or on the inferred long-range haplotype regime. If the distortion disappears after conditioning, the signal is better interpreted as haplotype-regime coupling than as independent underdominance, meiotic drive, or BDMI. Once a residual signal survives the regime control, the cross-type classifier separates <b>meiotic drive</b> (the parent transmits one arrangement too often) from <b>underdominance</b> (the heterozygote offspring class is depleted regardless of cross).
+      </div>
+
+      <div class="regimes-config">
+        <div class="row">
+          <label>Chromosome</label>
+          <select id="regimesChrom"></select>
+        </div>
+        <div class="row">
+          <label>Focal inversion</label>
+          <select id="regimesFocal"></select>
+        </div>
+        <div class="row">
+          <label>Min joint n</label>
+          <select id="regimesMinN">
+            <option value="5">n ≥ 5</option>
+            <option value="10" selected>n ≥ 10</option>
+            <option value="20">n ≥ 20</option>
+          </select>
+        </div>
+        <div class="row">
+          <label>Couple threshold</label>
+          <select id="regimesCoupleThr">
+            <option value="0.30">Cramér's V ≥ 0.30</option>
+            <option value="0.50" selected>Cramér's V ≥ 0.50</option>
+            <option value="0.70">Cramér's V ≥ 0.70</option>
+          </select>
+        </div>
+        <div class="row">
+          <label></label>
+          <div class="regimes-actions">
+            <button class="primary" id="regimesRunBtn">Run regime test</button>
+            <button id="regimesResetBtn">Reset</button>
+            <button id="regimesExportBtn" title="Download linked_inversion_regimes.tsv">⤓ Regimes TSV</button>
+            <button id="regimesExportMechBtn" title="Download segregation_mechanism_classifier.tsv">⤓ Mechanism TSV</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="bdmi-summary" id="regimesSummary"></div>
+
+      <div class="table-section-title">A. Single inversion Mendelian distortion <span class="sub">(focal HWE marginal)</span></div>
+      <div id="regimesFocalDistortionSlot"></div>
+
+      <div class="table-section-title" style="margin-top: 14px;">B. Linked inversion regime control <span class="sub">(coupling + conditional distortion)</span></div>
+      <div id="regimesPartnerTableSlot"></div>
+      <div id="regimesJointTableSlot"></div>
+
+      <div class="ie-conclusion tier-moderate" id="regimesVerdictSlot" style="display:none;">
+        <div class="verdict">REGIME VERDICT</div>
+        <div id="regimesVerdictBody"></div>
+      </div>
+
+      <div class="table-section-title" style="margin-top: 18px;">C. Meiotic drive vs underdominance <span class="sub">(cross-type classifier)</span></div>
+      <div class="page-subtitle" style="font-size: 10px; color: var(--ink-dim); margin-bottom: 8px;">
+        Aggregates DEMO.triads by parent cross-type at the focal candidate. <b>Drive candidate</b> = AB parent under-transmits the same allele across crosses. <b>Underdominance candidate</b> = the AB offspring class is depleted regardless of cross direction. The classifier defers to Section B when the focal is regime-explained.
+      </div>
+      <div id="regimesMechSummarySlot"></div>
+      <div id="regimesMechTableSlot"></div>
+      <div class="ie-conclusion tier-moderate" id="regimesMechVerdictSlot" style="display:none;">
+        <div class="verdict">MECHANISM VERDICT</div>
+        <div id="regimesMechVerdictBody"></div>
+      </div>
+
+      <div class="table-section-title" style="margin-top: 18px;">D. Breeding-risk interpretation <span class="sub">(decision hierarchy)</span></div>
+      <div class="ie-conclusion tier-weak">
+        <div class="verdict">INTERPRETATION HIERARCHY</div>
+        Before calling a candidate <b>underdominance</b>, <b>meiotic drive</b>, or <b>BDMI</b>, check these in order:
+        <ol style="margin: 6px 0 0 18px; padding: 0; line-height: 1.6;">
+          <li>Single-inversion distortion (Section A — focal HWE marginal).</li>
+          <li>Conditional on nearby inversion (Section B — partner table).</li>
+          <li>Conditional on same-chromosome haplotype regime (Section B — coupled / explained / residual verdict).</li>
+          <li>Conditional on genome-wide ancestry (cross-page — BDMI Test D).</li>
+          <li>Conditional on family / pedigree (cross-page — Mendelian tab cohort dyads / triads).</li>
+          <li>Only then assign a mechanistic label (Section C — drive vs underdominance), and only after that go to BDMI / incompatibility (BDMI tab).</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- Meiosis — sub-tab #8. Parks the single CO / double CO / coincidence
+         model so it doesn't get lost. Only observable quantities (r1, r2,
+         r12, C, I) leave the module; the latent two-step model (d, x) is
+         documented but never estimated. -->
+    <div id="subpage-meiosis" class="subpage" data-subtab-page>
+      <div class="page-subtitle" style="font-size: 10.5px; color: var(--ink-dim); margin-bottom: 12px;">
+        Meiotic crossover observables. From offspring genotypes alone you can estimate <b>single-CO</b> and <b>double-CO</b> frequencies and derive the coefficient of coincidence <b>C</b> and the interference <b>I = 1 − C</b>. The latent two-step model (precondition <em>d</em> followed by exchange <em>x</em>) is <b>not identifiable</b> from genotype data because the three observed quantities (r₁, r₂, r₁₂) underdetermine the four unknowns (a, b, d, x). Treat <em>d</em> and <em>x</em> as conceptual placeholders only — separate them only if you have an independent assay (DSBs, recombination nodules, SPO11 oligos, MLH1 foci).
+      </div>
+
+      <div class="table-section-title">A. Single CO · double CO · coincidence <span class="sub">(observable from offspring genotypes)</span></div>
+      <div class="meiosis-config">
+        <div class="row">
+          <label>r₁ — single CO in interval 1</label>
+          <input id="meioR1" type="number" min="0" max="1" step="0.001" value="0.10" />
+        </div>
+        <div class="row">
+          <label>r₂ — single CO in interval 2</label>
+          <input id="meioR2" type="number" min="0" max="1" step="0.001" value="0.20" />
+        </div>
+        <div class="row">
+          <label>r₁₂ — double CO (both intervals)</label>
+          <input id="meioR12" type="number" min="0" max="1" step="0.0001" value="0.005" />
+        </div>
+        <div class="row">
+          <label></label>
+          <div class="meiosis-actions">
+            <button class="primary" id="meioComputeBtn">Compute C / I</button>
+            <button id="meioResetBtn">Reset</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="bdmi-summary" id="meioSummary"></div>
+
+      <div class="table-section-title" style="margin-top: 18px;">B. Observable vs latent <span class="sub">(what genotype data can and cannot tell you)</span></div>
+      <table class="data-table meiosis-ref">
+        <thead>
+          <tr><th>Symbol</th><th>Meaning</th><th>Status</th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="sample-id">r₁</td><td>single-CO frequency in interval 1</td><td><span class="status-pill-cell pass">OBSERVABLE</span></td></tr>
+          <tr><td class="sample-id">r₂</td><td>single-CO frequency in interval 2</td><td><span class="status-pill-cell pass">OBSERVABLE</span></td></tr>
+          <tr><td class="sample-id">r₁₂</td><td>double-CO frequency across both intervals</td><td><span class="status-pill-cell pass">OBSERVABLE</span></td></tr>
+          <tr><td class="sample-id">C</td><td>coefficient of coincidence = r₁₂ / (r₁ · r₂)</td><td><span class="status-pill-cell pass">DERIVED</span></td></tr>
+          <tr><td class="sample-id">I</td><td>interference = 1 − C</td><td><span class="status-pill-cell pass">DERIVED</span></td></tr>
+          <tr><td class="sample-id">a</td><td>precondition only in interval 1</td><td><span class="status-pill-cell fail">LATENT</span></td></tr>
+          <tr><td class="sample-id">b</td><td>precondition only in interval 2</td><td><span class="status-pill-cell fail">LATENT</span></td></tr>
+          <tr><td class="sample-id">d</td><td>precondition in both intervals</td><td><span class="status-pill-cell fail">LATENT</span></td></tr>
+          <tr><td class="sample-id">x</td><td>exchange probability given precondition</td><td><span class="status-pill-cell fail">LATENT</span></td></tr>
+        </tbody>
+      </table>
+      <div class="meiosis-caption">
+        Model: r₁ = x(a + d), r₂ = x(b + d), r₁₂ = x²·d. Three equations, four unknowns ⇒ d and x are not separable from genotype counts alone. Reporting C and I is the publishable thing; reporting d or x requires an independent assay.
+      </div>
+
+      <div class="ie-conclusion tier-weak" style="margin-top: 10px;">
+        <div class="verdict">WHAT "PRECONDITION OF EXCHANGE" MEANS</div>
+        The precondition layer (a / b / d in the model) is <b>not</b> one molecule. It's the whole upstream meiotic setup that makes a region competent for crossing over. In modern words it includes: <b>homolog pairing</b>, <b>synapsis / synaptonemal complex formation</b>, <b>chromatin accessibility</b>, <b>double-strand-break formation</b>, <b>recombination nodules</b>, <b>strand-invasion intermediates</b>, <b>crossover designation</b>, and <b>interference signalling along the chromosome</b>. The exchange layer (x) is only the final resolution step — the cut-and-join that turns a designated site into a real chiasma.
+        <ul style="margin: 6px 0 0 18px; padding: 0; line-height: 1.55;">
+          <li><b>Predisposition layer</b> = where crossovers are allowed / designated. Traced by NCO rate (Eligibility tab).</li>
+          <li><b>Resolution layer</b> = which designated events become actual crossovers. Traced by CO/(NCO+CO) (Resolution tab).</li>
+        </ul>
+        The point of C in this framework: C asks whether two intervals become crossover-<em>competent</em> together more or less often than expected — not just whether the final exchange physically happened.
+      </div>
+
+      <div class="table-section-title" style="margin-top: 18px;">C. Per-inversion-carrier CO frequency <span class="sub">(placeholder — needs CO calls)</span></div>
+      <div class="ie-conclusion tier-weak">
+        <div class="verdict">PLACEHOLDER — NO CO CALL LAYER YET</div>
+        This section will fill in once a per-individual CO call layer is wired in (a chromosome inheritance map from ngsPedigree Stage 3, or a SPO11 / MLH1 cytological layer). The intended comparison is:
+        <ul style="margin: 6px 0 0 18px; padding: 0; line-height: 1.55;">
+          <li><b>r₁, r₂, r₁₂</b> for inversion carriers (heterokaryotypes <em>AB</em>) vs homokaryotypes (<em>AA</em>, <em>BB</em>), inside and flanking each inversion.</li>
+          <li>Δ-coincidence and Δ-interference between carrier classes — interpret cautiously: a change in C/I in heterokaryotypes is a signal but is <em>not</em> proof that the exchange step changed (it could be the opportunity distribution).</li>
+          <li>Tract-level NCO upper bound when conversion-like tracts can be called.</li>
+        </ul>
+      </div>
+
+      <div class="table-section-title" style="margin-top: 18px;">D. How this connects to the rest of the atlas</div>
+      <div class="ie-conclusion tier-weak">
+        <div class="verdict">CROSS-PAGE LINKS</div>
+        Reduced single-CO / double-CO inside inversion spans is one of the standard expectations for paracentric / pericentric inversions in heterokaryotypes. The <b>Regime inheritance</b> tab tests whether linked inversions inherit as one block — low CO between two coupled inversions is consistent with that. The <b>BDMI screen</b> tab interprets heterokaryotype deficits (Test C) and long-range forbidden combinations (Test E) — both are downstream consequences of suppressed recombination in inversion carriers.
+      </div>
+
+      <div class="table-section-title" style="margin-top: 18px;">E. Why inversions suppress observable CO <span class="sub">(geometry, not nucleotides)</span></div>
+      <div class="ie-conclusion tier-moderate">
+        <div class="verdict">SEQUENCE-PRESERVING, GEOMETRY-ALTERING</div>
+        <p style="margin: 0 0 8px 0;"><em>Inversions preserve most local nucleotide content, so they may not necessarily alter intrinsic DSB motif potential; however, in heterokaryotypes they alter homologous pairing geometry, which can reduce crossover designation / resolution and the recovery of crossover products while still allowing NCO / gene-conversion tracts.</em></p>
+        <p style="margin: 0 0 8px 0;">
+          Normal homolog:&nbsp;&nbsp;<code>A B C D E F G H</code><br/>
+          Inverted homolog: <code>A B F E D C G H</code>
+        </p>
+        <p style="margin: 0 0 8px 0;">Same nucleotides, different orientation — so to align homologous bases the chromosome must form an <b>inversion loop</b>. The loop changes synapsis, strand-invasion geometry, crossover designation, crossover resolution, and the recoverability of recombinant chromatids. DSBs and gene conversion can still occur <em>inside</em> the inversion; what disappears from the observable count is the <em>resolved crossover product</em>.</p>
+        <p style="margin: 0;">Mapped onto the latent two-step model from Section B:</p>
+        <ul style="margin: 4px 0 0 18px; padding: 0; line-height: 1.55;">
+          <li><b>d (precondition)</b> — partly preserved when sequence-driven DSB competence is unchanged. But the inversion loop can still disrupt synapsis / homolog engagement, so d is not fully spared.</li>
+          <li><b>x (exchange / resolution)</b> — typically the larger change. Crossover products that arise inside the loop are unbalanced and lost from the observable offspring set; NCO / gene-conversion tracts can still come through.</li>
+        </ul>
+        <p style="margin: 8px 0 0 0; color: var(--ink-dim); font-size: 10.5px;">
+          This module owns the inheritance-side observables (r₁, r₂, r₁₂, C, I). The loop / synapsis / breakpoint geometry itself lives in the sibling atlas (Inversion Atlas — geometry page). Do not duplicate the biology here; cross-link to it instead.
+        </p>
+      </div>
+    </div>
+
+    <!-- Eligibility — sub-tab #9. Per-window NCO/Mb (p map). Mirrors
+         atlases/relatedness/pages/hub/eligibility.html one-for-one. -->
+    <div id="subpage-eligibility" class="subpage" data-subtab-page>
+      <div class="page-subtitle" style="font-size: 10.5px; color: var(--ink-dim); margin-bottom: 12px;">
+        <b>Eligibility (p map).</b> Per-window non-crossover (NCO) rate per Mb, computed from population-layer phased haplotypes. NCO is the messenger for the precondition step <em>p</em>: high NCO ⇒ DSB / pairing substrate is plentiful in this window, low NCO ⇒ ancient cold region. Inversion footprints overlaid as coloured strips; the prediction inside a true heterokaryotypic inversion is NCO ≈ flank (sequence-driven DSB competence is preserved). The karyotype matrix below shows per-individual calls so you can see whose heterokaryotype is doing the work.
+      </div>
+      <div class="recomb-config">
+        <div class="row"><label>Chromosome</label><select id="eligChrom"></select></div>
+        <div class="row"><label>Highlight inversion</label><select id="eligHighlight"><option value="">(none)</option></select></div>
+      </div>
+      <div class="recomb-track-wrap">
+        <svg id="eligTrack" class="recomb-track-svg" preserveAspectRatio="xMidYMid meet"></svg>
+        <div class="recomb-legend"><div id="eligLegend"></div></div>
+      </div>
+      <div class="bdmi-summary" id="eligSummary"></div>
+      <div class="table-section-title" style="margin-top: 14px;">
+        Karyotypes <span class="sub">(per-sample calls on the active chromosome's inversion candidates)</span>
+      </div>
+      <div id="eligKaryoSlot"></div>
+    </div>
+
+    <!-- Resolution — sub-tab #10. Per-window CO/(NCO+CO) (x map). -->
+    <div id="subpage-resolution" class="subpage" data-subtab-page>
+      <div class="page-subtitle" style="font-size: 10.5px; color: var(--ink-dim); margin-bottom: 12px;">
+        <b>Resolution (x map).</b> Per-window crossover share <em>CO / (NCO + CO)</em>, computed from the pedigree layer (CO) over the population-layer (NCO) denominator. This is the closest visible proxy to the latent exchange / resolution probability <em>x</em>. Windows with too few total events are greyed out (insufficient power, not a real low). Inversion footprints overlaid; the prediction inside a true heterokaryotypic inversion is resolution ↓↓ (loop pairing suppresses CO designation / recovery) while NCO is preserved (Eligibility page). The karyotype matrix below identifies the individuals carrying the inversion arrangement.
+      </div>
+      <div class="recomb-config">
+        <div class="row"><label>Chromosome</label><select id="resoChrom"></select></div>
+        <div class="row"><label>Min n (NCO + CO)</label><select id="resoMinN">
+          <option value="3" selected>≥ 3</option><option value="5">≥ 5</option><option value="10">≥ 10</option>
+        </select></div>
+        <div class="row"><label>Highlight inversion</label><select id="resoHighlight"><option value="">(none)</option></select></div>
+      </div>
+      <div class="recomb-track-wrap">
+        <svg id="resoTrack" class="recomb-track-svg" preserveAspectRatio="xMidYMid meet"></svg>
+        <div class="recomb-legend"><div id="resoLegend"></div></div>
+      </div>
+      <div class="bdmi-summary" id="resoSummary"></div>
+      <div class="table-section-title" style="margin-top: 14px;">
+        Karyotypes <span class="sub">(per-sample calls on the active chromosome's inversion candidates)</span>
+      </div>
+      <div id="resoKaryoSlot"></div>
+    </div>
+
+    <!-- Coincidence — sub-tab #11. 2D pair heatmap of C = r12 / (r1·r2). -->
+    <div id="subpage-coincidence" class="subpage" data-subtab-page>
+      <div class="page-subtitle" style="font-size: 10.5px; color: var(--ink-dim); margin-bottom: 12px;">
+        <b>Coincidence (Sandler interference map).</b> Per-window-pair coefficient of coincidence <em>C = r₁₂ / (r₁ · r₂)</em>, drawn as a 2D heatmap. <b>C ≈ 1</b> = independence (no interference). <b>C &lt; 1</b> = positive interference (fewer DCOs than expected — the normal meiotic pattern). <b>C ≫ 1</b> = negative interference (usually a sample-size or genotyping artefact). Off-diagonal cells inside an inversion span go to C → 0 or undefined: the loop disrupts the precondition / resolution chain, so the joint exchange rate collapses. Click any cell to read the pair detail in the inspector below. Karyotype matrix at the bottom.
+      </div>
+
+      <div class="ie-conclusion tier-warn-family" style="margin-bottom: 12px;">
+        <div class="verdict">NCO ≠ CO · WHAT C ACTUALLY MEASURES</div>
+        <div style="font-size: 10.5px; line-height: 1.55;">
+          Coincidence asks whether a <b>crossover</b> in interval A affects the chance of a <b>crossover</b> in interval B. The r₁ / r₂ / r₁₂ on this page are CO and DCO frequencies — chromosome-arm exchanges visible as long inherited-tract switches. <b>Non-crossovers (NCO)</b> are a different recombination outcome (short gene-conversion tracts, no arm exchange) and <b>cannot be substituted into this formula</b>. NCO traces the precondition / DSB initiation layer (see the <b>Eligibility</b> tab); CO traces the exchange outcome used here. With the current ngsPedigree / ngsTract data the safe estimability flags are: <b>CO / inherited-tract switches: estimable</b>; <b>DCO / coincidence: partially estimable (power-limited)</b>; <b>NCO: not estimable</b> without much denser, phased variant data and a short-tract-aware caller; <b>CO vs NCO resolution: not estimable</b> from current data.
+        </div>
+      </div>
+      <div class="recomb-config">
+        <div class="row"><label>Chromosome</label><select id="coinChrom"></select></div>
+        <div class="row"><label>Highlight inversion</label><select id="coinHighlight"><option value="">(none)</option></select></div>
+        <div class="row"><label>Band max (windows)</label><select id="coinBand">
+          <option value="999" selected>full matrix</option>
+          <option value="3">|i−j| ≤ 3</option>
+          <option value="5">|i−j| ≤ 5</option>
+        </select></div>
+      </div>
+      <div class="recomb-track-wrap" style="display:flex; gap: 14px; align-items: flex-start;">
+        <svg id="coinHeatmap" class="recomb-heatmap-svg" preserveAspectRatio="xMidYMid meet"></svg>
+        <div style="flex: 1; min-width: 220px;">
+          <div class="recomb-legend"><div id="coinLegend"></div></div>
+          <div class="bdmi-summary" id="coinSummary" style="margin-top: 14px;"></div>
+          <div id="coinCellDetail" style="margin-top: 10px;"></div>
+        </div>
+      </div>
+      <div class="table-section-title" style="margin-top: 14px;">
+        Karyotypes <span class="sub">(per-sample calls on the active chromosome's inversion candidates)</span>
+      </div>
+      <div id="coinKaryoSlot"></div>
+    </div>
+
+    <!-- Inversion signature — sub-tab #12. Three-track diagnostic. -->
+    <div id="subpage-inversion_signature" class="subpage" data-subtab-page>
+      <div class="page-subtitle" style="font-size: 10.5px; color: var(--ink-dim); margin-bottom: 12px;">
+        <b>Inversion signature (cross-layer diagnostic).</b> One chromosome, three stacked tracks — NCO/Mb (population layer), CO/Mb (pedigree layer), and resolution = CO/(NCO+CO). The visual phenotype of a true heterokaryotypic inversion is: NCO ≈ flank, CO ↓↓, resolution ↓↓. Reject as a real inversion when CO is not suppressed (this generation's recombination still ran). Each candidate on the active chromosome gets an inside-vs-flank summary card with one of four verdicts: <b>CONSISTENT</b> / <b>REJECT</b> / <b>ANCIENT COLD REGION</b> / <b>AMBIGUOUS</b>. The karyotype matrix at the bottom identifies the carriers.
+      </div>
+      <div class="recomb-config">
+        <div class="row"><label>Chromosome</label><select id="invsigChrom"></select></div>
+        <div class="row"><label>Highlight inversion</label><select id="invsigHighlight"><option value="">(none)</option></select></div>
+      </div>
+      <div class="recomb-track-wrap">
+        <div class="invsig-track-label">A. NCO/Mb · eligibility (p map)</div>
+        <svg id="invsigTrackNco" class="recomb-track-svg" preserveAspectRatio="xMidYMid meet"></svg>
+        <div class="invsig-track-label" style="margin-top: 8px;">B. CO/Mb · pedigree-layer recombination</div>
+        <svg id="invsigTrackCo" class="recomb-track-svg" preserveAspectRatio="xMidYMid meet"></svg>
+        <div class="invsig-track-label" style="margin-top: 8px;">C. resolution = CO / (NCO + CO) · x map</div>
+        <svg id="invsigTrackRes" class="recomb-track-svg" preserveAspectRatio="xMidYMid meet"></svg>
+      </div>
+      <div class="table-section-title" style="margin-top: 14px;">Per-candidate verdicts <span class="sub">(inside-vs-flank, cross-layer rule)</span></div>
+      <div id="invsigVerdictSlot"></div>
+      <div class="table-section-title" style="margin-top: 14px;">
+        Karyotypes <span class="sub">(per-sample calls on the active chromosome's inversion candidates)</span>
+      </div>
+      <div id="invsigKaryoSlot"></div>
+    </div>
+
+    <!-- Focal inversion × meiosis coincidence scan — sub-tab #13.
+         TRANSIENT HOME: seed page of the future Meiosis Atlas. -->
+    <div id="subpage-focal_meiosis_scan" class="subpage" data-subtab-page>
+      <div class="page-subtitle" style="font-size: 10.5px; color: var(--ink-dim); margin-bottom: 12px;">
+        <b>Focal inversion × meiosis coincidence scan.</b> For each focal inversion candidate, compare crossover coincidence on every tested chromosome between <em>carriers</em> (heterokaryotype or homozygous-alt) and <em>matched non-carriers</em>, using a <em>family-aware permutation null</em>. Each tested chromosome is tagged <b>intra</b> (same as focal) or <b>inter</b> (different from focal). Status column flags <b>FAMILY CONFOUNDED</b> when carriers concentrate in one hub. Karyotype matrix at the bottom identifies the carriers. <span style="color: var(--warn);">Transient home: this is the seed page of the future <b>Meiosis Atlas</b>; the analysis migrates as-is once that atlas exists.</span>
+      </div>
+      <div class="recomb-config">
+        <div class="row"><label>Focal inversion</label><select id="fmsFocal"></select></div>
+        <div class="row"><label>Tested chromosomes</label><select id="fmsScope">
+          <option value="both" selected>both intra + inter</option>
+          <option value="intra">intra only (same chrom as focal)</option>
+          <option value="inter">inter only (other chroms)</option>
+        </select></div>
+        <div class="row"><label>n permutations</label><select id="fmsNperm">
+          <option value="200">200 (fast)</option>
+          <option value="1000" selected>1000 (default)</option>
+          <option value="5000">5000 (slow)</option>
+        </select></div>
+        <div class="row"><label>Causal unit</label><select id="fmsUnit">
+          <option value="parental_meiosis" selected>parental meiosis (parent of triad)</option>
+          <option value="individual">individual karyotype (legacy)</option>
+        </select></div>
+        <div class="row"><label>Control for local inversions</label>
+          <label class="bdmi-toggle"><input type="checkbox" id="fmsControlLocal" checked />
+            <span>residualise tested-chrom karyotypes (badge-only in demo)</span></label></div>
+        <div class="row"><label></label>
+          <div class="bdmi-actions">
+            <button class="primary" id="fmsRunBtn">Run scan</button>
+            <button id="fmsResetBtn">Reset</button>
+            <button id="fmsExportBtn" title="Download per-tested-chrom rows as TSV">⤓ Export TSV</button>
+          </div></div>
+      </div>
+      <div class="table-section-title">Required products <span class="sub">(readiness ladder)</span></div>
+      <div class="fms-readiness" id="fmsReadiness"></div>
+      <div class="bdmi-summary" id="fmsSummary" style="margin-top: 12px;"></div>
+      <div class="ie-conclusion tier-weak" style="margin-top: 12px;">
+        <div class="verdict">WHY C, NOT JUST CO RATE</div>
+        <em>C = x²d / [x(a+d) · x(b+d)] = d / [(a+d)(b+d)]</em>. The exchange probability <em>x</em> cancels, so a focal inversion that only modulates raw CO rate may leave C unchanged. C moves when the <em>precondition / interference structure</em> changes — that is the interesting biology to test with this scan.
+      </div>
+      <div class="table-section-title" style="margin-top: 14px;">Per-tested-chromosome results</div>
+      <div id="fmsResultSlot"></div>
+      <div id="fmsDetailSlot"></div>
+
+      <div class="table-section-title" style="margin-top: 18px;">Causal ladder
+        <span class="sub">(association → controlled → consistent → coherent → experimental)</span></div>
+      <div id="fmsCausalSlot"></div>
+
+      <div class="table-section-title" style="margin-top: 14px;">Confounder profile
+        <span class="sub">(carriers vs controls — what would explain a fake effect?)</span></div>
+      <div id="fmsConfoundSlot"></div>
+
+      <div class="table-section-title" style="margin-top: 14px;">Per-family direction
+        <span class="sub">(does ΔC carry the same sign across hubs on the leading tested chromosome?)</span></div>
+      <div id="fmsPerFamilySlot"></div>
+
+      <div class="table-section-title" style="margin-top: 14px;">Negative-control null
+        <span class="sub">(K random fake-focal labels, same n carriers, free shuffle across hubs)</span></div>
+      <div id="fmsNegCtrlSlot"></div>
+
+      <div class="table-section-title" style="margin-top: 14px;">Dose / genotype classes
+        <span class="sub">(causal unit is the parental meiosis — surface the genotype split)</span></div>
+      <div id="fmsDoseSlot"></div>
+
+      <div class="table-section-title" style="margin-top: 14px;">
+        Karyotypes <span class="sub">(focal candidate + same-chrom candidates)</span>
+      </div>
+      <div id="fmsKaryoSlot"></div>
+    </div>
+
+    <!-- Inversion priority — sub-tab #14 (Pass-1 → Pass-2 bridge). -->
+    <div id="subpage-inversion_priority" class="subpage" data-subtab-page>
+      <div class="page-subtitle" style="font-size: 10.5px; color: var(--ink-dim); margin-bottom: 12px;">
+        <b>Inversion priority — Pass-1 → Pass-2 bridge.</b> One row per inversion candidate aggregating every signal the other pages compute (intra/inter CO effect, Mendelian distortion, family-hub consistency, marker readiness). Composite <em>priority_score</em>; bucket says <b>SHIP → PASS 2</b> / <b>HOLD</b> / <b>DROP</b>. Use this page to pick the 5–20 inversions you actually take into the next 10k–50k-fish marker round.
+      </div>
+      <div class="recomb-config">
+        <div class="row"><label>Bucket filter</label><select id="prioBucket">
+          <option value="ship_to_pass2" selected>SHIP → PASS 2 only</option>
+          <option value="all">all</option>
+          <option value="hold">HOLD</option>
+          <option value="drop">DROP</option>
+        </select></div>
+        <div class="row"><label>Top N for export</label><select id="prioTopN">
+          <option value="5">5</option><option value="10">10</option>
+          <option value="20" selected>20</option><option value="50">50</option>
+        </select></div>
+        <div class="row"><label></label>
+          <div class="bdmi-actions">
+            <button class="primary" id="prioRunBtn">Run priority scan</button>
+            <button id="prioResetBtn">Reset</button>
+            <button id="prioExportBtn" title="Export top-N as TSV">⤓ Export top-N</button>
+          </div></div>
+      </div>
+      <div class="bdmi-summary" id="prioSummary"></div>
+      <div class="ie-conclusion tier-weak" style="margin-top: 10px;">
+        <div class="verdict">BUCKET LOGIC</div>
+        <ul style="margin: 6px 0 0 18px; padding: 0; line-height: 1.55; font-size: 10.5px;">
+          <li><b>SHIP → PASS 2</b> = priority_score ≥ 0.55 AND marker_ready AND top-hub carrier share &lt; 80%.</li>
+          <li><b>HOLD</b> = priority_score ≥ 0.30, or score ≥ 0.55 but not yet marker-ready, or family-confounded.</li>
+          <li><b>DROP</b> = priority_score &lt; 0.30 — not worth the marker spend.</li>
+        </ul>
+        Priority weights: intra 0.30, inter 0.25, mendel 0.20, family 0.15, marker 0.10.
+      </div>
+      <div class="table-section-title" style="margin-top: 14px;">Per-candidate priority table</div>
+      <div id="prioResultSlot"></div>
+    </div>
+
+    <!-- Marker Test Designer — sub-tab #15. -->
+    <div id="subpage-marker_test_designer" class="subpage" data-subtab-page>
+      <div class="page-subtitle" style="font-size: 10.5px; color: var(--ink-dim); margin-bottom: 12px;">
+        <b>Interchromosomal Marker Test Designer.</b> Designs the marker panel that converts a candidate interchromosomal meiosis effect into a Pass-2 validation experiment (10k–50k catfish). Two marker layers: (1) <b>focal-inversion-state markers</b> (tag SNPs + breakpoint markers); (2) <b>transmission / recombination markers</b> on tested chromosomes arranged as ordered triplets <code>m₁ → m₂ → m₃</code> so two intervals A and B support CO, DCO, and C estimation in offspring panels. Status per tested chromosome: READY / PARTIAL / LOW_POWER / MISSING.
+      </div>
+      <div class="recomb-config">
+        <div class="row"><label>Focal inversion</label><select id="mdFocal"></select></div>
+        <div class="row"><label>Tested chromosomes</label><select id="mdTested">
+          <option value="non_focal" selected>all except focal chrom</option>
+          <option value="all">all chromosomes</option>
+          <option value="focal_only">focal chrom only</option>
+        </select></div>
+        <div class="row"><label></label>
+          <div class="bdmi-actions">
+            <button class="primary" id="mdRunBtn">Design panel</button>
+            <button id="mdResetBtn">Reset</button>
+            <button id="mdExportBtn" title="Export the three TSVs concatenated as one file">⤓ Export TSVs</button>
+          </div></div>
+      </div>
+      <div class="table-section-title">Focal inversion status <span class="sub">(classify parents as het / non-het)</span></div>
+      <div class="bdmi-summary" id="mdFocalStatus"></div>
+      <div id="mdFocalMarkers"></div>
+      <div class="table-section-title" style="margin-top: 14px;">Tested-chromosome panel <span class="sub">(transmission / recombination markers)</span></div>
+      <div class="bdmi-summary" id="mdPanelSummary"></div>
+      <div id="mdPerChromSlot"></div>
+      <div class="table-section-title" style="margin-top: 14px;">Test design <span class="sub">(interval pairs A, B; expected informative families; status)</span></div>
+      <div id="mdTestDesignSlot"></div>
+      <div id="mdPanelVerdict"></div>
+      <div class="ie-conclusion tier-weak" style="margin-top: 14px;">
+        <div class="verdict">PAGE PURPOSE</div>
+        Converts a candidate interchromosomal meiosis effect into a practical marker panel: one set of markers to classify the focal inversion in parents, and another set to detect transmitted CO/DCO patterns on other chromosomes in large offspring panels.
+      </div>
     </div>
   </div>
 

@@ -80,5 +80,16 @@
          min-height: 1em;"></div>
 
     <div id="compatSummary"></div>
+
+    <!-- Breeding-decision overlay — surfaces meiosis / regime warnings
+         from the inheritance-side pages so the planner becomes the first
+         stub of the breeding-AI advisor. Populated by
+         compatibility.js::_renderBreedingDecisionOverlay. -->
+    <div id="compatBreedingOverlay" class="ie-conclusion tier-weak" style="
+         margin-top: 10px; display: none;">
+      <div class="verdict">BREEDING-DECISION OVERLAY</div>
+      <div id="compatBreedingBody"></div>
+    </div>
+
     <div id="compatResultSlot"></div>
   </div>
