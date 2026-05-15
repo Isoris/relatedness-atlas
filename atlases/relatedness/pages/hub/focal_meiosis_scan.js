@@ -488,21 +488,78 @@ function runScan() {
 function exportTsv() {
   const r = state.focal_meiosis.last_results;
   if (!r) { alert('Run the scan first.'); return; }
-  const cols = ['focal_inv','focal_chr','tested_chr','relation',
-                'n_carriers','n_controls','n_pairs',
-                'C_carrier','C_control','delta_C','p_perm',
-                'carrier_share_in_hub','local_inv_controlled','status'];
+  const carriers = carriersOf(r.focal_inv);
+  const controls = controlsOf(r.focal_inv);
+  const conf = confounderProfile(carriers, controls);
+  const ladder = causalLadder(r, { confounders: conf });
+  const informative = r.rows.filter(row => Number.isFinite(row.delta_C));
+  const leading = informative.length
+    ? informative.slice().sort((a,b) => Math.abs(b.delta_C) - Math.abs(a.delta_C))[0]
+    : null;
+  const perFam = leading ? perFamilyScan(r.focal_inv, leading.tested_chr) : [];
+  const cons = leading ? directionConsistency(perFam, leading.delta_C)
+                       : { n_informative: 0, n_concordant: 0, score: NaN };
+  const K = Math.min(state.focal_meiosis.n_perm || 1000, 200);
+  const nc = leading ? negativeControlNull(r.focal_inv, leading.tested_chr, K)
+                     : { observed_abs_delta: NaN, mean_abs_delta: NaN, p_outside: NaN, n_fake: 0 };
+  const dose = dosageGroups(r.focal_inv);
+
   const lines = [
     '# Focal inversion x meiosis coincidence scan',
     '# Date: ' + new Date().toISOString(),
     '# Focal: ' + r.focal_inv + ' on ' + r.focal_chr,
     '# Scope: ' + r.scope + '  n_perm: ' + r.n_perm
       + '  control_local: ' + r.control_local,
-    '# Top hub: ' + (r.hub_share.hub || '—')
-      + ' (' + r.hub_share.count + '/' + r.n_carriers + ' carriers)',
     '#',
-    cols.join('\t'),
+    '# === CAUSAL LADDER ===',
+    '# Level: ' + ladder.level + ' (' + (CAUSAL_LEVEL_LABEL[ladder.level] || '') + ')',
+    ...ladder.reasons.map(s => '#   ' + s),
+    '#',
+    '# === CONFOUNDER PROFILE ===',
+    '# n_carriers: ' + carriers.length + '  n_controls: ' + controls.length,
+    '# ancestry_l1 (carriers vs controls): ' + fmt(conf.ancestry_l1),
+    '# burden_carrier: ' + fmt(conf.burden_carrier)
+      + '  burden_control: ' + fmt(conf.burden_control)
+      + '  delta: ' + fmt(conf.burden_delta),
+    '# top_hub: ' + (conf.hub_share.hub || '-')
+      + '  share: ' + (conf.hub_share.share * 100).toFixed(0) + '%'
+      + '  (' + conf.hub_share.count + ' / ' + carriers.length + ' carriers)',
+    '# hub_balance:',
+    ...Object.entries(conf.hub_balance).map(([f, b]) =>
+      '#   ' + f + '  carriers=' + b.carriers + '  controls=' + b.controls),
+    '#',
+    '# === DOSE / GENOTYPE CLASSES ===',
+    '# n_hom_ref=' + dose.hom_ref.length
+      + '  n_het=' + dose.het.length
+      + '  n_hom_alt=' + dose.hom_alt.length,
+    '#',
+    '# === LEADING-ROW DETAIL ===',
+    '# tested_chr: ' + (leading ? leading.tested_chr : '-')
+      + '  relation: '   + (leading ? leading.relation : '-')
+      + '  delta_C: '    + (leading ? fmt(leading.delta_C) : '-')
+      + '  p_perm: '     + (leading ? fmt(leading.p_perm) : '-'),
+    '#',
+    '# === PER-FAMILY DIRECTION (on leading row) ===',
+    '# concordance: ' + cons.n_concordant + ' / ' + cons.n_informative
+      + ' (' + (Number.isFinite(cons.score) ? (cons.score * 100).toFixed(0) + '%' : '-') + ')',
+    ...perFam.map(pf =>
+      '#   ' + pf.family + '  n_c=' + pf.n_c + '  n_n=' + pf.n_n
+      + '  deltaC=' + fmt(pf.delta_C) + '  direction=' + pf.direction),
+    '#',
+    '# === NEGATIVE-CONTROL NULL (on leading row, fake-label sets) ===',
+    '# K_fake: ' + nc.n_fake
+      + '  observed_abs_delta: ' + fmt(nc.observed_abs_delta)
+      + '  mean_fake_abs_delta: ' + fmt(nc.mean_abs_delta)
+      + '  p_outside: ' + fmt(nc.p_outside),
+    '#',
+    '# === PER-TESTED-CHROMOSOME ROWS ===',
   ];
+
+  const cols = ['focal_inv','focal_chr','tested_chr','relation',
+                'n_carriers','n_controls','n_pairs',
+                'C_carrier','C_control','delta_C','p_perm',
+                'carrier_share_in_hub','local_inv_controlled','status'];
+  lines.push(cols.join('\t'));
   for (const row of r.rows) {
     lines.push([
       row.focal_inv, row.focal_chr, row.tested_chr, row.relation,
@@ -513,6 +570,7 @@ function exportTsv() {
       row.status,
     ].join('\t'));
   }
+
   const blob = new Blob([lines.join('\n') + '\n'], { type: 'text/tab-separated-values' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
