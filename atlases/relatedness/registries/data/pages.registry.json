@@ -89,7 +89,21 @@
     },
     "focal_meiosis_scan": {
       "_label": "focal_meiosis_scan — inversion x meiosis coincidence scan",
-      "_doc": "Focal inversion x meiosis interchromosomal-effect scan. For each focal inversion candidate, compares the coefficient of coincidence on every tested chromosome between carriers (heterokaryotype or homozygous-alt) and matched non-carriers (homozygous-ref), using a family-aware permutation null (carrier labels shuffled within family hubs, preserving each hub's carrier count). One row per tested chromosome with relation = intra (same chromosome as focal) or inter (other). Status pill: STRONG / MODERATE / WEAK / NO EFFECT / FAMILY CONFOUNDED (when top-hub carrier share >= 80%, the failure mode the user warned about). Readiness ladder: basic_ready (carriers vs non-carriers possible) -> family_ready (>=2 hubs span carriers) -> controlled_ready (other inv karyotypes loaded) -> interaction_ready (N >= 6 each group) -> phenotype_ready (phenotype TSV loaded). Output TSV columns: focal_inv, focal_chr, tested_chr, relation, n_carriers, n_controls, n_pairs, C_carrier, C_control, delta_C, p_perm, carrier_share_in_hub, local_inv_controlled, status. TRANSIENT HOME: this is the seed page of the future Meiosis Atlas; the analysis migrates as-is once that atlas exists. Lives in Relatedness Atlas only because the family-hub layer is already here.",
+      "_doc": "Focal inversion x meiosis interchromosomal-effect scan. For each focal inversion candidate, compares the coefficient of coincidence on every tested chromosome between carriers (heterokaryotype or homozygous-alt) and matched non-carriers (homozygous-ref), using a family-aware permutation null (carrier labels shuffled within family hubs, preserving each hub's carrier count). Causal unit toggle: parental_meiosis (parent of triad, per the user's spec - default) vs individual karyotype (legacy). Per row: focal_inv, focal_chr, tested_chr, relation (intra/inter), n_carriers, n_controls, n_pairs, C_carrier, C_control, delta_C, p_perm, carrier_share_in_hub, local_inv_controlled, status. Status: STRONG / MODERATE / WEAK / NO EFFECT / FAMILY CONFOUNDED (top-hub share >= 80%). Adds five cards per run: causal ladder (L0..L5), confounder profile (ancestry L1, burden delta, hub balance), per-family direction concordance, negative-control null (random fake-focal labels), dose / genotype-class preview. TRANSIENT HOME: seed page of the future Meiosis Atlas.",
+      "requires_layers": [],
+      "requires_slots": [],
+      "preloads": []
+    },
+    "inversion_priority": {
+      "_label": "inversion_priority — Pass-1 -> Pass-2 bridge",
+      "_doc": "Per-inversion priority table aggregating every signal computed by the other pages: intra-chromosomal CO effect (from Inversion-signature inside-vs-flank ratio), interchromosomal |delta_C| (from a fast pass over Inv x meiosis carrier/control), Mendelian distortion (binomial p across DEMO.triads, same as BDMI Test A), family hub spread, marker readiness. Composite priority_score with weights intra 0.30, inter 0.25, mendel 0.20, family 0.15, marker 0.10. Bucket: SHIP -> PASS 2 / HOLD / DROP. Use the page to pick the 5-20 inversions for marker-validation at scale (10k-50k catfish).",
+      "requires_layers": [],
+      "requires_slots": [],
+      "preloads": []
+    },
+    "marker_test_designer": {
+      "_label": "marker_test_designer — Interchromosomal Marker Test Designer",
+      "_doc": "Converts a candidate interchromosomal meiosis effect into a practical marker panel. For a focal inversion: (1) focal-inversion-state markers (tag SNPs + breakpoint markers) used to classify parents as het vs non-het; (2) transmission/recombination markers on each tested chromosome arranged as ordered triplets m1-m2-m3 so that two intervals A and B can support CO, DCO, and C estimation in offspring panels. Status per tested chromosome: READY / PARTIAL / BLOCKED / MISSING / LOW_POWER. Outputs three TSVs (focal markers, interchromosomal test markers, test-design summary with N families needed and expected DCO power).",
       "requires_layers": [],
       "requires_slots": [],
       "preloads": []

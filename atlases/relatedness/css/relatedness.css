@@ -1591,3 +1591,19 @@
   .fms-rel-pill.inter { background: rgba(63, 185, 212, 0.18); color: var(--accent-2); }
   html[data-theme="light"] .fms-rel-pill.intra { color: #6d28d9; }
 
+  /* ── Inversion priority page ────────────────────────────────────────── */
+  .prio-bucket-pill {
+    display: inline-block; padding: 2px 8px;
+    border-radius: 3px; font-size: 9.5px; font-weight: 600;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    font-family: var(--mono); text-align: center; min-width: 100px;
+  }
+  .prio-bucket-pill.ship {
+    background: rgba(95, 212, 154, 0.20); color: var(--good);
+    border: 1px solid rgba(95, 212, 154, 0.45);
+  }
+  .prio-bucket-pill.hold { background: rgba(232, 196, 76, 0.20); color: var(--warn); }
+  .prio-bucket-pill.drop { background: rgba(138, 148, 163, 0.18); color: var(--ink-dim); }
+  .data-table.prio-table th, .data-table.prio-table td { font-size: 10px; }
+
+

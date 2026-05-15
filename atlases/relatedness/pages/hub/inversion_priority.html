@@ -1,0 +1,55 @@
+  <!-- atlases/relatedness/pages/hub/inversion_priority.html
+       Inversion priority — the Pass-1 → Pass-2 bridge. One row per
+       inversion candidate aggregating every signal computed by the
+       other pages, plus a composite priority_score and bucket
+       (SHIP / HOLD / DROP). Designed so 5–20 top inversions can be
+       chosen for marker-validation at scale (10k–50k catfish). -->
+  <div id="inversion_priority" class="page subpage" data-subtab-page>
+    <div class="page-subtitle" style="font-size: 10.5px; color: var(--ink-dim); margin-bottom: 12px;">
+      <b>Inversion priority — Pass-1 → Pass-2 bridge.</b> One row per inversion candidate aggregating every signal the other pages compute: intra-chromosomal CO effect (from Inversion-signature), interchromosomal |ΔC| (from Inv × meiosis), Mendelian distortion (from BDMI Test A), family-hub consistency, marker readiness. Composite <em>priority_score</em> ranks candidates; <em>bucket</em> says <b>SHIP → PASS 2</b> (ready for marker-validation at scale), <b>HOLD</b> (interesting but needs confirmation), or <b>DROP</b>. Use this page to pick the 5–20 inversions you actually take into the next 10k–50k-fish marker round.
+    </div>
+
+    <div class="recomb-config">
+      <div class="row">
+        <label>Bucket filter</label>
+        <select id="prioBucket">
+          <option value="ship_to_pass2" selected>SHIP → PASS 2 only</option>
+          <option value="all">all</option>
+          <option value="hold">HOLD</option>
+          <option value="drop">DROP</option>
+        </select>
+      </div>
+      <div class="row">
+        <label>Top N for export</label>
+        <select id="prioTopN">
+          <option value="5">5</option>
+          <option value="10">10</option>
+          <option value="20" selected>20</option>
+          <option value="50">50</option>
+        </select>
+      </div>
+      <div class="row">
+        <label></label>
+        <div class="bdmi-actions">
+          <button class="primary" id="prioRunBtn">Run priority scan</button>
+          <button id="prioResetBtn">Reset</button>
+          <button id="prioExportBtn" title="Export top-N as TSV">⤓ Export top-N</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="bdmi-summary" id="prioSummary"></div>
+
+    <div class="ie-conclusion tier-weak" style="margin-top: 10px;">
+      <div class="verdict">BUCKET LOGIC</div>
+      <ul style="margin: 6px 0 0 18px; padding: 0; line-height: 1.55; font-size: 10.5px;">
+        <li><b>SHIP → PASS 2</b> = priority_score ≥ 0.55 AND marker_ready AND top-hub carrier share &lt; 80%.</li>
+        <li><b>HOLD</b> = priority_score ≥ 0.30, or score ≥ 0.55 but not yet marker-ready, or family-confounded.</li>
+        <li><b>DROP</b> = priority_score &lt; 0.30 — not worth the marker spend.</li>
+      </ul>
+      Priority weights: intra effect 0.30, inter effect 0.25, Mendelian distortion 0.20, family consistency 0.15, marker readiness 0.10. Adjust weights in <code>shared/inversion_priority.js::_compositeScore</code> when the manuscript's emphasis shifts.
+    </div>
+
+    <div class="table-section-title" style="margin-top: 14px;">Per-candidate priority table</div>
+    <div id="prioResultSlot"></div>
+  </div>

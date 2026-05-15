@@ -1426,6 +1426,8 @@
       <button data-subtab="coincidence" title="Coincidence — 2D pair heatmap of C = r12 / (r1·r2)">Coincidence</button>
       <button data-subtab="inversion_signature" title="Inversion signature — three-track diagnostic + per-candidate verdicts">Inv signature</button>
       <button data-subtab="focal_meiosis_scan" title="Focal inversion × meiosis coincidence scan — intra/inter chromosomal effects, family-aware permutation null">Inv × meiosis</button>
+      <button data-subtab="inversion_priority" title="Pass-1 → Pass-2 bridge: priority ranking + SHIP/HOLD/DROP buckets">Priority</button>
+      <button data-subtab="marker_test_designer" title="Interchromosomal Marker Test Designer — focal classifier + recombination-marker triplets">Marker designer</button>
       <div class="sub-tab-spacer"></div>
       <div class="chr-filter">
         <span>Chr filter:</span>
@@ -1961,6 +1963,13 @@
       <div class="page-subtitle" style="font-size: 10.5px; color: var(--ink-dim); margin-bottom: 12px;">
         <b>Coincidence (Sandler interference map).</b> Per-window-pair coefficient of coincidence <em>C = r₁₂ / (r₁ · r₂)</em>, drawn as a 2D heatmap. <b>C ≈ 1</b> = independence (no interference). <b>C &lt; 1</b> = positive interference (fewer DCOs than expected — the normal meiotic pattern). <b>C ≫ 1</b> = negative interference (usually a sample-size or genotyping artefact). Off-diagonal cells inside an inversion span go to C → 0 or undefined: the loop disrupts the precondition / resolution chain, so the joint exchange rate collapses. Click any cell to read the pair detail in the inspector below. Karyotype matrix at the bottom.
       </div>
+
+      <div class="ie-conclusion tier-warn-family" style="margin-bottom: 12px;">
+        <div class="verdict">NCO ≠ CO · WHAT C ACTUALLY MEASURES</div>
+        <div style="font-size: 10.5px; line-height: 1.55;">
+          Coincidence asks whether a <b>crossover</b> in interval A affects the chance of a <b>crossover</b> in interval B. The r₁ / r₂ / r₁₂ on this page are CO and DCO frequencies — chromosome-arm exchanges visible as long inherited-tract switches. <b>Non-crossovers (NCO)</b> are a different recombination outcome (short gene-conversion tracts, no arm exchange) and <b>cannot be substituted into this formula</b>. NCO traces the precondition / DSB initiation layer (see the <b>Eligibility</b> tab); CO traces the exchange outcome used here. With the current ngsPedigree / ngsTract data the safe estimability flags are: <b>CO / inherited-tract switches: estimable</b>; <b>DCO / coincidence: partially estimable (power-limited)</b>; <b>NCO: not estimable</b> without much denser, phased variant data and a short-tract-aware caller; <b>CO vs NCO resolution: not estimable</b> from current data.
+        </div>
+      </div>
       <div class="recomb-config">
         <div class="row"><label>Chromosome</label><select id="coinChrom"></select></div>
         <div class="row"><label>Highlight inversion</label><select id="coinHighlight"><option value="">(none)</option></select></div>
@@ -2027,6 +2036,10 @@
           <option value="1000" selected>1000 (default)</option>
           <option value="5000">5000 (slow)</option>
         </select></div>
+        <div class="row"><label>Causal unit</label><select id="fmsUnit">
+          <option value="parental_meiosis" selected>parental meiosis (parent of triad)</option>
+          <option value="individual">individual karyotype (legacy)</option>
+        </select></div>
         <div class="row"><label>Control for local inversions</label>
           <label class="bdmi-toggle"><input type="checkbox" id="fmsControlLocal" checked />
             <span>residualise tested-chrom karyotypes (badge-only in demo)</span></label></div>
@@ -2072,6 +2085,77 @@
         Karyotypes <span class="sub">(focal candidate + same-chrom candidates)</span>
       </div>
       <div id="fmsKaryoSlot"></div>
+    </div>
+
+    <!-- Inversion priority — sub-tab #14 (Pass-1 → Pass-2 bridge). -->
+    <div id="subpage-inversion_priority" class="subpage" data-subtab-page>
+      <div class="page-subtitle" style="font-size: 10.5px; color: var(--ink-dim); margin-bottom: 12px;">
+        <b>Inversion priority — Pass-1 → Pass-2 bridge.</b> One row per inversion candidate aggregating every signal the other pages compute (intra/inter CO effect, Mendelian distortion, family-hub consistency, marker readiness). Composite <em>priority_score</em>; bucket says <b>SHIP → PASS 2</b> / <b>HOLD</b> / <b>DROP</b>. Use this page to pick the 5–20 inversions you actually take into the next 10k–50k-fish marker round.
+      </div>
+      <div class="recomb-config">
+        <div class="row"><label>Bucket filter</label><select id="prioBucket">
+          <option value="ship_to_pass2" selected>SHIP → PASS 2 only</option>
+          <option value="all">all</option>
+          <option value="hold">HOLD</option>
+          <option value="drop">DROP</option>
+        </select></div>
+        <div class="row"><label>Top N for export</label><select id="prioTopN">
+          <option value="5">5</option><option value="10">10</option>
+          <option value="20" selected>20</option><option value="50">50</option>
+        </select></div>
+        <div class="row"><label></label>
+          <div class="bdmi-actions">
+            <button class="primary" id="prioRunBtn">Run priority scan</button>
+            <button id="prioResetBtn">Reset</button>
+            <button id="prioExportBtn" title="Export top-N as TSV">⤓ Export top-N</button>
+          </div></div>
+      </div>
+      <div class="bdmi-summary" id="prioSummary"></div>
+      <div class="ie-conclusion tier-weak" style="margin-top: 10px;">
+        <div class="verdict">BUCKET LOGIC</div>
+        <ul style="margin: 6px 0 0 18px; padding: 0; line-height: 1.55; font-size: 10.5px;">
+          <li><b>SHIP → PASS 2</b> = priority_score ≥ 0.55 AND marker_ready AND top-hub carrier share &lt; 80%.</li>
+          <li><b>HOLD</b> = priority_score ≥ 0.30, or score ≥ 0.55 but not yet marker-ready, or family-confounded.</li>
+          <li><b>DROP</b> = priority_score &lt; 0.30 — not worth the marker spend.</li>
+        </ul>
+        Priority weights: intra 0.30, inter 0.25, mendel 0.20, family 0.15, marker 0.10.
+      </div>
+      <div class="table-section-title" style="margin-top: 14px;">Per-candidate priority table</div>
+      <div id="prioResultSlot"></div>
+    </div>
+
+    <!-- Marker Test Designer — sub-tab #15. -->
+    <div id="subpage-marker_test_designer" class="subpage" data-subtab-page>
+      <div class="page-subtitle" style="font-size: 10.5px; color: var(--ink-dim); margin-bottom: 12px;">
+        <b>Interchromosomal Marker Test Designer.</b> Designs the marker panel that converts a candidate interchromosomal meiosis effect into a Pass-2 validation experiment (10k–50k catfish). Two marker layers: (1) <b>focal-inversion-state markers</b> (tag SNPs + breakpoint markers); (2) <b>transmission / recombination markers</b> on tested chromosomes arranged as ordered triplets <code>m₁ → m₂ → m₃</code> so two intervals A and B support CO, DCO, and C estimation in offspring panels. Status per tested chromosome: READY / PARTIAL / LOW_POWER / MISSING.
+      </div>
+      <div class="recomb-config">
+        <div class="row"><label>Focal inversion</label><select id="mdFocal"></select></div>
+        <div class="row"><label>Tested chromosomes</label><select id="mdTested">
+          <option value="non_focal" selected>all except focal chrom</option>
+          <option value="all">all chromosomes</option>
+          <option value="focal_only">focal chrom only</option>
+        </select></div>
+        <div class="row"><label></label>
+          <div class="bdmi-actions">
+            <button class="primary" id="mdRunBtn">Design panel</button>
+            <button id="mdResetBtn">Reset</button>
+            <button id="mdExportBtn" title="Export the three TSVs concatenated as one file">⤓ Export TSVs</button>
+          </div></div>
+      </div>
+      <div class="table-section-title">Focal inversion status <span class="sub">(classify parents as het / non-het)</span></div>
+      <div class="bdmi-summary" id="mdFocalStatus"></div>
+      <div id="mdFocalMarkers"></div>
+      <div class="table-section-title" style="margin-top: 14px;">Tested-chromosome panel <span class="sub">(transmission / recombination markers)</span></div>
+      <div class="bdmi-summary" id="mdPanelSummary"></div>
+      <div id="mdPerChromSlot"></div>
+      <div class="table-section-title" style="margin-top: 14px;">Test design <span class="sub">(interval pairs A, B; expected informative families; status)</span></div>
+      <div id="mdTestDesignSlot"></div>
+      <div id="mdPanelVerdict"></div>
+      <div class="ie-conclusion tier-weak" style="margin-top: 14px;">
+        <div class="verdict">PAGE PURPOSE</div>
+        Converts a candidate interchromosomal meiosis effect into a practical marker panel: one set of markers to classify the focal inversion in parents, and another set to detect transmitted CO/DCO patterns on other chromosomes in large offspring panels.
+      </div>
     </div>
   </div>
 

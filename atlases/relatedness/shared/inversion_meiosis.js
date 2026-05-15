@@ -52,6 +52,35 @@ export function controlsOf(invId) {
   });
 }
 
+// Parental-meiosis groups — the proper causal unit per the user's spec
+// (2026-05-15). For each focal inversion, identify which individuals
+// appear as parents in any triad and split them by their *own* karyotype
+// at the focal candidate. Returns parents (with at least one observed
+// meiosis in DEMO.triads), plus the offspring-count weights so the
+// downstream tests use parent-meiosis as the unit rather than individual
+// karyotype.
+export function parentalCarriersOf(invId) {
+  const seen = {};   // parent_id → n_meioses (offspring count)
+  for (const t of DEMO.triads || []) {
+    for (const p of [t.parent_a, t.parent_b]) {
+      seen[p] = (seen[p] || 0) + 1;
+    }
+  }
+  const all = Object.keys(seen);
+  const car = [], con = [];
+  for (const ind of all) {
+    const k = (DEMO.karyotype_matrix[ind] || {})[invId];
+    if (k === '0/1' || k === '1/1') car.push(ind);
+    else if (k === '0/0') con.push(ind);
+  }
+  return { carriers: car, controls: con, meiosis_counts: seen };
+}
+
+// Total parental meioses across a group (sum of offspring counts).
+export function parentalMeioses(group, meiosis_counts) {
+  return group.reduce((s, ind) => s + (meiosis_counts[ind] || 0), 0);
+}
+
 // Dosage classes — the proper causal-genetic split. Heterokaryotypes show
 // the strongest local pairing effects; homozygous-alt may show a different
 // (often larger) interchromosomal modifier effect; carrier-vs-control alone
@@ -281,9 +310,17 @@ export function runFocalScan(focal_inv_id, opts = {}) {
   const scope     = opts.scope     || 'both';        // 'intra' / 'inter' / 'both'
   const n_perm    = opts.n_perm    || 1000;
   const control_local = !!opts.control_local;
+  const unit      = opts.unit      || 'individual';  // 'individual' | 'parental_meiosis'
   const focal_chr = focalChromOf(focal_inv_id);
-  const carriers = carriersOf(focal_inv_id);
-  const controls = controlsOf(focal_inv_id);
+  let carriers, controls, parental;
+  if (unit === 'parental_meiosis') {
+    parental = parentalCarriersOf(focal_inv_id);
+    carriers = parental.carriers;
+    controls = parental.controls;
+  } else {
+    carriers = carriersOf(focal_inv_id);
+    controls = controlsOf(focal_inv_id);
+  }
   const hubShare = carrierHubShare(carriers);
   const tested = DEMO.chromosomes.filter(c => {
     if (scope === 'intra') return c === focal_chr;
@@ -324,7 +361,9 @@ export function runFocalScan(focal_inv_id, opts = {}) {
     focal_inv: focal_inv_id, focal_chr,
     n_carriers: carriers.length, n_controls: controls.length,
     hub_share: hubShare,
-    scope, n_perm, control_local,
+    scope, n_perm, control_local, unit,
+    n_carrier_meioses: parental ? parentalMeioses(carriers, parental.meiosis_counts) : null,
+    n_control_meioses: parental ? parentalMeioses(controls, parental.meiosis_counts) : null,
     rows,
   };
 }

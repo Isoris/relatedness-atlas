@@ -112,6 +112,22 @@
       "fragment": "atlases/relatedness/pages/hub/focal_meiosis_scan.html",
       "module": "atlases/relatedness/pages/hub/focal_meiosis_scan.js",
       "tooltip": "Focal inversion x meiosis coincidence scan. For each focal inversion, compares the coefficient of coincidence on every tested chromosome between carriers and matched non-carriers, using a family-aware permutation null. Per-row intra/inter relation tag + status pill (strong / moderate / weak / no effect / FAMILY CONFOUNDED). Transient home: seed page of the future Meiosis Atlas."
+    },
+    {
+      "id": "inversion_priority",
+      "label": "priority",
+      "stage": "hub",
+      "fragment": "atlases/relatedness/pages/hub/inversion_priority.html",
+      "module": "atlases/relatedness/pages/hub/inversion_priority.js",
+      "tooltip": "Inversion priority table — Pass-1 (WGS discovery) → Pass-2 (marker validation at scale) bridge. One row per inversion with composite priority_score and SHIP/HOLD/DROP bucket. Use to pick the 5-20 inversions to take into the next 10k-50k-fish marker round."
+    },
+    {
+      "id": "marker_test_designer",
+      "label": "marker designer",
+      "stage": "hub",
+      "fragment": "atlases/relatedness/pages/hub/marker_test_designer.html",
+      "module": "atlases/relatedness/pages/hub/marker_test_designer.js",
+      "tooltip": "Interchromosomal Marker Test Designer — converts a candidate interchromosomal meiosis effect into a practical marker panel: focal inversion classifier markers in parents + transmission/recombination markers on tested chromosomes for offspring panels (CO/DCO/coincidence)."
     }
   ],
   "registries": {
@@ -138,7 +154,9 @@
     "loaders":         "atlases/relatedness/shared/loaders/index.js",
     "recomb_data":     "atlases/relatedness/shared/recomb_data.js",
     "recomb_track":    "atlases/relatedness/shared/recomb_track.js",
-    "inversion_meiosis": "atlases/relatedness/shared/inversion_meiosis.js"
+    "inversion_meiosis": "atlases/relatedness/shared/inversion_meiosis.js",
+    "inversion_priority": "atlases/relatedness/shared/inversion_priority.js",
+    "marker_designer":   "atlases/relatedness/shared/marker_designer.js"
   },
   "server": {
     "_doc": "Relatedness Atlas does NOT ship its own server binary — it consumes the atlas-core unified server (atlas-core/server/atlas_server.py) via three contracts: (1) static reads of the assembled workspace for ngsPedigree data files; (2) sandboxed reads via GET /file/{path}; (3) POST /compute/<name> dispatch for Mendelian / Compatibility computes (see atlases/relatedness/server/RELATEDNESS_ENDPOINTS.md for the per-endpoint contract — the source of truth for the sister chat working on atlas_server.py). The atlas-side falls back to in-browser compute when an endpoint is missing, so the atlas is fully usable today without the server-side handlers.",

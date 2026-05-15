@@ -11,6 +11,13 @@
       <b>Coincidence (Sandler interference map).</b> Per-window-pair coefficient of coincidence <em>C = r₁₂ / (r₁ · r₂)</em>, drawn as a 2D heatmap. <b>C ≈ 1</b> = independence (no interference). <b>C &lt; 1</b> = positive interference (fewer DCOs than expected — the normal meiotic pattern). <b>C ≫ 1</b> = negative interference (usually a sample-size or genotyping artefact). Off-diagonal cells inside an inversion span go to C → 0 or undefined: the loop disrupts the precondition / resolution chain, so the joint exchange rate collapses. Click any cell to read the pair detail in the inspector below. Karyotype matrix at the bottom.
     </div>
 
+    <div class="ie-conclusion tier-warn-family" style="margin-bottom: 12px;">
+      <div class="verdict">NCO ≠ CO · WHAT C ACTUALLY MEASURES</div>
+      <div style="font-size: 10.5px; line-height: 1.55;">
+        Coincidence asks whether a <b>crossover</b> in interval A affects the chance of a <b>crossover</b> in interval B. The r₁ / r₂ / r₁₂ on this page are CO and DCO frequencies — chromosome-arm exchanges visible as long inherited-tract switches. <b>Non-crossovers (NCO)</b> are a different recombination outcome (short gene-conversion tracts, no arm exchange) and <b>cannot be substituted into this formula</b>. NCO traces the precondition / DSB initiation layer (see the <b>Eligibility</b> tab); CO traces the exchange outcome used here. With the current ngsPedigree / ngsTract data the safe estimability flags are: <b>CO / inherited-tract switches: estimable</b>; <b>DCO / coincidence: partially estimable (power-limited)</b>; <b>NCO: not estimable</b> without much denser, phased variant data and a short-tract-aware caller; <b>CO vs NCO resolution: not estimable</b> from current data.
+      </div>
+    </div>
+
     <div class="recomb-config">
       <div class="row">
         <label>Chromosome</label>

@@ -190,6 +190,109 @@ async function runCompatibilitySearch() {
   renderCompatibilityResults();
 }
 
+// ─── Breeding-decision overlay (2026-05-15) ──────────────────────────────
+// Surfaces inheritance-side warnings on top of the basic compatibility
+// verdict so the planner becomes the first stub of the breeding-AI advisor:
+//   - "this pair may suppress recombination on LGxx" (heterokaryote × hom_alt)
+//   - "this pair is genetically redundant"           (shared focal arrangement)
+//   - "this pair is worth testing at scale"          (clean diagnostic cross)
+function _renderBreedingDecisionOverlay() {
+  const wrap = $('#compatBreedingOverlay');
+  const body = $('#compatBreedingBody');
+  if (!wrap || !body) return;
+  const r = state.compat.last_results;
+  if (!r || !r.results) {
+    wrap.style.display = 'none';
+    return;
+  }
+  // Score the top partner against meiosis / regime concerns.
+  const top = r.results.find(p => p.verdict === 'ideal' || p.verdict === 'good')
+           || r.results[0];
+  if (!top) { wrap.style.display = 'none'; return; }
+
+  const focalKtMap = DEMO.karyotype_matrix[r.focal] || {};
+  const partnerKtMap = DEMO.karyotype_matrix[top.partner_id] || {};
+  const flags = [];
+
+  // 1. Heterokaryote × X — recombination-suppression flag inside any
+  //    inversion span where the focal is het. (Heterokaryote pairing
+  //    suppresses CO inside the inversion in the meiosis from the het
+  //    parent.)
+  const het_invs = Object.keys(focalKtMap).filter(k => focalKtMap[k] === '0/1');
+  if (het_invs.length) {
+    const exemplar = (DEMO.inversion_candidates_full || [])
+      .find(i => i.candidate === het_invs[0]);
+    flags.push({
+      tone: 'warn',
+      text: `<b>${r.focal}</b> is heterokaryotype at <b>${het_invs.length}</b> inversion(s) `
+          + (exemplar ? `(e.g. ${exemplar.candidate} on ${exemplar.chromosome})` : '')
+          + ` — meiosis from this parent will suppress CO inside the inversion span(s). `
+          + `See the <b>Inversion signature</b> tab for the per-candidate verdict.`,
+    });
+  }
+
+  // 2. Redundancy flag — both parents share the same arrangement at every
+  //    tested inversion in the current scope. The cross can't break that
+  //    haplotype block.
+  const invSet = r.invSet || [];
+  if (invSet.length) {
+    const same = invSet.filter(i => {
+      const a = focalKtMap[i.candidate], b = partnerKtMap[i.candidate];
+      return a && b && a === b;
+    });
+    if (same.length === invSet.length && invSet.length >= 1) {
+      flags.push({
+        tone: 'warn',
+        text: `<b>${r.focal} × ${top.partner_id}</b> share the same karyotype at every inversion `
+            + `in the current scope — this cross is <b>genetically redundant</b> for these regions. `
+            + `Pick a partner with at least one differing karyotype to recover useful recombinants.`,
+      });
+    }
+  }
+
+  // 3. Inv × meiosis link — if the partner-side scan has been run for this
+  //    focal context, summarise the leading row.
+  const meioRes = state.focal_meiosis && state.focal_meiosis.last_results;
+  if (meioRes && meioRes.rows && meioRes.rows.length) {
+    const lead = meioRes.rows.slice()
+      .sort((a, b) => Math.abs(b.delta_C || 0) - Math.abs(a.delta_C || 0))[0];
+    if (lead && lead.status !== 'no_effect' && lead.status !== 'no_data') {
+      flags.push({
+        tone: lead.status === 'family_confounded' ? 'fail' : 'warn',
+        text: `Latest Inv × meiosis scan for <b>${meioRes.focal_inv}</b>: leading row `
+            + `<b>${lead.tested_chr}</b> (${lead.relation}, ΔC = ${fmtSafe(lead.delta_C)}, `
+            + `p_perm = ${fmtSafe(lead.p_perm)}, status: ${lead.status}). `
+            + `If <b>${r.focal}</b> or <b>${top.partner_id}</b> carries ${meioRes.focal_inv}, `
+            + `expect altered recombination on ${lead.tested_chr}.`,
+      });
+    }
+  }
+
+  // 4. Clean diagnostic cross — ideal partner + no shared redundancy.
+  if (top.verdict === 'ideal' && !flags.some(f => f.tone === 'warn' || f.tone === 'fail')) {
+    flags.push({
+      tone: 'good',
+      text: `<b>${r.focal} × ${top.partner_id}</b> is a clean diagnostic cross for the target `
+          + `karyotype <b>${r.target}</b>. Worth testing at scale (Pass-2 marker validation).`,
+    });
+  }
+
+  if (!flags.length) { wrap.style.display = 'none'; return; }
+  wrap.style.display = '';
+  body.innerHTML = flags.map(f =>
+    `<div style="font-size: 10.5px; line-height: 1.55; margin: 4px 0;
+                 color: ${f.tone === 'fail' ? 'var(--bad)'
+                       : f.tone === 'warn' ? 'var(--warn)'
+                       : f.tone === 'good' ? 'var(--good)' : 'var(--ink)'};">`
+    + (f.tone === 'good' ? '✓ ' : f.tone === 'fail' ? '✗ ' : '⚠ ')
+    + f.text
+    + `</div>`).join('');
+}
+
+function fmtSafe(v) {
+  return Number.isFinite(v) ? v.toFixed(3) : '—';
+}
+
 function renderCompatibilityResults() {
   const sumSlot = $('#compatSummary');
   const resSlot = $('#compatResultSlot');
@@ -298,6 +401,10 @@ function renderCompatibilityResults() {
           + `inversion. Try relaxing the inversion scope or the target karyotype.`
     }));
   }
+  // Breeding-decision overlay — adds inheritance-side warnings on top of
+  // the basic verdict (heterokaryote CO suppression, redundancy across
+  // shared arrangements, inv × meiosis interactions, clean-cross flag).
+  _renderBreedingDecisionOverlay();
 }
 
 function exportCompatibilityTsv() {

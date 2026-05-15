@@ -477,11 +477,13 @@ function runScan() {
   const scope = $('#fmsScope').value;
   const n_perm = parseInt($('#fmsNperm').value, 10) || 1000;
   const control_local = $('#fmsControlLocal').checked;
-  const res = runFocalScan(focal, { scope, n_perm, control_local });
+  const unit = ($('#fmsUnit') && $('#fmsUnit').value) || 'parental_meiosis';
+  const res = runFocalScan(focal, { scope, n_perm, control_local, unit });
   state.focal_meiosis.last_results = res;
   state.focal_meiosis.scope = scope;
   state.focal_meiosis.n_perm = n_perm;
   state.focal_meiosis.control_local = control_local;
+  state.focal_meiosis.unit = unit;
   _renderResults();
 }
 
@@ -596,6 +598,7 @@ function wireFms() {
   $('#fmsScope').addEventListener('change',         e => state.focal_meiosis.scope         = e.target.value);
   $('#fmsNperm').addEventListener('change',         e => state.focal_meiosis.n_perm        = parseInt(e.target.value, 10));
   $('#fmsControlLocal').addEventListener('change',  e => state.focal_meiosis.control_local = e.target.checked);
+  if ($('#fmsUnit')) $('#fmsUnit').addEventListener('change', e => state.focal_meiosis.unit = e.target.value);
   $('#fmsRunBtn').addEventListener('click', runScan);
   $('#fmsResetBtn').addEventListener('click', () => {
     state.focal_meiosis.last_results = null;
@@ -612,6 +615,7 @@ function _restoreFromState() {
   if (state.focal_meiosis.control_local !== undefined) {
     $('#fmsControlLocal').checked = !!state.focal_meiosis.control_local;
   }
+  if (state.focal_meiosis.unit && $('#fmsUnit')) $('#fmsUnit').value = state.focal_meiosis.unit;
 }
 
 // ─── Lifecycle ─────────────────────────────────────────────────────────

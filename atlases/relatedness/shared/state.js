@@ -118,7 +118,22 @@ export const state = {
     scope:         'both',     // 'intra' / 'inter' / 'both'
     n_perm:        1000,
     control_local: true,
+    unit:          'parental_meiosis',  // 'parental_meiosis' | 'individual'
     last_results:  null,
+  },
+
+  // Inversion priority — Pass-1 → Pass-2 bridge.
+  priority: {
+    bucket:       'ship_to_pass2',   // 'all' / 'ship_to_pass2' / 'hold' / 'drop'
+    top_n:        20,
+    last_results: null,
+  },
+
+  // Marker Test Designer — focal inversion + tested chromosomes panel design.
+  marker_designer: {
+    focal_inv:        'INV_001',
+    tested_chroms:    null,         // null = all-except-focal
+    last_design:      null,
   },
 
   // pillBar source state (round 1: mock).
