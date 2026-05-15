@@ -86,6 +86,13 @@
       "requires_layers": [],
       "requires_slots": [],
       "preloads": []
+    },
+    "focal_meiosis_scan": {
+      "_label": "focal_meiosis_scan — inversion x meiosis coincidence scan",
+      "_doc": "Focal inversion x meiosis interchromosomal-effect scan. For each focal inversion candidate, compares the coefficient of coincidence on every tested chromosome between carriers (heterokaryotype or homozygous-alt) and matched non-carriers (homozygous-ref), using a family-aware permutation null (carrier labels shuffled within family hubs, preserving each hub's carrier count). One row per tested chromosome with relation = intra (same chromosome as focal) or inter (other). Status pill: STRONG / MODERATE / WEAK / NO EFFECT / FAMILY CONFOUNDED (when top-hub carrier share >= 80%, the failure mode the user warned about). Readiness ladder: basic_ready (carriers vs non-carriers possible) -> family_ready (>=2 hubs span carriers) -> controlled_ready (other inv karyotypes loaded) -> interaction_ready (N >= 6 each group) -> phenotype_ready (phenotype TSV loaded). Output TSV columns: focal_inv, focal_chr, tested_chr, relation, n_carriers, n_controls, n_pairs, C_carrier, C_control, delta_C, p_perm, carrier_share_in_hub, local_inv_controlled, status. TRANSIENT HOME: this is the seed page of the future Meiosis Atlas; the analysis migrates as-is once that atlas exists. Lives in Relatedness Atlas only because the family-hub layer is already here.",
+      "requires_layers": [],
+      "requires_slots": [],
+      "preloads": []
     }
   }
 }

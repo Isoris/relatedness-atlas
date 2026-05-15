@@ -1556,3 +1556,38 @@
   }
   .recomb-coin-cell { transition: stroke-width 60ms ease-out; }
   .recomb-coin-cell:hover { stroke: var(--accent); stroke-width: 1.5; }
+
+  /* ── Focal inversion × meiosis scan ──────────────────────────────────── */
+  .fms-readiness {
+    background: var(--panel); border: 1px solid var(--rule);
+    border-radius: 4px; padding: 10px 14px;
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .fms-readiness-row {
+    display: grid; grid-template-columns: 110px 1fr;
+    align-items: center; gap: 10px;
+    font-size: 10.5px; color: var(--ink);
+  }
+  .fms-readiness-pill {
+    display: inline-block; padding: 2px 8px;
+    border-radius: 3px; font-size: 9.5px; font-weight: 600;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    font-family: var(--mono); text-align: center;
+  }
+  .fms-readiness-pill.ready    { background: rgba(95, 212, 154, 0.18); color: var(--good); }
+  .fms-readiness-pill.blocked  { background: rgba(138, 148, 163, 0.18); color: var(--ink-dim); }
+  .fms-readiness-label { color: var(--ink-dim); }
+  .fms-readiness-footer {
+    font-family: var(--mono); font-size: 10px; color: var(--ink-dim);
+    margin-top: 4px; padding-top: 4px; border-top: 1px solid var(--rule);
+  }
+
+  .fms-rel-pill {
+    display: inline-block; padding: 1px 8px;
+    border-radius: 2px; font-size: 9.5px; font-weight: 600;
+    letter-spacing: 0.06em; font-family: var(--mono);
+  }
+  .fms-rel-pill.intra { background: rgba(124, 58, 237, 0.18); color: #7c3aed; }
+  .fms-rel-pill.inter { background: rgba(63, 185, 212, 0.18); color: var(--accent-2); }
+  html[data-theme="light"] .fms-rel-pill.intra { color: #6d28d9; }
+

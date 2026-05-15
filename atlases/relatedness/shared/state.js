@@ -110,6 +110,17 @@ export const state = {
     highlight_inversion: null,
   },
 
+  // Focal inversion × meiosis coincidence scan (seed of future Meiosis Atlas).
+  // Held in the Relatedness Atlas only because the family-hub layer is
+  // already here — the analysis migrates as-is once Meiosis Atlas exists.
+  focal_meiosis: {
+    focal_inv:     'INV_001',
+    scope:         'both',     // 'intra' / 'inter' / 'both'
+    n_perm:        1000,
+    control_local: true,
+    last_results:  null,
+  },
+
   // pillBar source state (round 1: mock).
   loaded_files: [
     { kind: 'res',    path: '/data/project/population.res',     loaded: true },
