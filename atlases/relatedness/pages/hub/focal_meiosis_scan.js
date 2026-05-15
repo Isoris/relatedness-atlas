@@ -23,6 +23,10 @@ import { renderKaryotypeTable } from '../../shared/karyotype_table.js';
 import {
   runFocalScan, readinessLevels, STATUS_LABEL,
   carriersOf, controlsOf, focalChromOf, carrierHubShare,
+  dosageGroups, inversionBurden, confounderProfile,
+  perFamilyScan, directionConsistency,
+  negativeControlNull,
+  causalLadder, CAUSAL_LEVEL_LABEL,
 } from '../../shared/inversion_meiosis.js';
 import { _setActiveState } from './focal_meiosis_scan/_state.js';
 
@@ -175,6 +179,234 @@ function _renderResults() {
   slot.appendChild(tbl);
   // Auto-open the highest-effect row.
   if (rows.length) _renderDetail(rows[0]);
+
+  // Causal ladder + confounder profile + per-family direction +
+  // negative controls + dose preview — render once per scan.
+  _renderCausalLadder();
+  _renderConfounderProfile();
+  _renderPerFamily();
+  _renderNegativeControlNull();
+  _renderDoseClasses();
+}
+
+// ─── Causal ladder block ────────────────────────────────────────────────
+
+function _renderCausalLadder() {
+  const slot = $('#fmsCausalSlot');
+  if (!slot) return;
+  slot.innerHTML = '';
+  const res = state.focal_meiosis.last_results;
+  if (!res) return;
+  const conf = confounderProfile(carriersOf(res.focal_inv), controlsOf(res.focal_inv));
+  const ladder = causalLadder(res, { confounders: conf });
+  const tier = ladder.level >= 4 ? 'tier-strong'
+             : ladder.level >= 3 ? 'tier-moderate'
+             : ladder.level >= 2 ? 'tier-warn-family'
+             : ladder.level >= 1 ? 'tier-weak'
+             : 'tier-conflict';
+  const reasonsHtml = ladder.reasons
+    .map(r => `<li>${r}</li>`).join('');
+  slot.appendChild(el('div', {
+    class: 'ie-conclusion ' + tier,
+    html: `<div class="verdict">${CAUSAL_LEVEL_LABEL[ladder.level]}</div>`
+        + `<div style="font-size: 10.5px; color: var(--ink-dim);">`
+        + `Reaching the next level requires the first ✗ in the list below to flip to ✓.</div>`
+        + `<ol style="margin: 6px 0 0 18px; padding: 0; line-height: 1.55; font-size: 10.5px;">`
+        + reasonsHtml + `</ol>`
+        + `<div style="margin-top: 8px; font-size: 10px; color: var(--ink-dim); font-style: italic;">`
+        + `Honest framing: observational catfish data can support up to L4. L5 needs controlled crosses.`
+        + `</div>`
+  }));
+}
+
+// ─── Confounder profile block ───────────────────────────────────────────
+
+function _renderConfounderProfile() {
+  const slot = $('#fmsConfoundSlot');
+  if (!slot) return;
+  slot.innerHTML = '';
+  const res = state.focal_meiosis.last_results;
+  if (!res) return;
+  const carriers = carriersOf(res.focal_inv);
+  const controls = controlsOf(res.focal_inv);
+  const conf = confounderProfile(carriers, controls);
+
+  const grid = el('div', { class: 'bdmi-summary' });
+  grid.appendChild(_sumCell('ancestry L1 (carriers vs controls)',
+    fmt(conf.ancestry_l1),
+    conf.ancestry_l1 >= 0.50 ? 'fail' : (conf.ancestry_l1 >= 0.25 ? 'warn' : 'good'),
+    conf.ancestry_l1 >= 0.50 ? 'large mismatch — ancestry could explain a fake effect' : ''));
+  grid.appendChild(_sumCell('mean inversion burden — carriers',
+    fmt(conf.burden_carrier), null, `controls: ${fmt(conf.burden_control)}`));
+  grid.appendChild(_sumCell('|burden delta|',
+    fmt(Math.abs(conf.burden_delta)),
+    Math.abs(conf.burden_delta) >= 1.5 ? 'fail' : (Math.abs(conf.burden_delta) >= 0.75 ? 'warn' : 'good'),
+    'large delta = "carriers carry many inversions" confound'));
+  grid.appendChild(_sumCell('top hub carrier share',
+    (conf.hub_share.share * 100).toFixed(0) + '%',
+    conf.hub_share.share >= 0.80 ? 'fail' : (conf.hub_share.share >= 0.60 ? 'warn' : 'good'),
+    conf.hub_share.hub
+      ? `${conf.hub_share.count} / ${carriers.length} carriers in ${conf.hub_share.hub}`
+      : ''));
+  slot.appendChild(grid);
+
+  // Hub-balance sub-table.
+  const tbl = el('table', { class: 'data-table',
+    style: { marginTop: '10px' } });
+  const thead = el('thead'); const tr = el('tr');
+  ['Family hub','n carriers','n controls','balance'].forEach(h =>
+    tr.appendChild(el('th', { text: h })));
+  thead.appendChild(tr); tbl.appendChild(thead);
+  const tbody = el('tbody');
+  Object.entries(conf.hub_balance).forEach(([fam, b]) => {
+    const t = el('tr');
+    t.appendChild(el('td', { class: 'sample-id', text: fam }));
+    t.appendChild(el('td', { class: 'num', text: String(b.carriers) }));
+    t.appendChild(el('td', { class: 'num', text: String(b.controls) }));
+    const bal = b.carriers + b.controls > 0
+      ? (b.carriers === 0 ? 'controls only'
+        : b.controls === 0 ? 'carriers only'
+        : 'mixed')
+      : '—';
+    const bd = el('td', { text: bal });
+    if (bal === 'carriers only' || bal === 'controls only') bd.style.color = 'var(--warn)';
+    t.appendChild(bd);
+    tbody.appendChild(t);
+  });
+  tbl.appendChild(tbody);
+  slot.appendChild(tbl);
+}
+
+// ─── Per-family direction-consistency block ─────────────────────────────
+
+function _renderPerFamily() {
+  const slot = $('#fmsPerFamilySlot');
+  if (!slot) return;
+  slot.innerHTML = '';
+  const res = state.focal_meiosis.last_results;
+  if (!res || !res.rows.length) return;
+  const informative = res.rows.filter(r => Number.isFinite(r.delta_C));
+  if (!informative.length) return;
+  const leading = informative.slice()
+    .sort((a,b) => Math.abs(b.delta_C) - Math.abs(a.delta_C))[0];
+  const perFam = perFamilyScan(res.focal_inv, leading.tested_chr);
+  const cons = directionConsistency(perFam, leading.delta_C);
+
+  slot.appendChild(el('div', {
+    class: 'ie-conclusion ' + (cons.score >= 0.66 ? 'tier-moderate' : 'tier-warn-family'),
+    style: { marginBottom: '8px' },
+    html: `<div class="verdict">LEADING ROW: ${leading.focal_inv} → ${leading.tested_chr} `
+        + `(${leading.relation}, pooled ΔC = ${fmt(leading.delta_C)})</div>`
+        + `<div style="font-size: 10.5px;">Direction concordance across hubs: `
+        + `<b>${cons.n_concordant} / ${cons.n_informative}</b> informative families share the pooled sign `
+        + `(${(cons.score * 100 || 0).toFixed(0)}%). `
+        + (cons.score >= 0.66
+            ? 'Strong consistency — supports a real effect rather than one-family artefact.'
+            : 'Weak consistency — a real effect should reproduce across hubs.')
+        + '</div>'
+  }));
+
+  const tbl = el('table', { class: 'data-table' });
+  const thead = el('thead'); const tr = el('tr');
+  ['Family','n carriers','n controls','C carrier','C control','ΔC','direction']
+    .forEach(h => tr.appendChild(el('th', { text: h })));
+  thead.appendChild(tr); tbl.appendChild(thead);
+  const tbody = el('tbody');
+  perFam.forEach(r => {
+    const t = el('tr');
+    t.appendChild(el('td', { class: 'sample-id', text: r.family }));
+    t.appendChild(el('td', { class: 'num', text: String(r.n_c) }));
+    t.appendChild(el('td', { class: 'num', text: String(r.n_n) }));
+    t.appendChild(el('td', { class: 'num', text: fmt(r.C_carrier) }));
+    t.appendChild(el('td', { class: 'num', text: fmt(r.C_control) }));
+    const d = el('td', { class: 'num', text: fmt(r.delta_C) });
+    if (Number.isFinite(r.delta_C)) {
+      if (Math.sign(r.delta_C) === Math.sign(leading.delta_C)) d.style.color = 'var(--good)';
+      else if (Math.abs(r.delta_C) > 0.05) d.style.color = 'var(--bad)';
+    }
+    t.appendChild(d);
+    const dirTd = el('td');
+    dirTd.appendChild(el('span', {
+      class: 'fms-rel-pill ' + (
+        r.direction === 'positive' ? 'inter'
+        : r.direction === 'negative' ? 'intra'
+        : 'inter'),
+      style: r.direction === 'no_data' ? { background: 'rgba(138,148,163,0.18)', color: 'var(--ink-dim)' } : {},
+      text: r.direction.toUpperCase(),
+    }));
+    t.appendChild(dirTd);
+    tbody.appendChild(t);
+  });
+  tbl.appendChild(tbody);
+  slot.appendChild(tbl);
+}
+
+// ─── Negative-controls block ────────────────────────────────────────────
+
+function _renderNegativeControlNull() {
+  const slot = $('#fmsNegCtrlSlot');
+  if (!slot) return;
+  slot.innerHTML = '';
+  const res = state.focal_meiosis.last_results;
+  if (!res || !res.rows.length) return;
+  const informative = res.rows.filter(r => Number.isFinite(r.delta_C));
+  if (!informative.length) return;
+  const leading = informative.slice()
+    .sort((a,b) => Math.abs(b.delta_C) - Math.abs(a.delta_C))[0];
+  // Use a smaller K for the negative control to keep this responsive.
+  const K = Math.min(state.focal_meiosis.n_perm || 1000, 200);
+  const nc = negativeControlNull(res.focal_inv, leading.tested_chr, K);
+  const tier = nc.p_outside < 0.05 ? 'tier-moderate' : 'tier-warn-family';
+  slot.appendChild(el('div', {
+    class: 'ie-conclusion ' + tier,
+    html: `<div class="verdict">FAKE-LABEL NULL on ${leading.tested_chr}</div>`
+        + `<div style="font-size: 10.5px; line-height: 1.5;">`
+        + `K = ${nc.n_fake} fake-focal label sets sampled across the full population `
+        + `(no hub stratification — that's the whole point of a negative control).<br/>`
+        + `Observed |ΔC| = <b>${fmt(nc.observed_abs_delta)}</b>; mean fake-label |ΔC| = ${fmt(nc.mean_abs_delta)}.<br/>`
+        + `Fraction of fake labels with |ΔC| ≥ observed: <b>${fmt(nc.p_outside)}</b>.<br/>`
+        + (nc.p_outside < 0.05
+            ? '<b style="color: var(--good);">Observed effect exceeds the fake-label null</b> — '
+              + 'the method is not detecting random fluctuation.'
+            : '<b style="color: var(--bad);">Observed effect not separable from random fake labels</b> — '
+              + 'reduce confidence in the leading row, or the effect needs a denser dataset.')
+        + `</div>`
+  }));
+}
+
+// ─── Dose / genotype-class block ────────────────────────────────────────
+
+function _renderDoseClasses() {
+  const slot = $('#fmsDoseSlot');
+  if (!slot) return;
+  slot.innerHTML = '';
+  const f = state.focal_meiosis.focal_inv;
+  if (!f) return;
+  const dose = dosageGroups(f);
+  const grid = el('div', { class: 'bdmi-summary' });
+  grid.appendChild(_sumCell('hom_ref (0/0)', dose.hom_ref.length, null, 'control class'));
+  grid.appendChild(_sumCell('het (0/1)',     dose.het.length,
+    dose.het.length === 0 ? 'fail' : null,
+    'usually the strongest local pairing effect'));
+  grid.appendChild(_sumCell('hom_alt (1/1)', dose.hom_alt.length,
+    dose.hom_alt.length === 0 ? 'warn' : null,
+    'may show different interchromosomal effect than het'));
+  // Mean burden per dose class.
+  const meanBurden = (g) => g.length
+    ? (g.reduce((s, ind) => s + inversionBurden(ind), 0) / g.length).toFixed(2)
+    : '—';
+  grid.appendChild(_sumCell('mean burden — hom_ref', meanBurden(dose.hom_ref)));
+  grid.appendChild(_sumCell('mean burden — het',     meanBurden(dose.het)));
+  grid.appendChild(_sumCell('mean burden — hom_alt', meanBurden(dose.hom_alt)));
+  slot.appendChild(grid);
+  slot.appendChild(el('div', {
+    class: 'meiosis-caption',
+    style: { marginTop: '6px' },
+    text: 'The current scan groups het and hom_alt as "carriers". A clean dose pattern '
+        + '(het ≠ baseline ≠ hom_alt) strengthens the causal interpretation, but separating '
+        + 'het from hom_alt as their own scan rows requires more N than the current demo cohort '
+        + 'supplies. Use this card as a power check before claiming a dose effect.'
+  }));
 }
 
 function _renderDetail(r) {
@@ -294,9 +526,13 @@ function wireFms() {
   $('#fmsFocal').addEventListener('change', e => {
     state.focal_meiosis.focal_inv = e.target.value;
     state.focal_meiosis.last_results = null;
+    ['#fmsResultSlot','#fmsDetailSlot','#fmsCausalSlot','#fmsConfoundSlot',
+     '#fmsPerFamilySlot','#fmsNegCtrlSlot','#fmsDoseSlot']
+      .forEach(s => { const n = $(s); if (n) n.innerHTML = ''; });
     _renderReadiness();
     _renderSummary();
     _renderResults();
+    _renderDoseClasses();
     _renderKaryo();
   });
   $('#fmsScope').addEventListener('change',         e => state.focal_meiosis.scope         = e.target.value);
@@ -305,8 +541,9 @@ function wireFms() {
   $('#fmsRunBtn').addEventListener('click', runScan);
   $('#fmsResetBtn').addEventListener('click', () => {
     state.focal_meiosis.last_results = null;
-    $('#fmsResultSlot').innerHTML = '';
-    $('#fmsDetailSlot').innerHTML = '';
+    ['#fmsResultSlot','#fmsDetailSlot','#fmsCausalSlot','#fmsConfoundSlot',
+     '#fmsPerFamilySlot','#fmsNegCtrlSlot','#fmsDoseSlot']
+      .forEach(s => { const n = $(s); if (n) n.innerHTML = ''; });
   });
   $('#fmsExportBtn').addEventListener('click', exportTsv);
 }
@@ -330,6 +567,7 @@ export async function mount(root, atlasState, registry) {
   wireFms();
   _renderReadiness();
   _renderSummary();
+  _renderDoseClasses();
   _renderKaryo();
   if (state.focal_meiosis.last_results) _renderResults();
   _unsubChr = on('chromosome_changed', () => {

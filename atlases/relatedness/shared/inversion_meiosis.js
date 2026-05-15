@@ -51,6 +51,34 @@ export function controlsOf(invId) {
     return k === '0/0';
   });
 }
+
+// Dosage classes — the proper causal-genetic split. Heterokaryotypes show
+// the strongest local pairing effects; homozygous-alt may show a different
+// (often larger) interchromosomal modifier effect; carrier-vs-control alone
+// hides any genotype-response pattern.
+export function dosageGroups(invId) {
+  const hom_ref = [], het = [], hom_alt = [];
+  for (const ind of DEMO.individuals) {
+    const k = (DEMO.karyotype_matrix[ind] || {})[invId];
+    if (k === '0/0') hom_ref.push(ind);
+    else if (k === '0/1') het.push(ind);
+    else if (k === '1/1') hom_alt.push(ind);
+  }
+  return { hom_ref, het, hom_alt };
+}
+
+// Inversion burden = total number of non-reference inversion karyotypes
+// per individual (het + hom_alt across every candidate). The "carriers
+// also carry many other inversions" confound the user warned about.
+export function inversionBurden(ind) {
+  let n = 0;
+  for (const inv of DEMO.inversion_candidates_full) {
+    const k = (DEMO.karyotype_matrix[ind] || {})[inv.candidate];
+    if (k === '0/1' || k === '1/1') n++;
+  }
+  return n;
+}
+
 export function familyOf(ind) {
   const f = (DEMO.families || []).find(f => (f.members || []).includes(ind));
   return f ? f.family_id : null;
@@ -74,6 +102,51 @@ export function carrierHubShare(carriers) {
     if (n > bestN) { best = f; bestN = n; }
   }
   return { hub: best, share: bestN / carriers.length, count: bestN };
+}
+
+// Confounder profile — quantifies the imbalance between carriers and
+// controls along three axes the user flagged as essential to control:
+//   family-hub spread, mean ancestry vector, mean inversion burden.
+export function confounderProfile(carriers, controls) {
+  const meanQ = (group) => {
+    if (!group.length) return [];
+    const K = (DEMO.ancestry_q[group[0]] || []).length;
+    const out = new Array(K).fill(0);
+    for (const ind of group) {
+      const q = DEMO.ancestry_q[ind] || [];
+      for (let k = 0; k < K; k++) out[k] += (q[k] || 0);
+    }
+    return out.map(v => v / group.length);
+  };
+  const meanBurden = (group) =>
+    group.length ? group.reduce((s, ind) => s + inversionBurden(ind), 0) / group.length : 0;
+  const meanQ_c = meanQ(carriers);
+  const meanQ_n = meanQ(controls);
+  // L1 ancestry distance.
+  let ancestry_l1 = 0;
+  const K = Math.max(meanQ_c.length, meanQ_n.length);
+  for (let k = 0; k < K; k++) {
+    ancestry_l1 += Math.abs((meanQ_c[k] || 0) - (meanQ_n[k] || 0));
+  }
+  const burden_c = meanBurden(carriers);
+  const burden_n = meanBurden(controls);
+  const hubShare = carrierHubShare(carriers);
+  // Per-hub carrier vs control balance.
+  const hubBalance = {};
+  const all = [...carriers, ...controls];
+  for (const ind of all) {
+    const f = familyOf(ind) || '(none)';
+    if (!hubBalance[f]) hubBalance[f] = { carriers: 0, controls: 0 };
+    if (carriers.includes(ind)) hubBalance[f].carriers++;
+    else                         hubBalance[f].controls++;
+  }
+  return {
+    ancestry_l1, mean_q_carrier: meanQ_c, mean_q_control: meanQ_n,
+    burden_carrier: burden_c, burden_control: burden_n,
+    burden_delta: burden_c - burden_n,
+    hub_share: hubShare,
+    hub_balance: hubBalance,
+  };
 }
 
 // ─── Baseline observable ─────────────────────────────────────────────────
@@ -272,4 +345,199 @@ export const STATUS_LABEL = {
   moderate_effect:   'MODERATE EFFECT',
   weak_effect:       'WEAK EFFECT',
   no_effect:         'NO EFFECT',
+};
+
+// ─── Per-family direction-consistency scan ──────────────────────────────
+//
+// For each family with at least one carrier and one control, compute the
+// within-family delta_C on the tested chromosome. Direction-consistent
+// effects across multiple families are much stronger evidence than a
+// single pooled significant test.
+export function perFamilyScan(focal_inv_id, tested_chr) {
+  const carriers = carriersOf(focal_inv_id);
+  const controls = controlsOf(focal_inv_id);
+  const focal_chr = focalChromOf(focal_inv_id);
+  const { C: base_C } = baselineCoincidenceAndN(tested_chr);
+  if (!Number.isFinite(base_C)) return [];
+  const allFams = new Set([...carriers, ...controls].map(familyOf).filter(Boolean));
+  const out = [];
+  for (const fam of allFams) {
+    const fam_c = carriers.filter(ind => familyOf(ind) === fam);
+    const fam_n = controls.filter(ind => familyOf(ind) === fam);
+    if (!fam_c.length || !fam_n.length) {
+      out.push({ family: fam, n_c: fam_c.length, n_n: fam_n.length,
+                 C_carrier: NaN, C_control: NaN, delta_C: NaN, direction: 'no_data' });
+      continue;
+    }
+    const C_c = carrierC(fam_c, tested_chr, focal_chr, base_C);
+    const C_n = controlC(fam_n, tested_chr, focal_chr, base_C);
+    const d = C_c - C_n;
+    out.push({
+      family: fam, n_c: fam_c.length, n_n: fam_n.length,
+      C_carrier: C_c, C_control: C_n, delta_C: d,
+      direction: d > 0.05 ? 'positive' : (d < -0.05 ? 'negative' : 'flat'),
+    });
+  }
+  return out;
+}
+
+// Direction-consistency score: fraction of informative families (n_c & n_n
+// both >= 1) that share the same sign as the pooled delta_C.
+export function directionConsistency(perFam, pooled_delta) {
+  const informative = perFam.filter(r => Number.isFinite(r.delta_C));
+  if (!informative.length) return { n_informative: 0, n_concordant: 0, score: NaN };
+  const sign = pooled_delta > 0 ? 1 : (pooled_delta < 0 ? -1 : 0);
+  if (sign === 0) return { n_informative: informative.length, n_concordant: 0, score: 0 };
+  const concordant = informative.filter(r => Math.sign(r.delta_C) === sign).length;
+  return {
+    n_informative: informative.length,
+    n_concordant: concordant,
+    score: concordant / informative.length,
+  };
+}
+
+// ─── Negative-control null (random fake-label sets) ─────────────────────
+//
+// Generates K random "fake focal" label sets with the same number of
+// carriers as the real focal inversion, sampled from the full sample
+// list (not restricted within hubs — this is the negative control, not
+// the family-aware permutation null). Each fake set is run through the
+// same scan; the resulting null distribution of |delta_C| is what the
+// observed |delta_C| should beat to be a real signal vs a method
+// artefact.
+export function negativeControlNull(focal_inv_id, tested_chr, n_fake = 200) {
+  const focal_chr = focalChromOf(focal_inv_id);
+  const carriers = carriersOf(focal_inv_id);
+  const all = DEMO.individuals.slice();
+  const { C: base_C } = baselineCoincidenceAndN(tested_chr);
+  if (!Number.isFinite(base_C) || carriers.length < 1) {
+    return { n_fake: 0, mean_abs_delta: NaN, p_outside: NaN, samples: [] };
+  }
+  const observed = (() => {
+    const cs = carriers, ns = controlsOf(focal_inv_id);
+    const C_c = carrierC(cs, tested_chr, focal_chr, base_C);
+    const C_n = controlC(ns, tested_chr, focal_chr, base_C);
+    return Math.abs(C_c - C_n);
+  })();
+  const samples = [];
+  let n_ge = 0;
+  for (let i = 0; i < n_fake; i++) {
+    const shuffled = all.slice();
+    for (let j = shuffled.length - 1; j > 0; j--) {
+      const k = Math.floor(Math.random() * (j + 1));
+      [shuffled[j], shuffled[k]] = [shuffled[k], shuffled[j]];
+    }
+    const fake_c = shuffled.slice(0, carriers.length);
+    const fake_n = shuffled.slice(carriers.length);
+    const C_c = carrierC(fake_c, tested_chr, focal_chr, base_C);
+    const C_n = controlC(fake_n, tested_chr, focal_chr, base_C);
+    const abs_d = Math.abs(C_c - C_n);
+    samples.push(abs_d);
+    if (abs_d >= observed - 1e-9) n_ge++;
+  }
+  const mean = samples.length ? samples.reduce((a,b) => a+b, 0) / samples.length : NaN;
+  return {
+    observed_abs_delta: observed,
+    mean_abs_delta: mean,
+    p_outside: (n_ge + 1) / (n_fake + 1),
+    n_fake, samples,
+  };
+}
+
+// ─── Causal ladder ──────────────────────────────────────────────────────
+//
+// Per the user's framework (2026-05-15):
+//
+//   Level 0: association only — at least one tested chromosome shows
+//             a raw |delta_C| above an effect threshold.
+//   Level 1: family-aware permutation null passed (p_perm < 0.05).
+//   Level 2: confounder controls clean — ancestry L1 small, burden delta
+//             small, no FAMILY CONFOUNDED row driving the result.
+//   Level 3: same direction across ≥3 informative families on the
+//             leading tested chromosome (direction consistency ≥ 0.66).
+//   Level 4: mechanistic coherence — intra-chromosomal effect larger
+//             than typical inter, OR a clean dose pattern het ↑ vs
+//             hom_ref baseline.
+//   Level 5: experimental — out of scope for WGS, requires controlled
+//             crosses.
+//
+// Returns { level, reasons[] } so the page can show what would be
+// needed to climb to the next level.
+export function causalLadder(scan_result, opts = {}) {
+  const reasons = [];
+  if (!scan_result || !scan_result.rows || !scan_result.rows.length) {
+    return { level: 0, reasons: ['no scan results yet'] };
+  }
+  const rows = scan_result.rows;
+  const informative = rows.filter(r => Number.isFinite(r.delta_C));
+  if (!informative.length) return { level: 0, reasons: ['no informative tested chromosomes'] };
+
+  // Level 0
+  const any_assoc = informative.some(r => Math.abs(r.delta_C) >= 0.15);
+  if (!any_assoc) return { level: 0, reasons: ['no |delta_C| >= 0.15 anywhere'] };
+  reasons.push('Level 0 ✓ at least one |ΔC| ≥ 0.15');
+
+  // Level 1
+  const any_sig = informative.some(r => Number.isFinite(r.p_perm) && r.p_perm < 0.05);
+  if (!any_sig) return { level: 0, reasons: [...reasons, 'no p_perm < 0.05 (family-aware null)'] };
+  reasons.push('Level 1 ✓ family-aware p_perm < 0.05');
+
+  // Level 2 — confounder controls
+  const conf = opts.confounders;
+  const fam_confounded = informative.some(r => r.status === 'family_confounded');
+  const ancestry_clean = !conf || conf.ancestry_l1 < 0.50;
+  const burden_clean   = !conf || Math.abs(conf.burden_delta) < 1.5;
+  if (fam_confounded || !ancestry_clean || !burden_clean) {
+    return { level: 1, reasons: [...reasons,
+      fam_confounded   ? 'Level 2 ✗ at least one row is FAMILY CONFOUNDED' : null,
+      !ancestry_clean  ? `Level 2 ✗ ancestry L1 = ${conf.ancestry_l1.toFixed(2)} ≥ 0.50` : null,
+      !burden_clean    ? `Level 2 ✗ |burden delta| = ${Math.abs(conf.burden_delta).toFixed(2)} ≥ 1.5` : null,
+    ].filter(Boolean) };
+  }
+  reasons.push('Level 2 ✓ ancestry / burden / family-balance clean');
+
+  // Level 3 — direction consistency on the leading row
+  const leading = informative.slice().sort((a,b) => Math.abs(b.delta_C) - Math.abs(a.delta_C))[0];
+  const perFam = perFamilyScan(scan_result.focal_inv, leading.tested_chr);
+  const cons = directionConsistency(perFam, leading.delta_C);
+  if (!(cons.n_informative >= 3 && cons.score >= 0.66)) {
+    return { level: 2, reasons: [...reasons,
+      `Level 3 ✗ direction consistency on ${leading.tested_chr}: ${cons.n_concordant}/${cons.n_informative} `
+        + `informative families (need ≥3 informative, ≥0.66 concordance)`] };
+  }
+  reasons.push(`Level 3 ✓ ${cons.n_concordant}/${cons.n_informative} families concordant on ${leading.tested_chr}`);
+
+  // Level 4 — mechanistic coherence
+  // Intra effect should be larger than the inter median (when both exist),
+  // or the dose pattern (het vs hom_alt) should be monotone.
+  const intra = informative.filter(r => r.relation === 'intra');
+  const inter = informative.filter(r => r.relation === 'inter');
+  const intra_max = intra.length ? Math.max(...intra.map(r => Math.abs(r.delta_C))) : 0;
+  const inter_med = inter.length ? _median(inter.map(r => Math.abs(r.delta_C))) : 0;
+  const intra_dom = intra.length && inter.length && intra_max >= 1.5 * inter_med;
+  if (!intra_dom) {
+    return { level: 3, reasons: [...reasons,
+      `Level 4 ✗ intra max |ΔC|=${intra_max.toFixed(2)} not ≥ 1.5 × inter median |ΔC|=${inter_med.toFixed(2)}`] };
+  }
+  reasons.push(`Level 4 ✓ intra max |ΔC| ≥ 1.5 × inter median`);
+
+  // Level 5 is unreachable from observational data.
+  return { level: 4, reasons: [...reasons,
+    'Level 5 (experimental) is out of scope: controlled crosses required.'] };
+}
+
+function _median(arr) {
+  if (!arr.length) return NaN;
+  const s = arr.slice().sort((a,b) => a - b);
+  const m = Math.floor(s.length / 2);
+  return s.length % 2 ? s[m] : (s[m-1] + s[m]) / 2;
+}
+
+export const CAUSAL_LEVEL_LABEL = {
+  0: 'L0 · ASSOCIATION ONLY',
+  1: 'L1 · FAMILY-AWARE NULL PASSED',
+  2: 'L2 · CONFOUNDER CONTROLS CLEAN',
+  3: 'L3 · DIRECTION CONSISTENT ACROSS FAMILIES',
+  4: 'L4 · MECHANISTIC COHERENCE',
+  5: 'L5 · EXPERIMENTAL (out of scope)',
 };
