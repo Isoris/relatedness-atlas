@@ -64,6 +64,14 @@
       "fragment": "atlases/relatedness/pages/hub/regimes.html",
       "module": "atlases/relatedness/pages/hub/regimes.js",
       "tooltip": "Chromosome regime inheritance — tests whether a focal inversion's distortion is explained by linkage to another inversion on the same chromosome (haplotype-regime coupling), then classifies the residual signal as meiotic-drive-like vs underdominance-like via cross-type comparison. Prevents over-calling BDMI / drive / underdominance from coupled inversions."
+    },
+    {
+      "id": "meiosis",
+      "label": "meiosis",
+      "stage": "hub",
+      "fragment": "atlases/relatedness/pages/hub/meiosis.html",
+      "module": "atlases/relatedness/pages/hub/meiosis.js",
+      "tooltip": "Meiotic crossover observables. Single CO (r1, r2), double CO (r12), coefficient of coincidence C, interference I = 1 - C. Documents the d / x identifiability limitation: from offspring genotype data alone the precondition probability d and exchange probability x are not separable. Per-inversion-carrier CO frequency is a stub until a per-individual CO call layer arrives."
     }
   ],
   "registries": {

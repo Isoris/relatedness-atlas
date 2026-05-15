@@ -51,6 +51,13 @@
       "requires_layers": [],
       "requires_slots": [],
       "preloads": []
+    },
+    "meiosis": {
+      "_label": "meiosis — crossover observables (single CO, double CO, coincidence, interference)",
+      "_doc": "Parks the meiotic crossover model so it does not get lost. Section A: r1, r2, r12 inputs and computes C = r12 / (r1 * r2) and I = 1 - C. Section B: observable vs latent reference table - r1, r2, r12, C, I are observable / derived; a, b, d, x (precondition + exchange) are latent and not estimated from genotype data alone (3 equations, 4 unknowns - identifiability limitation). Section C: per-inversion-carrier CO frequency - stub until a per-individual CO call layer arrives (ngsPedigree Stage 3 chromosome inheritance map, or a cytological SPO11 / MLH1 layer). Section D: cross-page links to Regime inheritance (linked-inversion suppressed recombination) and BDMI (Test C heterokaryotype deficit, Test E long-range forbidden).",
+      "requires_layers": [],
+      "requires_slots": [],
+      "preloads": []
     }
   }
 }

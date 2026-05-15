@@ -88,6 +88,17 @@ export const state = {
     last_mechanism:   null,
   },
 
+  // Meiotic crossover observables (single CO, double CO, C, I). Only the
+  // observable / derived quantities are stored — the latent two-step model
+  // (precondition d, exchange x) is documented in pages/hub/meiosis.{html,js}
+  // but never estimated, because genotype data underdetermines it.
+  meiosis: {
+    r1:  0.10,
+    r2:  0.20,
+    r12: 0.005,
+    last_result: null,
+  },
+
   // pillBar source state (round 1: mock).
   loaded_files: [
     { kind: 'res',    path: '/data/project/population.res',     loaded: true },

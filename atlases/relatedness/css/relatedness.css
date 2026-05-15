@@ -1458,3 +1458,50 @@
   .regimes-verdict-pill.regime-residual   { background: rgba(224, 85, 92, 0.18); color: var(--bad); }
   .regimes-verdict-pill.regime-unknown    { background: rgba(232, 196, 76, 0.14); color: var(--warn); }
   html[data-theme="light"] .regimes-verdict-pill.regime-explained { color: #6d28d9; }
+
+  /* ── Meiosis — single CO / double CO / coincidence ────────────────────── */
+  .meiosis-config {
+    background: var(--panel-2); border: 1px solid var(--rule);
+    border-radius: 4px; padding: 12px 14px; margin-bottom: 14px;
+  }
+  .meiosis-config .row {
+    display: grid; grid-template-columns: 240px 1fr; gap: 12px 14px;
+    align-items: center; margin-bottom: 8px;
+  }
+  .meiosis-config .row:last-child { margin-bottom: 0; }
+  .meiosis-config label {
+    font-size: 10.5px; color: var(--ink-dim);
+    letter-spacing: 0.04em;
+  }
+  .meiosis-config input[type="number"] {
+    background: var(--panel); color: var(--ink);
+    border: 1px solid var(--rule); border-radius: 3px;
+    padding: 5px 9px; font-family: var(--mono); font-size: 10.5px;
+    width: 160px;
+  }
+  .meiosis-config input[type="number"]:focus {
+    outline: none; border-color: var(--accent);
+  }
+  .meiosis-actions {
+    display: flex; gap: 8px; margin-top: 4px;
+  }
+  .meiosis-actions button {
+    background: var(--panel-3); color: var(--ink);
+    border: 1px solid var(--rule); border-radius: 3px;
+    padding: 5px 14px; font-family: var(--mono); font-size: 10.5px;
+    cursor: pointer; letter-spacing: 0.04em;
+  }
+  .meiosis-actions button.primary {
+    background: var(--accent); color: white; border-color: var(--accent);
+  }
+  html[data-theme="light"] .meiosis-actions button.primary { color: white; }
+  .meiosis-actions button:hover { border-color: var(--accent); }
+
+  .meiosis-caption {
+    font-size: 10px; color: var(--ink-dim);
+    margin-top: 6px; font-family: var(--mono); line-height: 1.5;
+  }
+  .data-table.meiosis-ref td,
+  .data-table.meiosis-ref th {
+    font-size: 10.5px;
+  }
