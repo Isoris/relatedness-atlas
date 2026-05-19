@@ -1,0 +1,32 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "inversion_karyotypes_v1.schema.json",
+  "title": "inversion_karyotypes_v1 — per-sample × per-inversion karyotype matrix",
+  "type": "object",
+  "required": ["records", "n_records"],
+  "additionalProperties": true,
+  "properties": {
+    "records": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["sample_id", "inversion_id"],
+        "additionalProperties": true,
+        "properties": {
+          "sample_id":    { "type": "string" },
+          "inversion_id": { "type": "string" },
+          "karyotype":    { "type": ["string", "null"] },
+          "quality":      { "type": ["number", "string", "null"] }
+        }
+      }
+    },
+    "n_records":    { "type": "integer", "minimum": 0 },
+    "n_samples":    { "type": "integer", "minimum": 0 },
+    "n_inversions": { "type": "integer", "minimum": 0 },
+    "karyotype_counts": {
+      "type": "object",
+      "additionalProperties": { "type": "integer", "minimum": 0 }
+    },
+    "_provenance": { "type": "object", "additionalProperties": true }
+  }
+}

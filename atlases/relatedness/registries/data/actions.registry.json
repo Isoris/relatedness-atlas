@@ -1,4 +1,5 @@
 {
+  "_doc": "POST /api/actions dispatch table for the Relatedness Atlas. Round-1 actions (import_relatedness_tsv + normalize_relatedness) handle the generic TSV-capture / staging-to-normalized promotion path. harvest_file (added 2026-05-20) handles the typed-extractor path for the 5 file-backed layers declared in layers.registry.json — resolves layer_key → files.registry.json → path_template.",
   "actions": {
     "import_relatedness_tsv": {
       "runner":      "runners.import_tsv.import_tsv",
@@ -9,6 +10,11 @@
       "runner":      "runners.normalize_relatedness.normalize",
       "schema_in":   "normalize_relatedness_v1",
       "description": "Promote a staging_relatedness_v0 envelope to a typed ngsrelate_pairs_v1 envelope. Reads target.source_layer_id from the workspace layers index, maps columns (a/b/theta/KING/R/nSites/IBS0/1/2), coerces types, validates against ngsrelate_pairs_v1. Worked example of PIPELINE_FLOW.md §'Reversibility — staging today, normalized tomorrow'."
+    },
+    "harvest_file": {
+      "runner":      "runners.harvest_file.harvest_file",
+      "schema_in":   "harvest_file_v1",
+      "description": "Resolve a layer_key (declared with source=file + source_file in layers.registry.json) through the files.registry.json path_template, copy the matched file into raw_results/relatedness/{action_id}/, and dispatch to the matching typed extractor. Companion to the 5 typed extractors added 2026-05-20."
     }
   }
 }

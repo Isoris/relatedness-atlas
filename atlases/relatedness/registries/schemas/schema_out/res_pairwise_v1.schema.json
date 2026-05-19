@@ -1,0 +1,21 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "res_pairwise_v1.schema.json",
+  "title": "res_pairwise_v1 — ngsPedigree Stage 1 pairwise classification",
+  "type": "object",
+  "required": ["pairs", "n_pairs"],
+  "additionalProperties": true,
+  "properties": {
+    "pairs": {
+      "type": "array",
+      "items": { "type": "object", "additionalProperties": true }
+    },
+    "n_pairs":   { "type": "integer", "minimum": 0 },
+    "n_samples": { "type": "integer", "minimum": 0 },
+    "edge_class_counts": {
+      "type": "object",
+      "additionalProperties": { "type": "integer", "minimum": 0 }
+    },
+    "_provenance": { "type": "object", "additionalProperties": true }
+  }
+}

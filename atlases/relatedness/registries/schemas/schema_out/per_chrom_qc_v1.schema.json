@@ -1,0 +1,21 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "per_chrom_qc_v1.schema.json",
+  "title": "per_chrom_qc_v1 — ngsPedigree Stage 2 per-chromosome QC",
+  "type": "object",
+  "required": ["rows", "n_rows"],
+  "additionalProperties": true,
+  "properties": {
+    "rows": {
+      "type": "array",
+      "items": { "type": "object", "additionalProperties": true }
+    },
+    "n_rows":      { "type": "integer", "minimum": 0 },
+    "pairs_summary": {
+      "type": "object",
+      "additionalProperties": { "type": "integer", "minimum": 0 }
+    },
+    "chromosomes": { "type": "array", "items": { "type": "string" } },
+    "_provenance": { "type": "object", "additionalProperties": true }
+  }
+}

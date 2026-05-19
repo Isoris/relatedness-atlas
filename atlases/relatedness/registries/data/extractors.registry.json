@@ -1,4 +1,5 @@
 {
+  "_doc": "Extractor inventory for the Relatedness Atlas. Round-1 entries (extract_staging_relatedness_v0, extract_ngsrelate_pairs_v1) cover the generic TSV-capture + ngsRelate normalize path. Typed entries added 2026-05-20 cover the 5 file-backed layers from layers.registry.json — each consumes one layer via harvest_file and emits a typed payload validated against schemas/schema_out/<schema_version>.schema.json.",
   "extractors": [
     {
       "extractor_id":   "extract_staging_relatedness_v0",
@@ -15,6 +16,52 @@
       "stage":          "normalized",
       "parser":         "extractors.normalize_relatedness.extract",
       "input_format":   "json"
+    },
+
+    {
+      "extractor_id":   "extract_res_pairwise_v1",
+      "layer_type":     "res_pairwise",
+      "schema_version": "res_pairwise_v1",
+      "stage":          "normalized",
+      "parser":         "extractors.res_pairwise.extract",
+      "input_format":   "tsv",
+      "_doc":           "23-column pairwise table from ngsPedigree Stage 1. Emits {pairs, n_pairs, n_samples, edge_class_counts}. Drives Inspector / Stats panel + Network panel edge classes."
+    },
+    {
+      "extractor_id":   "extract_family_hub_roster_v1",
+      "layer_type":     "family_hub_roster",
+      "schema_version": "family_hub_roster_v1",
+      "stage":          "normalized",
+      "parser":         "extractors.family_hub_roster.extract",
+      "input_format":   "tsv",
+      "_doc":           "One row per individual with family_id + hub + role. Emits {roster, n_individuals, hubs, families}. Drives the Population Browser tree."
+    },
+    {
+      "extractor_id":   "extract_per_chrom_qc_v1",
+      "layer_type":     "per_chrom_qc",
+      "schema_version": "per_chrom_qc_v1",
+      "stage":          "normalized",
+      "parser":         "extractors.per_chrom_qc.extract",
+      "input_format":   "tsv",
+      "_doc":           "Per-chromosome PASS/WARN/FAIL conflict counts per dyad/triad. Feeds the Mendelian-check breakdown and the trio_qc map used by Inversions four-stage scoring."
+    },
+    {
+      "extractor_id":   "extract_inversion_karyotypes_v1",
+      "layer_type":     "inversion_karyotypes",
+      "schema_version": "inversion_karyotypes_v1",
+      "stage":          "normalized",
+      "parser":         "extractors.inversion_karyotypes.extract",
+      "input_format":   "tsv",
+      "_doc":           "Long-format (sample × inversion × karyotype) export from the Inversion Atlas. Drives Karyotypes tab, Mendelian tester, Inversions four-stage scoring."
+    },
+    {
+      "extractor_id":   "extract_ancestry_q_v1",
+      "layer_type":     "ancestry_q",
+      "schema_version": "ancestry_q_v1",
+      "stage":          "normalized",
+      "parser":         "extractors.ancestry_q.extract",
+      "input_format":   "tsv",
+      "_doc":           "Cohort NGSadmix Q-matrix (sample × K columns). Drives Karyotypes ancestry stripe; falls back to demo palette when absent."
     }
   ]
 }

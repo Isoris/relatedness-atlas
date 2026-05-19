@@ -1,0 +1,31 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "ancestry_q_v1.schema.json",
+  "title": "ancestry_q_v1 — cohort NGSadmix Q matrix (TSV-sourced)",
+  "description": "Relatedness-atlas variant of the ancestry Q payload. Sourced from a sample_id × K-columns TSV. Distinct from population-atlas's ngsadmix_q_v1 which reads {samples, Q, K} JSON.",
+  "type": "object",
+  "required": ["K", "samples", "Q"],
+  "additionalProperties": true,
+  "properties": {
+    "K":       { "type": "integer", "minimum": 1 },
+    "samples": { "type": "array", "items": { "type": "string" } },
+    "Q": {
+      "type": "array",
+      "items": { "type": "array", "items": { "type": "number", "minimum": 0, "maximum": 1 } }
+    },
+    "top_per_sample": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["sample_id"],
+        "additionalProperties": true,
+        "properties": {
+          "sample_id": { "type": "string" },
+          "top_k":     { "type": ["integer", "null"], "minimum": 0 },
+          "top_q":     { "type": ["number", "null"], "minimum": 0, "maximum": 1 }
+        }
+      }
+    },
+    "_provenance": { "type": "object", "additionalProperties": true }
+  }
+}

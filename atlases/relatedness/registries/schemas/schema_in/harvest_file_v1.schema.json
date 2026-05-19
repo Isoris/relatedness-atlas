@@ -1,0 +1,36 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "harvest_file_v1.schema.json",
+  "title": "harvest_file_v1 — manifest contract for harvesting a relatedness-atlas layer file",
+  "description": "Validates POST /api/actions when type='harvest_file'. Resolves a layer_key (declared in layers.registry.json with source=file + source_file) through the files.registry.json path_template, copies the matched file into raw_results/relatedness/{action_id}/, and dispatches to the matching typed extractor.",
+  "type": "object",
+  "required": ["target"],
+  "additionalProperties": true,
+  "properties": {
+    "target": {
+      "type": "object",
+      "required": ["layer_key"],
+      "additionalProperties": true,
+      "properties": {
+        "layer_key": {
+          "type": "string",
+          "description": "A key declared in atlases/relatedness/registries/data/layers.registry.json with source=file.",
+          "examples": [
+            "res_pairwise", "family_hub_roster", "per_chrom_qc",
+            "inversion_karyotypes", "ancestry_q"
+          ]
+        },
+        "args": {
+          "type": "object",
+          "description": "Template-fill args for the file's path_template. Most layers have no placeholders; included for forward compatibility.",
+          "additionalProperties": true
+        }
+      }
+    },
+    "params": {
+      "type": "object",
+      "description": "Optional extractor params (override defaults declared in extractors.registry.json).",
+      "additionalProperties": true
+    }
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "family_hub_roster_v1.schema.json",
+  "title": "family_hub_roster_v1 — ngsPedigree Stage 1 hub roster",
+  "type": "object",
+  "required": ["roster", "n_individuals"],
+  "additionalProperties": true,
+  "properties": {
+    "roster": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["sample_id"],
+        "additionalProperties": true,
+        "properties": {
+          "sample_id": { "type": "string" },
+          "family_id": { "type": ["string", "integer", "null"] },
+          "hub":       { "type": ["string", "null"] },
+          "role":      { "type": ["string", "null"] },
+          "sex":       { "type": ["string", "null"] }
+        }
+      }
+    },
+    "n_individuals": { "type": "integer", "minimum": 0 },
+    "hubs":          { "type": "array", "items": { "type": "string" } },
+    "families":      { "type": "array", "items": { "type": "string" } },
+    "_provenance":   { "type": "object", "additionalProperties": true }
+  }
+}
