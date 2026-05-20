@@ -33,6 +33,7 @@ import { on } from '../../shared/page_hooks.js';
 import { resolveLatestLayer } from '../../shared/api_client.js';
 import { _setActiveState } from './network/_state.js';
 import { renderInversionTablesInline } from './inversions.js';
+import { probeModeB, renderModeBBadge, distinctCount } from '../../../../core/mode_b_badge.js';
 
 export function renderNetwork() {
   const svg = $('#networkSvg');
@@ -161,6 +162,49 @@ export async function mount(root, atlasState, registry) {
   } catch (_e) {
     _renderDataSourceBadge(null);
   }
+
+  // Mode-B cross-check — direct registry.resolve('res_pairwise'). Distinct
+  // from the envelope probe above: the envelope detector looks for a
+  // captured staging-layer audit trail, while this probe checks whether
+  // the on-disk TSV (data/relatedness/pairwise_relationship_classification.tsv)
+  // is actually reachable through the layer registry. Round-1: empty
+  // disk → "○ data pending" until ngsPedigree Stage 1 ships. Auto-flips
+  // to ● once the TSV lands.
+  _renderRelatednessModeBBadge(registry).catch((e) => {
+    console.warn('network.mount: Mode-B probe threw —', e);
+  });
+}
+
+async function _renderRelatednessModeBBadge(registry) {
+  const probe = await probeModeB(registry, 'res_pairwise', {});
+  renderModeBBadge('netModeBBadge', probe, {
+    label:    'pairwise rel. classification',
+    layerKey: 'res_pairwise',
+    compare:  (probeResult) => {
+      // res_pairwise rows carry: sample_a, sample_b, relationship_class
+      // (per the v1 schema). Split the class distribution + flag the
+      // unique-sample count so the reviewer can sanity-check against
+      // ngsPedigree's expected output shape.
+      const classes = {};
+      for (const r of probeResult.rows) {
+        const k = r && (r.relationship_class || r.class || 'unknown');
+        classes[k] = (classes[k] || 0) + 1;
+      }
+      const samples = new Set();
+      for (const r of probeResult.rows) {
+        if (r && r.sample_a) samples.add(r.sample_a);
+        if (r && r.sample_b) samples.add(r.sample_b);
+      }
+      const classChips = Object.entries(classes)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 4)
+        .map(([k, n]) => `${k}=${n}`).join(' · ');
+      return {
+        pass: probeResult.n > 0 && samples.size > 0,
+        summary: `${probeResult.n} pairs · ${samples.size} unique samples · ${classChips || 'no class column'}`,
+      };
+    },
+  });
 }
 
 export async function unmount(root) {

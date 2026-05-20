@@ -9,16 +9,15 @@
          found, "demo" otherwise. Styled inline so no CSS file needs touching;
          the .data-source-badge selector can be promoted to css/atlas.css
          once more pages adopt the pattern. -->
-    <div id="networkDataSource" class="data-source-badge" style="
-         font-size: 12px;
-         color: #666;
-         margin: 4px 0 8px;
-         padding: 4px 8px;
-         background: #f5f5f5;
-         border-left: 3px solid #ccc;
-         border-radius: 2px;
-         line-height: 1.4;
-         min-height: 1em;"></div>
+    <div id="networkDataSource" class="data-source-badge"></div>
+
+    <!-- Mode-B cross-check badge (2026-05-20). Probes res_pairwise
+         through the registry directly (bypassing the envelope detector
+         above) so the reviewer sees what the layer would resolve to if
+         loaded today. Round-1 state: empty disk → "○ data pending"
+         until ngsPedigree Stage 1 writes data/relatedness/pairwise_
+         relationship_classification.tsv. Fail-soft per core/mode_b_badge.js. -->
+    <div id="netModeBBadge" class="data-source-badge"></div>
 
     <div id="networkPanel">
       <svg id="networkSvg" viewBox="0 0 800 360" preserveAspectRatio="xMidYMid meet">

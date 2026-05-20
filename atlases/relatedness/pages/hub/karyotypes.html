@@ -3,6 +3,12 @@
        chromosome subset. Extracted from legacy Relatedness_atlas.html
        lines 1458-1464. -->
   <div id="karyotypes" class="page subpage" data-subtab-page>
+    <!-- Mode-B karyotype-matrix + ancestry-stripe probe (2026-05-20).
+         Resolves inversion_karyotypes (primary, the long-format matrix
+         keying the page) and ancestry_q (optional, fed the ancestry
+         stripe). Fail-soft per core/mode_b_badge.js. -->
+    <div id="karModeBBadge" class="data-source-badge"></div>
+
     <div class="page-subtitle" style="font-size: 10.5px; color: var(--ink-dim); margin-bottom: 8px;">
       Per-sample genotype calls at every inversion candidate. Use this view to scan ancestry composition alongside genotype patterns. STD/INV labels show only when an inversion span has its named-allele convention defined.
     </div>
