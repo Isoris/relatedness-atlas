@@ -22,7 +22,21 @@ import { state } from '../../shared/state.js';
 import { binomialPValueTwoSided } from '../../shared/stats.js';
 import { sexBadgeHtml } from '../../shared/sex_badge.js';
 import { on } from '../../shared/page_hooks.js';
+import { computeAndWait, isComputeAvailable } from '../../shared/api_client.js';
 import { _setActiveState } from './inversions/_state.js';
+
+// Server fast path for the per-candidate scoring. When the server's
+// COMPUTE_REGISTRY has relatedness_cohort_mendelian_scan registered we
+// prefetch every candidate × every triad once at mount (an async job; the
+// final shape is {scores:[scoreInversion-shape]}) and cache by inv_id. The
+// per-row scoreInversion() then hits the cache instead of recomputing
+// in-browser. Falls back to the in-browser computation per-candidate when
+// the server is unavailable or the cache misses (e.g. a brand-new
+// inversion candidate added after the prefetch resolved).
+const SERVER_ENDPOINT = 'relatedness_cohort_mendelian_scan';
+let _serverComputeAvailable = false;
+let _serverScoresPromise    = null;
+const _serverScores         = new Map();   // inv_id → scoreInversion-shape
 
 // ─── §8 verbatim body ────────────────────────────────────────────────────
 
@@ -98,6 +112,13 @@ function classifyFamilyForInversion(triad, invId) {
 }
 
 export function scoreInversion(invId) {
+  // Server fast path: prefetched cache hit. The server runs the same
+  // four-stage algorithm in relatedness_compute.py::_score_inversion (a
+  // verbatim port of this function), so the cache entry is shape-compatible
+  // with every downstream consumer.
+  const cached = _serverScores.get(invId);
+  if (cached) return cached;
+
   const families = DEMO.triads.map(t => classifyFamilyForInversion(t, invId));
   const informative_families = families.filter(f => f.status !== 'not_informative');
   const valid_inf = informative_families.filter(f => f.family_valid !== false);
@@ -248,6 +269,10 @@ export function scoreInversion(invId) {
 }
 
 export function renderInversionTablesInline() {
+  // Network page calls this directly without going through the Inversions
+  // mount(). Kick off the server prefetch here too so the inline preview
+  // benefits from cached scores. Idempotent — gated by _serverPrefetchStarted.
+  _maybeStartServerPrefetch();
   renderInversionTable('#invTableSlotInline', '#invPaginationInline', 'inv_page_inline');
   const pill = $('#pillInvValue');
   if (pill) pill.textContent = String(DEMO.inversion_candidates_full.length);
@@ -755,12 +780,18 @@ function runMendelianFromInversion(invId) {
   state.mend.offspring = t0.offspring;
   state.mend._pendingMode = 'triad';
   state.mend._pendingFromInversion = invId;
+  // Clear stale results so the Mendelian page doesn't redraw the previous
+  // run's table (with different parents/offspring) on arrival.
+  state.mend.last_result = null;
   window.location.hash = '#/relatedness/mendelian';
 }
 
 function openCompatibilityForInversion(invId) {
   state.compat.scope = 'single';
   state.compat.inv_single = invId;
+  // Clear stale results so the Compatibility page doesn't redraw the
+  // previous run's table (with a different scope) on arrival.
+  state.compat.last_results = null;
   window.location.hash = '#/relatedness/compatibility';
 }
 
@@ -795,12 +826,63 @@ function makePageBtn(label, onClick, disabled = false, active = false) {
   });
 }
 
+// ─── Server prefetch (cohort_mendelian_scan) ──────────────────────────────
+//
+// Probes /compute/relatedness_cohort_mendelian_scan once per page-process
+// lifetime. When available, kicks off the async job for the entire
+// inversion catalogue and populates _serverScores by inv_id. Re-renders
+// every visible inversion table once the cache is hot so PASS / WARN /
+// FAIL counts swap from the in-browser fallback to the server result with
+// no flicker (same shape).
+//
+// Idempotent: callers can call this from every render entry point —
+// _serverScoresPromise + _serverComputeAvailable gates dedupe the work.
+let _serverPrefetchStarted = false;
+async function _maybeStartServerPrefetch() {
+  if (_serverPrefetchStarted) return;
+  _serverPrefetchStarted = true;
+  try {
+    _serverComputeAvailable = await isComputeAvailable(SERVER_ENDPOINT);
+  } catch (err) {
+    console.warn('[inversions] server probe failed; staying in-browser:', err);
+    return;
+  }
+  if (!_serverComputeAvailable) return;
+  _serverScoresPromise = (async () => {
+    try {
+      const result = await computeAndWait(SERVER_ENDPOINT, {
+        candidate_ids:         DEMO.inversion_candidates_full.map(i => i.candidate),
+        triad_ids:             null,
+        alpha:                 0.05,
+        include_suspect_trios: true,
+      });
+      if (result && Array.isArray(result.scores)) {
+        for (const s of result.scores) {
+          if (s && s.inv_id) _serverScores.set(s.inv_id, s);
+        }
+      }
+    } catch (err) {
+      console.warn('[inversions] cohort_mendelian_scan prefetch failed; '
+                 + 'falling back to in-browser scoring:', err);
+    }
+  })();
+  await _serverScoresPromise;
+  // Re-render so the rows pick up the cached server scores. Cheap — no
+  // network, all entries are hot in _serverScores by now.
+  if (document.querySelector('#invTableSlotFull'))   renderInversionTablesFull();
+  if (document.querySelector('#invTableSlotInline')) renderInversionTablesInline();
+}
+
 // ─── Lifecycle ────────────────────────────────────────────────────────────
 
 let _unsubInd = null, _unsubChr = null;
 
 export async function mount(root, atlasState, registry) {
   _setActiveState({ atlasState, registry });
+  // Kick off the server prefetch fire-and-forget. The initial render uses
+  // the in-browser fallback; once the prefetch resolves, _maybeStart…
+  // re-renders to swap in the server-cached scores.
+  _maybeStartServerPrefetch();
   renderInversionTablesFull();
   _unsubInd = on('individual_changed', () => renderInversionTablesFull());
   _unsubChr = on('chromosome_changed', () => renderInversionTablesFull());

@@ -8,6 +8,7 @@
     "_doc": "Producer/consumer pair. ngsPedigree is the analysis side (Stage 1 graph annotator, Stage 2 per-chromosome QC, Stage 3 chromosome inheritance map). The relatedness atlas is the consumer / browser UI. The legacy Relatedness_atlas.{html,js} files live in BOTH repos (ngsPedigree/pages/ and relatedness-atlas/) and are kept byte-identical; the relatedness-atlas/atlases/ tree is the migration target. Same producer/consumer pattern as inversion-popgen-toolkit + inversion-atlas, catfish-diversity-analysis + diversity-atlas, etc."
   },
   "_round_1_note": "First migration round. Single stage 'hub' with five pages (one per sub-tab of the legacy Relatedness_atlas.html mockup): network, karyotypes, inversions, mendelian, compatibility. Each page extracts the matching §6-§9b section from the legacy Relatedness_atlas.js. Shared chrome (Population Browser tree §4, Population Summary §5, Inspector / Stats §10, Loaded files §11) lives in shared/ and is rendered on every page mount. Registry content (requires_layers / requires_slots / preloads) is OUT-OF-SCOPE per the kickoff rule (see 0_READ_ME_FIRST.md) — registries only carry _label + _doc + atlas_id this round.",
+  "_migrated_out_2026_05_23": "Phase 1b 2026-05-23: six meiosis-flavored pages moved to meiosis-atlas (meiosis -> observables, eligibility, resolution, coincidence, inversion_signature, focal_meiosis_scan). Fragment + module files now live at atlases/meiosis/pages/hub/. The migrated pages still share THIS atlas's state singleton via cross-atlas imports (they read `../../../relatedness/shared/state.js` rather than declaring their own state). Reasoning: relatedness owns pedigree/breeding/Mendelian-distortion content; meiosis owns CO/NCO/coincidence/interference observables. focal_meiosis_scan's own tooltip already labelled it 'Transient home: seed page of the future Meiosis Atlas' — that planned move is now complete.",
   "pages": [
     {
       "id": "network",
@@ -64,54 +65,6 @@
       "fragment": "atlases/relatedness/pages/hub/regimes.html",
       "module": "atlases/relatedness/pages/hub/regimes.js",
       "tooltip": "Chromosome regime inheritance — tests whether a focal inversion's distortion is explained by linkage to another inversion on the same chromosome (haplotype-regime coupling), then classifies the residual signal as meiotic-drive-like vs underdominance-like via cross-type comparison. Prevents over-calling BDMI / drive / underdominance from coupled inversions."
-    },
-    {
-      "id": "meiosis",
-      "label": "meiosis",
-      "stage": "hub",
-      "fragment": "atlases/relatedness/pages/hub/meiosis.html",
-      "module": "atlases/relatedness/pages/hub/meiosis.js",
-      "tooltip": "Meiotic crossover observables. Single CO (r1, r2), double CO (r12), coefficient of coincidence C, interference I = 1 - C. Documents the d / x identifiability limitation: from offspring genotype data alone the precondition probability d and exchange probability x are not separable. Per-inversion-carrier CO frequency is a stub until a per-individual CO call layer arrives."
-    },
-    {
-      "id": "eligibility",
-      "label": "eligibility",
-      "stage": "hub",
-      "fragment": "atlases/relatedness/pages/hub/eligibility.html",
-      "module": "atlases/relatedness/pages/hub/eligibility.js",
-      "tooltip": "Eligibility (p map) — per-window NCO/Mb across one chromosome. NCO traces the precondition / DSB substrate layer; high NCO = plentiful substrate, low NCO = ancient cold region. Inversion footprints overlaid. Karyotype matrix surfaced below so you can see who carries which arrangement."
-    },
-    {
-      "id": "resolution",
-      "label": "resolution",
-      "stage": "hub",
-      "fragment": "atlases/relatedness/pages/hub/resolution.html",
-      "module": "atlases/relatedness/pages/hub/resolution.js",
-      "tooltip": "Resolution (x map) — per-window CO/(NCO+CO) share. Closest visible proxy for the latent exchange probability x. Windows with too few events are greyed out. Inside an active heterokaryotypic inversion: resolution drops sharply while NCO is preserved (Eligibility page). Karyotype matrix surfaced below."
-    },
-    {
-      "id": "coincidence",
-      "label": "coincidence",
-      "stage": "hub",
-      "fragment": "atlases/relatedness/pages/hub/coincidence.html",
-      "module": "atlases/relatedness/pages/hub/coincidence.js",
-      "tooltip": "Coincidence — 2D per-window-pair heatmap of C = r12 / (r1*r2) for one chromosome (Sandler interference map). C ~ 1 = independence; C < 1 = positive interference (the normal pattern); C >> 1 = negative interference (usually artefact). Click any cell to inspect the pair. Karyotype matrix surfaced below."
-    },
-    {
-      "id": "inversion_signature",
-      "label": "inversion signature",
-      "stage": "hub",
-      "fragment": "atlases/relatedness/pages/hub/inversion_signature.html",
-      "module": "atlases/relatedness/pages/hub/inversion_signature.js",
-      "tooltip": "Inversion signature — three stacked tracks for one chromosome (NCO/Mb, CO/meiosis, resolution) plus per-candidate verdict cards. Cross-layer rule: NCO ~ flank + CO suppressed = consistent with active inversion; CO not suppressed = reject; both low = ancient cold region; NCO elevated = ambiguous. Karyotype matrix surfaced below."
-    },
-    {
-      "id": "focal_meiosis_scan",
-      "label": "inv × meiosis",
-      "stage": "hub",
-      "fragment": "atlases/relatedness/pages/hub/focal_meiosis_scan.html",
-      "module": "atlases/relatedness/pages/hub/focal_meiosis_scan.js",
-      "tooltip": "Focal inversion x meiosis coincidence scan. For each focal inversion, compares the coefficient of coincidence on every tested chromosome between carriers and matched non-carriers, using a family-aware permutation null. Per-row intra/inter relation tag + status pill (strong / moderate / weak / no effect / FAMILY CONFOUNDED). Transient home: seed page of the future Meiosis Atlas."
     },
     {
       "id": "inversion_priority",
@@ -191,5 +144,77 @@
       "order": 1,
       "_doc": "Family / Individual Evidence Hub — the five sub-tabs of the legacy mockup. Future rounds may add a 'review' stage for manual call decisions and a 'catalogue' stage for the per-family roster export."
     }
-  ]
+  ],
+  "cross_atlas": {
+    "_doc": "In/out adapter declaration. Relatedness reads ngsPedigree outputs (its analysis-side pair) PLUS inversion karyotypes + population kinship. Publishes a pairwise relationship classification for inversion + meiosis to consume.",
+    "imports": [
+      {
+        "layer": "inversion.candidates_v1",
+        "from": "inversion",
+        "purpose": "Per-candidate karyotypes for the relatedness karyotypes sub-tab."
+      },
+      {
+        "layer": "inversion.regime_catalogue_v1",
+        "from": "inversion",
+        "purpose": "Haplotype regimes for the regimes sub-tab (regime inheritance)."
+      },
+      {
+        "layer": "population.ngsrelate_kinship",
+        "from": "population",
+        "purpose": "Pairwise theta for the inversion-aware kinship recompute."
+      },
+      {
+        "layer": "population.ngsadmix_q",
+        "from": "population",
+        "purpose": "Ancestry-aware kinship downweighting."
+      },
+      {
+        "layer": "population.pcangsd_pca",
+        "from": "population",
+        "purpose": "Genome-wide PCA — relatedness uses for ancestry baseline."
+      },
+      {
+        "layer": "population.family_clusters",
+        "from": "population",
+        "purpose": "NAToRA-pruned family-cluster assignments — unbiased background."
+      },
+      {
+        "layer": "population.hatchery_health_cohorts",
+        "from": "population",
+        "purpose": "Cohort-level F_ROH x H plane assignments — context for the inbreeding sub-tab."
+      },
+      {
+        "layer": "diversity.samples_roh_per_sample",
+        "from": "diversity",
+        "purpose": "ROH segments — inbreeding context for the eligibility sub-tab."
+      }
+    ],
+    "exports": [
+      {
+        "layer": "relatedness.res_pairwise",
+        "used_by": ["inversion", "meiosis", "population"],
+        "purpose": "Per-pair relationship class (PO, FS, HS, FC, unrelated). Inversion uses for sample-level QC; meiosis uses for trio detection; population uses for the families page."
+      },
+      {
+        "layer": "relatedness.family_hub_roster",
+        "used_by": ["inversion", "meiosis"],
+        "purpose": "Per-family roster (founders + offspring + siblings). Meiosis especially needs trio identification."
+      },
+      {
+        "layer": "relatedness.inversion_karyotypes",
+        "used_by": ["inversion", "meiosis"],
+        "purpose": "Per-sample karyotype calls at every inversion candidate. Used by relatedness.karyotypes + cross-atlas by inversion + meiosis."
+      },
+      {
+        "layer": "relatedness.per_chrom_qc",
+        "used_by": ["inversion", "meiosis"],
+        "purpose": "Per-chromosome QC flags from ngsPedigree Stage 2."
+      },
+      {
+        "layer": "relatedness.ancestry_q",
+        "used_by": ["meiosis"],
+        "purpose": "Per-sample ancestry Q-vector at canonical K. Meiosis uses for stratifying CO/NCO calls."
+      }
+    ]
+  }
 }

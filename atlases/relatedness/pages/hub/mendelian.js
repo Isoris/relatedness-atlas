@@ -36,8 +36,8 @@ import { _setActiveState } from './mendelian/_state.js';
 const SERVER_ENDPOINTS = {
   dyad:       'relatedness_mendelian_dyad_test',
   triad:      'relatedness_mendelian_triad_test',
-  all_dyads:  'relatedness_cohort_mendelian_scan',
-  all_triads: 'relatedness_cohort_mendelian_scan',
+  all_dyads:  'relatedness_mendelian_cohort_dyads',
+  all_triads: 'relatedness_mendelian_cohort_triads',
 };
 let _serverComputeAvailable = { dyad: false, triad: false, all_dyads: false, all_triads: false };
 
@@ -248,13 +248,21 @@ function _buildServerArgs(mode, candidates, fam) {
       candidate_list: cand_ids,
     };
   }
-  // cohort
+  if (mode === 'all_dyads') {
+    const hub = fam.hub_individual || fam.members[0];
+    return {
+      hub_id:         hub,
+      partner_ids:    fam.members.filter(m => m !== hub),
+      candidate_list: cand_ids,
+    };
+  }
+  // all_triads
+  const ms = fam.members;
   return {
-    candidate_ids: cand_ids,
-    triad_ids:     null,                      // null = every triad in current hub
-    alpha:         parseFloat(state.mend.alpha) || 0.05,
-    include_suspect_trios: false,
-    family_id:     fam.family_id,
+    parent1_id:     ms[0],
+    parent2_id:     ms[1],
+    offspring_ids:  ms.slice(2),
+    candidate_list: cand_ids,
   };
 }
 
@@ -565,6 +573,13 @@ let _unsubInd = null;
 export async function mount(root, atlasState, registry) {
   _setActiveState({ atlasState, registry });
   populateMendSelectors();
+  // Restore prior dropdown selections before updateMendModeUI() so the mode-
+  // dependent row visibility matches the restored mode. Without this, leave-
+  // tab → return reverted everything to HTML defaults and pSeverity() called
+  // from a restored result used the default alpha instead of state.mend.alpha.
+  if (state.mend.mode) $('#mendMode').value = state.mend.mode;
+  if (state.mend.inv_subset) $('#mendInvSubset').value = state.mend.inv_subset;
+  if (state.mend.alpha) $('#mendAlpha').value = state.mend.alpha;
   updateMendModeUI();
   wireMendelian();
 

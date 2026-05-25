@@ -58,6 +58,52 @@
       }
     },
 
+    "mendelian_cohort_dyads": {
+      "_label": "Cohort dyad test (hub × every other family member, Stouffer-combined)",
+      "_doc": "For a single family: run the dyad test of the hub against every other member, then Stouffer-combine the per-dyad consistency_p's. Cheap (≤ N dyad tests per call); server endpoint provided so the hub family Mendelian-screen UI can dispatch off-main-thread without main-thread loops over per-member tests. Browser sends the explicit hub+partner list so the server stays decoupled from family_hub_roster.tsv.",
+      "kind": "browser_compute",
+      "browser_module": "atlases/relatedness/pages/hub/mendelian.js",
+      "browser_function": "combineCohortDyads",
+      "server_endpoint": "relatedness_mendelian_cohort_dyads",
+      "input_schema": {
+        "hub_id":         "string",
+        "partner_ids":    "string[] — every other family member to run the dyad test against",
+        "candidate_list": "string[] — inversion candidate IDs to test"
+      },
+      "output_schema": {
+        "mode":           "literal 'all_dyads'",
+        "hub":            "string",
+        "n_dyads":        "int",
+        "results":        "Array<runDyadTest-result>",
+        "combined_p":     "float — two-sided Stouffer combination of per-dyad consistency_p (NaN if all NaN)",
+        "summary":        "Array<{pair, consistency_p, n_total, n_inconsistent}>"
+      }
+    },
+
+    "mendelian_cohort_triads": {
+      "_label": "Cohort triad test (parent1 × parent2 → every offspring, Stouffer-combined)",
+      "_doc": "For a single family: run the triad test of the two designated parents against every other family member as offspring, then Stouffer-combine the per-triad consistency_p's. Same shape as mendelian_cohort_dyads. Browser sends parent1+parent2+offspring_ids.",
+      "kind": "browser_compute",
+      "browser_module": "atlases/relatedness/pages/hub/mendelian.js",
+      "browser_function": "combineCohortTriads",
+      "server_endpoint": "relatedness_mendelian_cohort_triads",
+      "input_schema": {
+        "parent1_id":     "string",
+        "parent2_id":     "string",
+        "offspring_ids":  "string[] — every family member to treat as offspring",
+        "candidate_list": "string[]"
+      },
+      "output_schema": {
+        "mode":           "literal 'all_triads'",
+        "parent1":        "string",
+        "parent2":        "string",
+        "n_triads":       "int",
+        "results":        "Array<runTriadTest-result>",
+        "combined_p":     "float — two-sided Stouffer combination of per-triad consistency_p",
+        "summary":        "Array<{pair, consistency_p, chi2_p, n_total, n_inconsistent}>"
+      }
+    },
+
     "cohort_mendelian_scan": {
       "_label": "Cohort Mendelian scan (every inversion candidate × every dyad/triad)",
       "_doc": "The four-stage hierarchical scoring (Stage 1 family validation → Stage 2 local Mendelian → Stage 3 X-of-Y verdict → Stage 4 transmission test) run over the full candidate × triad cross-product. THIS is the operation that may be promoted to server_compute in round 2: the 248-candidate × 13-triad demo is ~3000 evaluations which is fine in-browser, but a 5000-candidate × 80-triad real cohort is 400k evaluations and may block the main thread. Server-side it runs as a background job (returns job_id; poll GET /api/jobs/<id>).",
@@ -101,6 +147,7 @@
         "invSet":             "Array<{candidate, chromosome, ...}>",
         "sex_data_available": "bool",
         "sex_filter_applied": "bool",
+        "n_excluded_ambig":   "int — count of partners dropped by exclude_ambig (0 when filter is off)",
         "results":            "Array<{partner_id, n_guaranteed, n_possible, n_impossible, n_unknown, verdict, perInv}>"
       }
     }

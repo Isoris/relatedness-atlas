@@ -21,16 +21,34 @@ export const DEMO = {
     cohort: 'broodstock-226',
   },
 
-  // K=8 ancestry palette — matches the Inversion Atlas defaults.
+  // K=20 ancestry palette — Tailwind-500 family. Positions 1-8 are the
+  // original K=8 atlas defaults; 9-20 extend it for NGSadmix sweeps up to
+  // K=20. Canonical source is atlas-core/core/ancestry_palette.js — this
+  // copy is kept locally so demo_data.js stays standalone (no cross-atlas
+  // import), but the values MUST match. To use the canonical helpers
+  // (ancestryColor, ancestrySlice) from a page module, prefer:
+  //   import { ANCESTRY_PALETTE } from '../../../../core/ancestry_palette.js';
   ancestry_palette: [
-    '#3b82f6',  // blue
-    '#f97316',  // orange
-    '#10b981',  // emerald
-    '#8b5cf6',  // violet
-    '#ec4899',  // pink
-    '#f59e0b',  // amber
-    '#06b6d4',  // cyan
-    '#94a3b8',  // slate
+    '#3b82f6',  //  1  blue-500     (atlas K=8 default)
+    '#f97316',  //  2  orange-500   (atlas K=8 default)
+    '#10b981',  //  3  emerald-500  (atlas K=8 default)
+    '#8b5cf6',  //  4  violet-500   (atlas K=8 default)
+    '#ec4899',  //  5  pink-500     (atlas K=8 default)
+    '#f59e0b',  //  6  amber-500    (atlas K=8 default)
+    '#06b6d4',  //  7  cyan-500     (atlas K=8 default)
+    '#94a3b8',  //  8  slate-500    (atlas K=8 default)
+    '#f43f5e',  //  9  rose-500
+    '#14b8a6',  // 10  teal-500
+    '#84cc16',  // 11  lime-500
+    '#6366f1',  // 12  indigo-500
+    '#d946ef',  // 13  fuchsia-500
+    '#eab308',  // 14  yellow-500
+    '#0ea5e9',  // 15  sky-500
+    '#a855f7',  // 16  purple-500
+    '#22c55e',  // 17  green-500
+    '#ef4444',  // 18  red-500
+    '#64748b',  // 19  slate-600-ish (darker neutral)
+    '#78716c',  // 20  stone-500
   ],
 
   // The screenshot shows a flat 12-individual demo with 3 families. We keep

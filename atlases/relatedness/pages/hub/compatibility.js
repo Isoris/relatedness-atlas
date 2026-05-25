@@ -174,7 +174,16 @@ async function runCompatibilitySearch() {
     candidates = candidates.filter(p => !kinList.has(p));
   }
 
-  const results = candidates.map(p => evaluatePartnership(focalId, p, invSet, targetKt));
+  let results = candidates.map(p => evaluatePartnership(focalId, p, invSet, targetKt));
+
+  // Exclude partners with any NA karyotype in scope when the checkbox is
+  // on. Literal "Exclude ambiguous karyotypes" interpretation — breeding
+  // decisions shouldn't be made on partners with missing genotype data.
+  // Default-ON; uncheck for sparse-data cohorts where most partners have
+  // at least one NA.
+  if (excludeAmb) {
+    results = results.filter(r => r.n_unknown === 0);
+  }
 
   const order = { ideal: 0, good: 1, possible: 2, unknown: 3, reject: 4 };
   results.sort((a, b) => {
@@ -185,6 +194,7 @@ async function runCompatibilitySearch() {
   state.compat.last_results = {
     focal: focalId, target: targetKt, invSet,
     sex_data_available, sex_filter_applied,
+    n_excluded_ambig: excludeAmb ? candidates.length - results.length : 0,
     results,
   };
   renderCompatibilityResults();
@@ -311,13 +321,16 @@ function renderCompatibilityResults() {
   const n_good  = r.results.filter(x => x.verdict === 'good').length;
   const n_poss  = r.results.filter(x => x.verdict === 'possible').length;
   const n_rej   = r.results.filter(x => x.verdict === 'reject').length;
+  const ambigNote = (r.n_excluded_ambig && r.n_excluded_ambig > 0)
+    ? ` <span style="color:var(--ink-dim);">(${r.n_excluded_ambig} partner${r.n_excluded_ambig>1?'s':''} excluded by ambiguous-karyotype filter)</span>`
+    : '';
   sumSlot.appendChild(el('div', { class: 'compat-summary', html:
     `<b>${r.focal}</b> ${sexBadgeHtml(r.focal)} · target offspring `
     + `<b>${r.target}</b>${sexNote}<br/>`
     + `Tested across <b>${r.invSet.length}</b> inversion candidate(s). `
     + `<b>${n_total}</b> partners considered: `
     + `<b>${n_ideal}</b> ideal · <b>${n_good}</b> good · `
-    + `<b>${n_poss}</b> possible-only · <b>${n_rej}</b> rejected.`
+    + `<b>${n_poss}</b> possible-only · <b>${n_rej}</b> rejected.${ambigNote}`
   }));
 
   const tbl = el('table', { class: 'data-table' });
@@ -497,7 +510,10 @@ async function _findRelatednessEnvelope(atlasState) {
     return await resolveLatestLayer('ngsrelate_pairs', {
       dataset_id, stage: 'normalized',
     });
-  } catch (_e) { return null; }
+  } catch (_e) {
+    console.warn('[compatibility] ngsrelate_pairs envelope probe failed:', _e);
+    return null;
+  }
 }
 
 function _renderDataSourceBadge(envelope) {
@@ -542,10 +558,17 @@ export async function mount(root, atlasState, registry) {
     .then(_renderDataSourceBadge)
     .catch(() => _renderDataSourceBadge(null));
 
-  // If pre-seeded by Inversions tab "→ Compatibility planner" action.
+  // Restore prior selections on remount so leave-tab → return doesn't wipe
+  // user state. Covers both the Inversions-tab "→ Compatibility planner"
+  // pre-seed and the normal user-set-then-navigate-away case.
+  if (state.compat.focal) $('#compatFocal').value = state.compat.focal;
+  if (state.compat.target) $('#compatTarget').value = state.compat.target;
   if (state.compat.scope) $('#compatInvScope').value = state.compat.scope;
   if (state.compat.inv_single) $('#compatInvSingle').value = state.compat.inv_single;
   if (state.compat.chrom) $('#compatChrom').value = state.compat.chrom;
+  if (typeof state.compat.sex_aware === 'boolean') $('#compatSexAware').checked = state.compat.sex_aware;
+  if (typeof state.compat.exclude_kin === 'boolean') $('#compatExcludeKin').checked = state.compat.exclude_kin;
+  if (typeof state.compat.exclude_amb === 'boolean') $('#compatExcludeAmbig').checked = state.compat.exclude_amb;
 
   updateCompatScopeUI();
   wireCompatibility();
