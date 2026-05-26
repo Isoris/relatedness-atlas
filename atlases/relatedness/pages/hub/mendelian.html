@@ -3,6 +3,14 @@
        segregation for selected dyads or triads at every inversion candidate.
        Extracted from legacy Relatedness_atlas.html lines 1475-1535. -->
   <div id="mendelian" class="page subpage" data-subtab-page>
+    <!-- 2026-05-26: Mode-B karyotype-source badge. Probes the
+         inversion_karyotypes registry layer at mount; when present, the
+         page's runDyadTest / runTriadTest read from the loaded matrix
+         instead of DEMO. Badge says "● live N×M" when the inversion
+         atlas export is on disk, "○ demo fallback" otherwise — so the
+         user always knows whether the result is real or synthetic. -->
+    <div id="mendModeBBadge" class="data-source-badge"></div>
+
     <div class="page-subtitle" style="font-size: 10.5px; color: var(--ink-dim); margin-bottom: 12px;">
       Test Mendelian segregation for selected dyads (parent–offspring) or triads (parent₁–parent₂–offspring) at every inversion candidate. Computes observed vs expected karyotype proportions and a P-value (binomial for dyads, multinomial-exact / chi-square for triads). Cohort variants run the test across every dyad or triad in the current hub and combine results with Stouffer's method.
     </div>

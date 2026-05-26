@@ -27,6 +27,8 @@ import {
 import { on } from '../../shared/page_hooks.js';
 import { computeAndWait, isComputeAvailable } from '../../shared/api_client.js';
 import { _setActiveState } from './mendelian/_state.js';
+import { renderModeBBadge } from '../../../../core/mode_b_badge.js';
+import { loadLiveKaryotypes, karyoFor } from '../../shared/karyotype_source.js';
 
 // Server-side fallback. Pages probe at mount() and remember the answer in
 // _serverComputeAvailable; if the server's COMPUTE_REGISTRY has the matching
@@ -78,8 +80,8 @@ function updateMendModeUI() {
 }
 
 function runDyadTest(parentId, offspringId, candidateList) {
-  const pK = DEMO.karyotype_matrix[parentId]    || {};
-  const oK = DEMO.karyotype_matrix[offspringId] || {};
+  const pK = karyoFor(parentId);
+  const oK = karyoFor(offspringId);
   let n_inf = 0, n_zero = 0, n_one = 0;
   let n_consistent = 0, n_inconsistent = 0;
   const detail = [];
@@ -118,9 +120,9 @@ function runDyadTest(parentId, offspringId, candidateList) {
 }
 
 function runTriadTest(p1Id, p2Id, oId, candidateList) {
-  const p1K = DEMO.karyotype_matrix[p1Id] || {};
-  const p2K = DEMO.karyotype_matrix[p2Id] || {};
-  const oK  = DEMO.karyotype_matrix[oId]  || {};
+  const p1K = karyoFor(p1Id);
+  const p2K = karyoFor(p2Id);
+  const oK  = karyoFor(oId);
   let n_total = 0, n_consistent = 0, n_inconsistent = 0;
   let n_het_het = 0;
   let n_het_het_obs00 = 0, n_het_het_obs01 = 0, n_het_het_obs11 = 0;
@@ -572,6 +574,13 @@ let _unsubInd = null;
 
 export async function mount(root, atlasState, registry) {
   _setActiveState({ atlasState, registry });
+  // 2026-05-26: pull live karyotypes via Mode-B + the registry loader.
+  // Non-blocking — the page renders against DEMO until the load resolves,
+  // then re-renders the last result (if any) so the user sees the live
+  // numbers without re-clicking Run.
+  _loadLiveKaryotypes(registry).catch((e) => {
+    console.warn('mendelian.mount: karyotype load threw —', e);
+  });
   populateMendSelectors();
   // Restore prior dropdown selections before updateMendModeUI() so the mode-
   // dependent row visibility matches the restored mode. Without this, leave-
@@ -617,4 +626,29 @@ export async function unmount(root) {
   _setActiveState(null);
   if (_unsubInd) _unsubInd();
   _unsubInd = null;
+}
+
+// ─── Live-karyotype wiring (2026-05-26) ──────────────────────────────────
+// Defers all probe + matrix-adoption logic to shared/karyotype_source.js
+// (one probe is shared across mendelian / compatibility / regimes /
+// inversions / bdmi / karyotypes). This wrapper only renders the badge
+// and replays the last result once the load resolves.
+async function _loadLiveKaryotypes(registry) {
+  if (typeof document === 'undefined') return;
+  const snap = await loadLiveKaryotypes(registry);
+  renderModeBBadge('mendModeBBadge', snap.probe || { ok: false, reason: 'no-probe' }, {
+    label:    'karyotype source',
+    layerKey: 'inversion_karyotypes',
+    compare:  () => ({
+      pass:    snap.source === 'live',
+      summary: snap.source === 'live'
+        ? `live · ${snap.samples} samples × ${snap.inversions} inversions · tests use registry data`
+        : `demo fallback · ${Object.keys(DEMO.karyotype_matrix || {}).length} demo samples · tests are synthetic`,
+    }),
+  });
+  // Re-render the last result so the user sees the live numbers without
+  // re-clicking Run.
+  if (snap.source === 'live' && state.mend.last_result) {
+    try { renderMendResult(state.mend.last_result); } catch (_) {}
+  }
 }

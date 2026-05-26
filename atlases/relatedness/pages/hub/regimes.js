@@ -37,6 +37,9 @@ import { DEMO } from '../../shared/demo_data.js';
 import { state } from '../../shared/state.js';
 import { chiSquarePValue, expectedOffspringPrior } from '../../shared/stats.js';
 import { on } from '../../shared/page_hooks.js';
+import {
+  karyoFor, loadLiveKaryotypes, renderKaryotypeBadgeSlots,
+} from '../../shared/karyotype_source.js';
 import { _setActiveState } from './regimes/_state.js';
 
 // ─── Karyotype helpers (same convention as bdmi.js / mendelian.js) ────────
@@ -54,8 +57,8 @@ function jointTable(focalId, partnerId) {
   const tbl = [[0,0,0],[0,0,0],[0,0,0]];
   let n = 0;
   for (const ind of DEMO.individuals) {
-    const kf = (DEMO.karyotype_matrix[ind] || {})[focalId];
-    const kp = (DEMO.karyotype_matrix[ind] || {})[partnerId];
+    const kf = karyoFor(ind)[focalId];
+    const kp = karyoFor(ind)[partnerId];
     const i1 = ktIndex(kf), i2 = ktIndex(kp);
     if (i1 < 0 || i2 < 0) continue;
     tbl[i1][i2]++; n++;
@@ -141,7 +144,7 @@ function _hweDistortion(counts, n) {
 function focalDistortion(focalId) {
   const counts = [0, 0, 0]; let n = 0;
   for (const ind of DEMO.individuals) {
-    const kt = (DEMO.karyotype_matrix[ind] || {})[focalId];
+    const kt = karyoFor(ind)[focalId];
     const ix = ktIndex(kt);
     if (ix < 0) continue;
     counts[ix]++; n++;
@@ -154,8 +157,8 @@ function conditionalDistortion(focalId, partnerId) {
   // within-stratum HWE chi² across strata with n_stratum >= 5.
   const strata = [[0,0,0], [0,0,0], [0,0,0]];
   for (const ind of DEMO.individuals) {
-    const kf = (DEMO.karyotype_matrix[ind] || {})[focalId];
-    const kp = (DEMO.karyotype_matrix[ind] || {})[partnerId];
+    const kf = karyoFor(ind)[focalId];
+    const kp = karyoFor(ind)[partnerId];
     const i1 = ktIndex(kf), i2 = ktIndex(kp);
     if (i1 < 0 || i2 < 0) continue;
     strata[i2][i1]++;
@@ -601,9 +604,9 @@ function classifyMechanism(focalId, regimesRows) {
   const buckets = {};
   for (const k of Object.keys(CROSS_KIND)) buckets[k] = { n: 0, obs: [0,0,0], triads: [] };
   for (const t of DEMO.triads || []) {
-    const p1 = (DEMO.karyotype_matrix[t.parent_a] || {})[focalId];
-    const p2 = (DEMO.karyotype_matrix[t.parent_b] || {})[focalId];
-    const o  = (DEMO.karyotype_matrix[t.offspring] || {})[focalId];
+    const p1 = karyoFor(t.parent_a)[focalId];
+    const p2 = karyoFor(t.parent_b)[focalId];
+    const o  = karyoFor(t.offspring)[focalId];
     const oi = ktIndex(o);
     if (oi < 0) continue;
     const kind = _classifyCross(p1, p2);
@@ -708,9 +711,9 @@ function classifyMechanism(focalId, regimesRows) {
   // a possible pedigree / genotyping error.
   let n_impossible = 0;
   for (const t of DEMO.triads || []) {
-    const p1 = (DEMO.karyotype_matrix[t.parent_a] || {})[focalId];
-    const p2 = (DEMO.karyotype_matrix[t.parent_b] || {})[focalId];
-    const o  = (DEMO.karyotype_matrix[t.offspring] || {})[focalId];
+    const p1 = karyoFor(t.parent_a)[focalId];
+    const p2 = karyoFor(t.parent_b)[focalId];
+    const o  = karyoFor(t.offspring)[focalId];
     const prior = expectedOffspringPrior(p1, p2);
     const oi = ktIndex(o);
     if (!prior || oi < 0) continue;
@@ -984,6 +987,9 @@ let _unsubChr = null;
 
 export async function mount(root, atlasState, registry) {
   _setActiveState({ atlasState, registry });
+  loadLiveKaryotypes(registry).catch((e) =>
+    console.warn('regimes.mount: karyotype load threw —', e));
+  renderKaryotypeBadgeSlots();
   populatePickers();
   _restoreFromState();
   wireRegimes();

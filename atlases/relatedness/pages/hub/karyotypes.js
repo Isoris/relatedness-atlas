@@ -10,20 +10,51 @@ import { renderKaryotypeTable } from '../../shared/karyotype_table.js';
 import { on } from '../../shared/page_hooks.js';
 import { _setActiveState } from './karyotypes/_state.js';
 import { probeModeB, renderModeBBadge, distinctCount } from '../../../../core/mode_b_badge.js';
+import {
+  loadLiveKaryotypes, getLiveSamples, getLiveInversions,
+  subscribeKaryotypeSource, renderKaryotypeBadgeSlots,
+} from '../../shared/karyotype_source.js';
 
 export function renderKaryotypesFull() {
-  renderKaryotypeTable('#karyoTableSlotFull', {
-    rows: DEMO.individuals,
-    columns: ['Chr01','Chr02','Chr03','Chr04','Chr05',
-              'Chr06','Chr07','Chr08', null,
-              'Chr17','Chr18', null, 'Chr28'],
-  });
+  // 2026-05-26: render live samples + live chromosome columns when the
+  // inversion-atlas export is loaded. Falls back to the demo cohort
+  // layout otherwise so the page stays useful in stub-data mode.
+  const liveSamples = getLiveSamples();
+  const liveInvs = getLiveInversions();
+  let rows, columns;
+  if (liveSamples && liveSamples.length > 0) {
+    rows = liveSamples;
+    if (liveInvs && liveInvs.length > 0) {
+      const chroms = new Set();
+      for (const inv of liveInvs) {
+        if (inv && inv.chromosome && inv.chromosome !== '?') chroms.add(inv.chromosome);
+      }
+      columns = Array.from(chroms).sort();
+    } else {
+      columns = ['Chr01','Chr02','Chr03','Chr04','Chr05',
+                 'Chr06','Chr07','Chr08', null,
+                 'Chr17','Chr18', null, 'Chr28'];
+    }
+  } else {
+    rows = DEMO.individuals;
+    columns = ['Chr01','Chr02','Chr03','Chr04','Chr05',
+               'Chr06','Chr07','Chr08', null,
+               'Chr17','Chr18', null, 'Chr28'];
+  }
+  renderKaryotypeTable('#karyoTableSlotFull', { rows, columns });
 }
 
-let _unsubInd = null, _unsubChr = null;
+let _unsubInd = null, _unsubChr = null, _unsubSrc = null;
 
 export async function mount(root, atlasState, registry) {
   _setActiveState({ atlasState, registry });
+  // 2026-05-26: shared loader. Triggers a single registry probe across
+  // the whole hub; subscribe so we re-render the table when the source
+  // flips from 'loading' → 'live' (or stays 'demo' if no payload).
+  loadLiveKaryotypes(registry).catch((e) =>
+    console.warn('karyotypes.mount: shared loader threw —', e));
+  renderKaryotypeBadgeSlots();
+  _unsubSrc = subscribeKaryotypeSource(() => renderKaryotypesFull());
   renderKaryotypesFull();
   _unsubInd = on('individual_changed', () => renderKaryotypesFull());
   _unsubChr = on('chromosome_changed', () => renderKaryotypesFull());
@@ -91,5 +122,6 @@ export async function unmount(root) {
   _setActiveState(null);
   if (_unsubInd) _unsubInd();
   if (_unsubChr) _unsubChr();
-  _unsubInd = _unsubChr = null;
+  if (_unsubSrc) _unsubSrc();
+  _unsubInd = _unsubChr = _unsubSrc = null;
 }

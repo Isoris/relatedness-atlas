@@ -15,6 +15,7 @@
 
 import { $, el } from './utils.js';
 import { DEMO } from './demo_data.js';
+import { karyoFor, getLiveInversions } from './karyotype_source.js';
 
 export function renderKaryotypeTable(slot, opts = { rows: null, columns: null }) {
   const target = typeof slot === 'string' ? $(slot) : slot;
@@ -25,8 +26,16 @@ export function renderKaryotypeTable(slot, opts = { rows: null, columns: null })
   const cols = opts.columns || ['Chr01','Chr02','Chr03','Chr04','Chr05','Chr06',
                                   null, 'Chr17','Chr18', null, 'Chr28'];
 
+  // 2026-05-26: prefer the live inversion catalogue from the
+  // karyotype_source so cell lookups join against the same IDs the
+  // registry payload uses. Falls back to DEMO when live data isn't
+  // loaded — same lookup table the page used before.
+  const liveInvs = getLiveInversions();
   const chrCandidate = {};
-  for (const inv of DEMO.inversion_candidates_full) {
+  const invSource = (liveInvs && liveInvs.length > 0)
+                    ? liveInvs
+                    : DEMO.inversion_candidates_full;
+  for (const inv of invSource) {
     if (!chrCandidate[inv.chromosome]) chrCandidate[inv.chromosome] = inv.candidate;
   }
 
@@ -58,7 +67,7 @@ export function renderKaryotypeTable(slot, opts = { rows: null, columns: null })
         td.style.color = 'var(--ink-dimmer)';
       } else {
         const cand = chrCandidate[c];
-        const k = cand ? DEMO.karyotype_matrix[ind][cand] : null;
+        const k = cand ? karyoFor(ind)[cand] : null;
         let cls = 'kt-cell';
         if (k === '0/0') cls += ' kt-00';
         else if (k === '0/1') cls += ' kt-01';

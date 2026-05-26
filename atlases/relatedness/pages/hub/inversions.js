@@ -23,6 +23,9 @@ import { binomialPValueTwoSided } from '../../shared/stats.js';
 import { sexBadgeHtml } from '../../shared/sex_badge.js';
 import { on } from '../../shared/page_hooks.js';
 import { computeAndWait, isComputeAvailable } from '../../shared/api_client.js';
+import {
+  karyoFor, loadLiveKaryotypes, renderKaryotypeBadgeSlots,
+} from '../../shared/karyotype_source.js';
 import { _setActiveState } from './inversions/_state.js';
 
 // Server fast path for the per-candidate scoring. When the server's
@@ -74,9 +77,9 @@ function expectedOffspring(p1, p2) {
 }
 
 function classifyFamilyForInversion(triad, invId) {
-  const p1 = (DEMO.karyotype_matrix[triad.parent_a] || {})[invId];
-  const p2 = (DEMO.karyotype_matrix[triad.parent_b] || {})[invId];
-  const o  = (DEMO.karyotype_matrix[triad.offspring]  || {})[invId];
+  const p1 = karyoFor(triad.parent_a)[invId];
+  const p2 = karyoFor(triad.parent_b)[invId];
+  const o  = karyoFor(triad.offspring)[invId];
   const q1 = (DEMO.karyotype_quality[triad.parent_a] || {})[invId] || 'high';
   const q2 = (DEMO.karyotype_quality[triad.parent_b] || {})[invId] || 'high';
   const qo = (DEMO.karyotype_quality[triad.offspring]  || {})[invId] || 'high';
@@ -642,7 +645,7 @@ function exportCrossDesignTsv(inv, score) {
 
   const freq = { '0/0': 0, '0/1': 0, '1/1': 0, 'NA': 0 };
   DEMO.individuals.forEach(ind => {
-    const k = (DEMO.karyotype_matrix[ind] || {})[inv.candidate];
+    const k = karyoFor(ind)[inv.candidate];
     if (k && freq[k] !== undefined) freq[k]++;
   });
   const total_called = freq['0/0'] + freq['0/1'] + freq['1/1'];
@@ -879,6 +882,9 @@ let _unsubInd = null, _unsubChr = null;
 
 export async function mount(root, atlasState, registry) {
   _setActiveState({ atlasState, registry });
+  loadLiveKaryotypes(registry).catch((e) =>
+    console.warn('inversions.mount: karyotype load threw —', e));
+  renderKaryotypeBadgeSlots();
   // Kick off the server prefetch fire-and-forget. The initial render uses
   // the in-browser fallback; once the prefetch resolves, _maybeStart…
   // re-renders to swap in the server-cached scores.

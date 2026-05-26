@@ -17,6 +17,9 @@ import { DEMO } from '../../shared/demo_data.js';
 import { state } from '../../shared/state.js';
 import { sexBadgeHtml } from '../../shared/sex_badge.js';
 import { computeAndWait, isComputeAvailable, resolveLatestLayer } from '../../shared/api_client.js';
+import {
+  karyoFor, loadLiveKaryotypes, renderKaryotypeBadgeSlots,
+} from '../../shared/karyotype_source.js';
 import { _setActiveState } from './compatibility/_state.js';
 
 const SERVER_ENDPOINT = 'relatedness_compatibility_search';
@@ -56,8 +59,8 @@ function offspringDist(p1, p2) {
 }
 
 function evaluatePartnership(focalId, partnerId, invSet, targetKt) {
-  const focalK   = DEMO.karyotype_matrix[focalId]   || {};
-  const partnerK = DEMO.karyotype_matrix[partnerId] || {};
+  const focalK   = karyoFor(focalId);
+  const partnerK = karyoFor(partnerId);
   const perInv = [];
   let n_guaranteed = 0, n_possible = 0, n_impossible = 0, n_unknown = 0;
   for (const inv of invSet) {
@@ -220,8 +223,8 @@ function _renderBreedingDecisionOverlay() {
            || r.results[0];
   if (!top) { wrap.style.display = 'none'; return; }
 
-  const focalKtMap = DEMO.karyotype_matrix[r.focal] || {};
-  const partnerKtMap = DEMO.karyotype_matrix[top.partner_id] || {};
+  const focalKtMap = karyoFor(r.focal);
+  const partnerKtMap = karyoFor(top.partner_id);
   const flags = [];
 
   // 1. Heterokaryote × X — recombination-suppression flag inside any
@@ -544,6 +547,11 @@ function _renderDataSourceBadge(envelope) {
 
 export async function mount(root, atlasState, registry) {
   _setActiveState({ atlasState, registry });
+  // 2026-05-26: shared karyotype load — idempotent across hub pages.
+  // karyoFor() returns DEMO until this resolves, then flips to live.
+  loadLiveKaryotypes(registry).catch((e) =>
+    console.warn('compatibility.mount: karyotype load threw —', e));
+  renderKaryotypeBadgeSlots();
   populateCompatSelectors();
 
   // Probe the server endpoint in the background — covered by the fallback.

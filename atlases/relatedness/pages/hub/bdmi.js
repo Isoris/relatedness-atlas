@@ -57,6 +57,9 @@ import {
   binomialPValueTwoSided, chiSquarePValue, expectedOffspringPrior,
 } from '../../shared/stats.js';
 import { on } from '../../shared/page_hooks.js';
+import {
+  karyoFor, loadLiveKaryotypes, renderKaryotypeBadgeSlots,
+} from '../../shared/karyotype_source.js';
 import { _setActiveState } from './bdmi/_state.js';
 
 // ─── Phenotype availability probe ────────────────────────────────────────
@@ -100,7 +103,7 @@ function classCounts(invId) {
   const counts = [0, 0, 0];
   let n = 0;
   for (const ind of DEMO.individuals) {
-    const kt = (DEMO.karyotype_matrix[ind] || {})[invId];
+    const kt = karyoFor(ind)[invId];
     const ix = ktIndex(kt);
     if (ix < 0) continue;
     counts[ix]++; n++;
@@ -120,9 +123,9 @@ function _runTestA(invId, alpha) {
 
   if (useTriads) {
     for (const t of DEMO.triads || []) {
-      const p1 = (DEMO.karyotype_matrix[t.parent_a] || {})[invId];
-      const p2 = (DEMO.karyotype_matrix[t.parent_b] || {})[invId];
-      const o  = (DEMO.karyotype_matrix[t.offspring] || {})[invId];
+      const p1 = karyoFor(t.parent_a)[invId];
+      const p2 = karyoFor(t.parent_b)[invId];
+      const o  = karyoFor(t.offspring)[invId];
       const prior = expectedOffspringPrior(p1, p2);
       if (!prior || !o || o === 'NA') continue;
       const ix = ktIndex(o);
@@ -142,12 +145,12 @@ function _runTestA(invId, alpha) {
                 || DEMO.families[0];
     const hub = fam.hub_individual || fam.members[0];
     const others = fam.members.filter(m => m !== hub);
-    const pKt = (DEMO.karyotype_matrix[hub] || {})[invId];
+    const pKt = karyoFor(hub)[invId];
     if (!pKt || pKt === 'NA') {
       // hub untyped at this candidate — fall through; nothing accumulates.
     } else {
       for (const o of others) {
-        const oKt = (DEMO.karyotype_matrix[o] || {})[invId];
+        const oKt = karyoFor(o)[invId];
         if (!oKt || oKt === 'NA') continue;
         n_total++;
         // The dyad consistency check used in mendelian.js: 0/0 ↔ 1/1 is a
@@ -248,7 +251,7 @@ function _runTestD(invId) {
   for (const ind of DEMO.individuals) {
     const q = DEMO.ancestry_q[ind] || [];
     if (!q.length) continue;
-    const kt = (DEMO.karyotype_matrix[ind] || {})[invId];
+    const kt = karyoFor(ind)[invId];
     const ix = ktIndex(kt);
     if (ix < 0) continue;
     let argmax = 0;
@@ -299,8 +302,8 @@ function _runTestE(invId, candidates) {
     const tbl = [[0,0,0],[0,0,0],[0,0,0]];
     let n = 0;
     for (const ind of DEMO.individuals) {
-      const k1 = (DEMO.karyotype_matrix[ind] || {})[self];
-      const k2 = (DEMO.karyotype_matrix[ind] || {})[c.candidate];
+      const k1 = karyoFor(ind)[self];
+      const k2 = karyoFor(ind)[c.candidate];
       const i1 = ktIndex(k1), i2 = ktIndex(k2);
       if (i1 < 0 || i2 < 0) continue;
       tbl[i1][i2]++; n++;
@@ -666,6 +669,9 @@ let _unsubInd = null, _unsubChr = null, _unsubFam = null;
 
 export async function mount(root, atlasState, registry) {
   _setActiveState({ atlasState, registry });
+  loadLiveKaryotypes(registry).catch((e) =>
+    console.warn('bdmi.mount: karyotype load threw —', e));
+  renderKaryotypeBadgeSlots();
   _probePhenotype();
   _updatePhenoBadge();
   _restoreFromState();
