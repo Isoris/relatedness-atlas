@@ -156,6 +156,13 @@
       "requires_layers": [],
       "requires_slots": [],
       "preloads": []
+    },
+    "export_bundle": {
+      "_label": "export_bundle — atlas-wide one-click snapshot",
+      "_doc": "Single-click cohort-wide snapshot. Builds 7 sections in one multi-section TSV (or one JSON blob): cohort_overview (1 row), per_individual (n_samples rows), per_candidate (n_candidates rows with karyotype counts, HWE chi-square p, hub share, Mendelian Test A p, parental-meiosis counts, marker readiness), per_family (n_families rows), inversion_priority (full runPriorityScan output with SHIP/HOLD/DROP buckets), marker_designs (top-N priority × tested chromosomes × interval triplets), focal_meiosis_scans (top-N priority × every tested chromosome). Sections 5-7 use the meiosis stack which is GATED on a real ngsTracts CO-call adapter — bundle marks this in its '# meta:' header. Per-page TSV exports remain available for analyses that need user choices (Mendelian dyad/triad, Compatibility focal, BDMI scope, Regime focal, Inv x meiosis full).",
+      "requires_layers": [],
+      "requires_slots": [],
+      "preloads": []
     }
   }
 }

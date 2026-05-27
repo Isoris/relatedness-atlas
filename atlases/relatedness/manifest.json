@@ -184,6 +184,14 @@
       "fragment": "atlases/relatedness/pages/hub/inversion_compare.html",
       "module": "atlases/relatedness/pages/hub/inversion_compare.js",
       "tooltip": "Side-by-side comparison of 2–4 inversion candidates: identity, karyotype distribution + HWE, hub spread, Mendelian Test A p, regime context, marker readiness. Use when narrowing down which inversions ship to Pass-2 marker validation."
+    },
+    {
+      "id": "export_bundle",
+      "label": "export",
+      "stage": "hub",
+      "fragment": "atlases/relatedness/pages/hub/export_bundle.html",
+      "module": "atlases/relatedness/pages/hub/export_bundle.js",
+      "tooltip": "Atlas-wide export bundle. One click → one file containing all 7 cohort-wide sections (cohort overview, per-individual, per-candidate, per-family, inversion priority, marker designs for top-N, focal × meiosis scans for top-N). TSV or JSON. Per-page TSV exports remain available for analyses that need user choices."
     }
   ],
   "registries": {
@@ -212,7 +220,8 @@
     "recomb_track":    "atlases/relatedness/shared/recomb_track.js",
     "inversion_meiosis": "atlases/relatedness/shared/inversion_meiosis.js",
     "inversion_priority": "atlases/relatedness/shared/inversion_priority.js",
-    "marker_designer":   "atlases/relatedness/shared/marker_designer.js"
+    "marker_designer":   "atlases/relatedness/shared/marker_designer.js",
+    "export_bundle":     "atlases/relatedness/shared/export_bundle.js"
   },
   "server": {
     "_doc": "Relatedness Atlas does NOT ship its own server binary — it consumes the atlas-core unified server (atlas-core/server/atlas_server.py) via three contracts: (1) static reads of the assembled workspace for ngsPedigree data files; (2) sandboxed reads via GET /file/{path}; (3) POST /compute/<name> dispatch for Mendelian / Compatibility computes (see atlases/relatedness/server/RELATEDNESS_ENDPOINTS.md for the per-endpoint contract — the source of truth for the sister chat working on atlas_server.py). The atlas-side falls back to in-browser compute when an endpoint is missing, so the atlas is fully usable today without the server-side handlers.",

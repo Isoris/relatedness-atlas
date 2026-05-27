@@ -1435,6 +1435,7 @@
       <button data-subtab="cohort_summary" title="Cohort summary — single-screen overview of the 226-sample cohort">Cohort</button>
       <button data-subtab="cross_planner" title="Batch cross planner — multi-pair extension of Compatibility, ranked by composite cross_utility">Cross planner</button>
       <button data-subtab="inversion_compare" title="Side-by-side candidate comparison — pick 2–4 inversions, line up signals">Compare</button>
+      <button data-subtab="export_bundle" title="One-click atlas-wide snapshot — 7 sections, TSV or JSON">Export bundle</button>
       <div class="sub-tab-spacer"></div>
       <div class="chr-filter">
         <span>Chr filter:</span>
@@ -2334,6 +2335,46 @@
       <div id="cpResults"></div>
     </div>
 
+    <!-- Atlas-wide export bundle — sub-tab #23. -->
+    <div id="subpage-export_bundle" class="subpage" data-subtab-page>
+      <div class="page-subtitle" style="font-size: 10.5px; color: var(--ink-dim); margin-bottom: 12px;">
+        <b>Export bundle.</b> Single-click snapshot of every cohort-wide result this atlas can compute without picking specific dyads / triads / focal individuals. 7 sections in one file.
+      </div>
+      <div class="recomb-config">
+        <div class="row"><label>Top-N for marker + focal scan</label><select id="ebTopN">
+          <option value="3">3</option><option value="5" selected>5</option>
+          <option value="10">10</option><option value="20">20</option>
+        </select></div>
+        <div class="row"><label>Focal scan permutations</label><select id="ebPerm">
+          <option value="100">100 (fast)</option>
+          <option value="200" selected>200 (default)</option>
+          <option value="1000">1000 (slow)</option>
+        </select></div>
+        <div class="row"><label></label>
+          <div class="bdmi-actions">
+            <button class="primary" id="ebBuildBtn">Build bundle</button>
+            <button id="ebTsvBtn">⤓ Download TSV</button>
+            <button id="ebJsonBtn">⤓ Download JSON</button>
+          </div></div>
+      </div>
+      <div class="bdmi-summary" id="ebSummary"></div>
+      <div class="table-section-title" style="margin-top: 14px;">Sections</div>
+      <div id="ebSections"></div>
+      <div class="ie-conclusion tier-weak" style="margin-top: 14px;">
+        <div class="verdict">SECTIONS</div>
+        <ol style="margin: 6px 0 0 18px; padding: 0; font-size: 10.5px; line-height: 1.55;">
+          <li>cohort_overview · 1 row</li>
+          <li>per_individual · one row per sample (ancestry K, burden, call rate, triad role)</li>
+          <li>per_candidate · one row per inversion (HWE p, hub share, Mendelian Test A, marker readiness)</li>
+          <li>per_family · one row per hub</li>
+          <li>inversion_priority · full priority scan (SHIP/HOLD/DROP)</li>
+          <li>marker_designs · top-N priority × tested chrom × interval triplets</li>
+          <li>focal_meiosis_scans · top-N priority × every tested chromosome</li>
+        </ol>
+        Sections 5–7 use the meiosis stack which is <b>GATED</b> on a real ngsTracts CO-call adapter — bundle marks this in its meta header.
+      </div>
+    </div>
+
     <!-- Side-by-side comparison — sub-tab #22. -->
     <div id="subpage-inversion_compare" class="subpage" data-subtab-page>
       <div class="page-subtitle" style="font-size: 10.5px; color: var(--ink-dim); margin-bottom: 12px;">
@@ -2518,6 +2559,7 @@
     'cohort_summary':        './atlases/relatedness/pages/hub/cohort_summary.js',
     'cross_planner':         './atlases/relatedness/pages/hub/cross_planner.js',
     'inversion_compare':     './atlases/relatedness/pages/hub/inversion_compare.js',
+    'export_bundle':         './atlases/relatedness/pages/hub/export_bundle.js',
   };
 
   const _mounted = new Map();     // id → module

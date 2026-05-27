@@ -168,6 +168,11 @@ export const state = {
     candidates: null,           // array of candidate ids; null = use first 2 from picker
   },
 
+  // Atlas-wide export bundle (#23).
+  export_bundle: {
+    last_bundle: null,
+  },
+
   // pillBar source state (round 1: mock).
   loaded_files: [
     { kind: 'res',    path: '/data/project/population.res',     loaded: true },
