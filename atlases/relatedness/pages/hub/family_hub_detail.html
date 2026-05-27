@@ -1,0 +1,45 @@
+  <!-- atlases/relatedness/pages/hub/family_hub_detail.html
+       Family-hub deep-dive — per-hub summary view. Pure pedigree-side:
+       sex composition, ancestry composition, within-hub edges, triad QC,
+       karyotype informativeness. No meiosis dependency. -->
+  <div id="family_hub_detail" class="page subpage" data-subtab-page>
+    <div class="page-subtitle" style="font-size: 10.5px; color: var(--ink-dim); margin-bottom: 12px;">
+      <b>Family-hub deep-dive.</b> Per-hub roster + sex composition + ancestry profile + within-hub edge classes + triad QC + per-candidate karyotype informativeness. Pure pedigree-side; no recomb dependency. Use this to decide whether a family is large enough / clean enough to anchor a focal-inversion scan, or whether the hub needs to be merged / split before any downstream analysis.
+    </div>
+
+    <div class="recomb-config">
+      <div class="row">
+        <label>Family</label>
+        <select id="fhdFamily"></select>
+      </div>
+    </div>
+
+    <!-- Summary card -->
+    <div class="bdmi-summary" id="fhdSummary"></div>
+
+    <!-- Member roster -->
+    <div class="table-section-title" style="margin-top: 14px;">Members</div>
+    <div id="fhdMembers"></div>
+
+    <!-- Sex + ancestry composition -->
+    <div class="table-section-title" style="margin-top: 14px;">Composition <span class="sub">(sex + dominant ancestry)</span></div>
+    <div class="bdmi-summary" id="fhdComposition"></div>
+
+    <!-- Edges within hub -->
+    <div class="table-section-title" style="margin-top: 14px;">Within-hub edges <span class="sub">(strong PO / possible PO / ambiguous / Mendelian conflict)</span></div>
+    <div id="fhdEdges"></div>
+
+    <!-- Triads + QC -->
+    <div class="table-section-title" style="margin-top: 14px;">Triads in this hub <span class="sub">(parent_a × parent_b → offspring)</span></div>
+    <div id="fhdTriads"></div>
+
+    <!-- Karyotype informativeness -->
+    <div class="table-section-title" style="margin-top: 14px;">Karyotype informativeness <span class="sub">(% non-NA per member across all candidates)</span></div>
+    <div id="fhdInformativeness"></div>
+
+    <!-- Cross-page jump links -->
+    <div class="ie-conclusion tier-weak" id="fhdJumpLinks" style="margin-top: 14px;">
+      <div class="verdict">USE THIS FAMILY FOR</div>
+      <div id="fhdJumpBody" style="font-size: 10.5px; line-height: 1.6;"></div>
+    </div>
+  </div>

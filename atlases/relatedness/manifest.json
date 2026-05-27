@@ -128,6 +128,22 @@
       "fragment": "atlases/relatedness/pages/hub/marker_test_designer.html",
       "module": "atlases/relatedness/pages/hub/marker_test_designer.js",
       "tooltip": "Interchromosomal Marker Test Designer — converts a candidate interchromosomal meiosis effect into a practical marker panel: focal inversion classifier markers in parents + transmission/recombination markers on tested chromosomes for offspring panels (CO/DCO/coincidence)."
+    },
+    {
+      "id": "family_hub_detail",
+      "label": "family deep-dive",
+      "stage": "hub",
+      "fragment": "atlases/relatedness/pages/hub/family_hub_detail.html",
+      "module": "atlases/relatedness/pages/hub/family_hub_detail.js",
+      "tooltip": "Family-hub deep-dive — per-hub roster, sex + ancestry composition, within-hub edges, triad QC, karyotype informativeness. Pure pedigree-side. Use to decide whether a hub is large enough / clean enough to anchor a downstream analysis."
+    },
+    {
+      "id": "catalogue_handshake",
+      "label": "catalogue",
+      "stage": "hub",
+      "fragment": "atlases/relatedness/pages/hub/catalogue_handshake.html",
+      "module": "atlases/relatedness/pages/hub/catalogue_handshake.js",
+      "tooltip": "Atlas-core Catalogue handshake / self-test — reads the four JSONL files exposed to the master workflow catalogue and verifies the smoke-test constraints client-side. Diagnostic, not analytical."
     }
   ],
   "registries": {

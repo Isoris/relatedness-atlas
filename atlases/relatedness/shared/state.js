@@ -136,6 +136,16 @@ export const state = {
     last_design:      null,
   },
 
+  // Family-hub deep-dive (pedigree-side; no meiosis dependency).
+  family_hub_detail: {
+    focus_family: 'Family 1',
+  },
+
+  // Atlas-core Catalogue handshake / self-test (diagnostic).
+  catalogue: {
+    last_load: null,
+  },
+
   // pillBar source state (round 1: mock).
   loaded_files: [
     { kind: 'res',    path: '/data/project/population.res',     loaded: true },

@@ -1428,6 +1428,8 @@
       <button data-subtab="focal_meiosis_scan" title="Focal inversion × meiosis coincidence scan — intra/inter chromosomal effects, family-aware permutation null">Inv × meiosis</button>
       <button data-subtab="inversion_priority" title="Pass-1 → Pass-2 bridge: priority ranking + SHIP/HOLD/DROP buckets">Priority</button>
       <button data-subtab="marker_test_designer" title="Interchromosomal Marker Test Designer — focal classifier + recombination-marker triplets">Marker designer</button>
+      <button data-subtab="family_hub_detail" title="Family-hub deep-dive — per-hub roster, ancestry, triads, karyotype informativeness">Family deep-dive</button>
+      <button data-subtab="catalogue_handshake" title="Atlas-core Catalogue self-test — verify the four JSONL registry files">Catalogue</button>
       <div class="sub-tab-spacer"></div>
       <div class="chr-filter">
         <span>Chr filter:</span>
@@ -2156,6 +2158,55 @@
         <div class="verdict">PAGE PURPOSE</div>
         Converts a candidate interchromosomal meiosis effect into a practical marker panel: one set of markers to classify the focal inversion in parents, and another set to detect transmitted CO/DCO patterns on other chromosomes in large offspring panels.
       </div>
+    </div>
+
+    <!-- Family-hub deep-dive — sub-tab #16. Pure pedigree-side roster. -->
+    <div id="subpage-family_hub_detail" class="subpage" data-subtab-page>
+      <div class="page-subtitle" style="font-size: 10.5px; color: var(--ink-dim); margin-bottom: 12px;">
+        <b>Family-hub deep-dive.</b> Per-hub roster + sex composition + ancestry profile + within-hub edge classes + triad QC + per-candidate karyotype informativeness. Pure pedigree-side; no recomb dependency.
+      </div>
+      <div class="recomb-config">
+        <div class="row"><label>Family</label><select id="fhdFamily"></select></div>
+      </div>
+      <div class="bdmi-summary" id="fhdSummary"></div>
+      <div class="table-section-title" style="margin-top: 14px;">Members</div>
+      <div id="fhdMembers"></div>
+      <div class="table-section-title" style="margin-top: 14px;">Composition <span class="sub">(sex + dominant ancestry)</span></div>
+      <div class="bdmi-summary" id="fhdComposition"></div>
+      <div class="table-section-title" style="margin-top: 14px;">Within-hub edges <span class="sub">(strong PO / possible PO / ambiguous / Mendelian conflict)</span></div>
+      <div id="fhdEdges"></div>
+      <div class="table-section-title" style="margin-top: 14px;">Triads in this hub <span class="sub">(parent_a × parent_b → offspring)</span></div>
+      <div id="fhdTriads"></div>
+      <div class="table-section-title" style="margin-top: 14px;">Karyotype informativeness <span class="sub">(% non-NA per member across all candidates)</span></div>
+      <div id="fhdInformativeness"></div>
+      <div class="ie-conclusion tier-weak" id="fhdJumpLinks" style="margin-top: 14px;">
+        <div class="verdict">USE THIS FAMILY FOR</div>
+        <div id="fhdJumpBody" style="font-size: 10.5px; line-height: 1.6;"></div>
+      </div>
+    </div>
+
+    <!-- Catalogue handshake / self-test — sub-tab #17. Diagnostic only. -->
+    <div id="subpage-catalogue_handshake" class="subpage" data-subtab-page>
+      <div class="page-subtitle" style="font-size: 10.5px; color: var(--ink-dim); margin-bottom: 12px;">
+        <b>Atlas-core Catalogue handshake.</b> Reads the four JSONL files exposed to atlas-core's master workflow catalogue (<code>toolkit_registries/relatedness/01_registry/</code>) and verifies the three smoke-test constraints client-side. Surfaces the module → analyses → layers dependency tree. Diagnostic — no compute.
+      </div>
+      <div class="recomb-config">
+        <div class="row"><label></label>
+          <div class="bdmi-actions">
+            <button class="primary" id="chkLoadBtn">Reload registry</button>
+            <button id="chkExportBtn" title="Export the handshake report as JSON">⤓ Export report</button>
+          </div></div>
+      </div>
+      <div class="bdmi-summary" id="chkFileStatus"></div>
+      <div id="chkConstraints"></div>
+      <div class="table-section-title" style="margin-top: 14px;">Modules → analyses</div>
+      <div id="chkModuleTree"></div>
+      <div class="table-section-title" style="margin-top: 14px;">Analyses by status</div>
+      <div id="chkAnalyses"></div>
+      <div class="table-section-title" style="margin-top: 14px;">CHAIN workflow <span class="sub">(manuscript-path target)</span></div>
+      <div id="chkChain"></div>
+      <div class="table-section-title" style="margin-top: 14px;">Output layers</div>
+      <div id="chkLayers"></div>
     </div>
   </div>
 

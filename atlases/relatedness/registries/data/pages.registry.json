@@ -107,6 +107,20 @@
       "requires_layers": [],
       "requires_slots": [],
       "preloads": []
+    },
+    "family_hub_detail": {
+      "_label": "family_hub_detail — per-family deep-dive (pedigree-side)",
+      "_doc": "Per-family roster + sex composition + ancestry composition + within-hub edge classes + triad QC + per-candidate karyotype informativeness. Pure pedigree-side; no meiosis / recomb dependency. Source data: DEMO.families, DEMO.sex, DEMO.ancestry_q, DEMO.network_edges, DEMO.triads, DEMO.trio_qc, DEMO.karyotype_matrix, DEMO.pairwise_stats. Use to decide whether a hub is usable as an analysis anchor (>= 2 members for dyads, >= 1 triad for BDMI Test A, >= 4 members + >= 1 triad for the family-aware permutation null in the meiosis stack).",
+      "requires_layers": [],
+      "requires_slots": [],
+      "preloads": []
+    },
+    "catalogue_handshake": {
+      "_label": "catalogue_handshake — atlas-core Catalogue self-test",
+      "_doc": "Diagnostic page that reads the four JSONL files in toolkit_registries/relatedness/01_registry/ (module_registry, analysis_registry, analysis_modes, layer_registry) and verifies atlas-core's three smoke-test constraints client-side: (1) analysis_modes.analysis_type ∈ analysis_registry.analysis_id; (2) analysis_modes.produces single-valued AND matches that registry row's declared produces; (3) analysis_modes.module_name ∈ module_registry.module_name. Plus bonus: analysis_registry.produces ∈ layer_registry.layer_id. Surfaces the module → analyses → layers dependency tree and the manuscript-path CHAIN workflow inversion_karyotype_meiosis_pipeline. Diagnostic only — no compute.",
+      "requires_layers": [],
+      "requires_slots": [],
+      "preloads": []
     }
   }
 }

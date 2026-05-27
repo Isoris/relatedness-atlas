@@ -1,0 +1,55 @@
+  <!-- atlases/relatedness/pages/hub/catalogue_handshake.html
+       Catalogue handshake / self-test — diagnostic page. Reads the four
+       JSONL files in toolkit_registries/relatedness/01_registry/,
+       verifies atlas-core's three smoke-test constraints client-side,
+       and surfaces the module → analyses → layers dependency tree.
+
+       This is the inventory page; it does not compute any analysis. -->
+  <div id="catalogue_handshake" class="page subpage" data-subtab-page>
+    <div class="page-subtitle" style="font-size: 10.5px; color: var(--ink-dim); margin-bottom: 12px;">
+      <b>Atlas-core Catalogue handshake.</b> Reads the four JSONL files this atlas exposes to atlas-core's master workflow catalogue (<code>toolkit_registries/relatedness/01_registry/</code>) and verifies the three smoke-test constraints client-side. Surfaces the module → analyses → layers dependency tree so you can confirm what atlas-core's Catalogue will pick up when it indexes this atlas. Diagnostic, not analytical — no compute is run here.
+    </div>
+
+    <div class="recomb-config">
+      <div class="row">
+        <label></label>
+        <div class="bdmi-actions">
+          <button class="primary" id="chkLoadBtn">Reload registry</button>
+          <button id="chkExportBtn" title="Export the handshake report as JSON">⤓ Export report</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- File-load status -->
+    <div class="bdmi-summary" id="chkFileStatus"></div>
+
+    <!-- Constraint check verdict -->
+    <div id="chkConstraints"></div>
+
+    <!-- Module → analyses tree -->
+    <div class="table-section-title" style="margin-top: 14px;">Modules → analyses</div>
+    <div id="chkModuleTree"></div>
+
+    <!-- Analyses by status -->
+    <div class="table-section-title" style="margin-top: 14px;">Analyses by status</div>
+    <div id="chkAnalyses"></div>
+
+    <!-- CHAIN workflow expansion -->
+    <div class="table-section-title" style="margin-top: 14px;">CHAIN workflow <span class="sub">(manuscript-path target)</span></div>
+    <div id="chkChain"></div>
+
+    <!-- Layers (produces side) -->
+    <div class="table-section-title" style="margin-top: 14px;">Output layers</div>
+    <div id="chkLayers"></div>
+
+    <!-- Cross-reference card -->
+    <div class="ie-conclusion tier-weak" style="margin-top: 14px;">
+      <div class="verdict">REFERENCE PATHS</div>
+      <ul style="margin: 6px 0 0 18px; padding: 0; line-height: 1.55; font-size: 10.5px;">
+        <li><code>toolkit_registries/relatedness/01_registry/</code> — JSONL block source of truth</li>
+        <li><code>_handoff_docs/AUDIT_2026-05-15_meiosis_stack.md</code> — read before trusting numbers from gated rows</li>
+        <li><code>atlases/relatedness/registries/data/operations.registry.json</code> — round-1 operation contracts</li>
+        <li><code>atlases/relatedness/server/RELATEDNESS_ENDPOINTS.md</code> — server-side compute contract</li>
+      </ul>
+    </div>
+  </div>
