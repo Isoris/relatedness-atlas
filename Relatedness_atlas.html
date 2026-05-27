@@ -1428,6 +1428,14 @@
       <button data-subtab="focal_meiosis_scan" title="Focal inversion × meiosis coincidence scan — intra/inter chromosomal effects, family-aware permutation null">Inv × meiosis</button>
       <button data-subtab="inversion_priority" title="Pass-1 → Pass-2 bridge: priority ranking + SHIP/HOLD/DROP buckets">Priority</button>
       <button data-subtab="marker_test_designer" title="Interchromosomal Marker Test Designer — focal classifier + recombination-marker triplets">Marker designer</button>
+      <button data-subtab="family_hub_detail" title="Family-hub deep-dive — per-hub roster, ancestry, triads, karyotype informativeness">Family deep-dive</button>
+      <button data-subtab="catalogue_handshake" title="Atlas-core Catalogue self-test — verify the four JSONL registry files">Catalogue</button>
+      <button data-subtab="individual_portrait" title="Per-individual portrait — single-sample dossier across every page's data">Sample portrait</button>
+      <button data-subtab="inversion_dossier" title="Per-inversion dossier — single-candidate aggregation view">Candidate dossier</button>
+      <button data-subtab="cohort_summary" title="Cohort summary — single-screen overview of the 226-sample cohort">Cohort</button>
+      <button data-subtab="cross_planner" title="Batch cross planner — multi-pair extension of Compatibility, ranked by composite cross_utility">Cross planner</button>
+      <button data-subtab="inversion_compare" title="Side-by-side candidate comparison — pick 2–4 inversions, line up signals">Compare</button>
+      <button data-subtab="export_bundle" title="One-click atlas-wide snapshot — 7 sections, TSV or JSON">Export bundle</button>
       <div class="sub-tab-spacer"></div>
       <div class="chr-filter">
         <span>Chr filter:</span>
@@ -2157,6 +2165,236 @@
         Converts a candidate interchromosomal meiosis effect into a practical marker panel: one set of markers to classify the focal inversion in parents, and another set to detect transmitted CO/DCO patterns on other chromosomes in large offspring panels.
       </div>
     </div>
+
+    <!-- Family-hub deep-dive — sub-tab #16. Pure pedigree-side roster. -->
+    <div id="subpage-family_hub_detail" class="subpage" data-subtab-page>
+      <div class="page-subtitle" style="font-size: 10.5px; color: var(--ink-dim); margin-bottom: 12px;">
+        <b>Family-hub deep-dive.</b> Per-hub roster + sex composition + ancestry profile + within-hub edge classes + triad QC + per-candidate karyotype informativeness. Pure pedigree-side; no recomb dependency.
+      </div>
+      <div class="recomb-config">
+        <div class="row"><label>Family</label><select id="fhdFamily"></select></div>
+      </div>
+      <div class="bdmi-summary" id="fhdSummary"></div>
+      <div class="table-section-title" style="margin-top: 14px;">Members</div>
+      <div id="fhdMembers"></div>
+      <div class="table-section-title" style="margin-top: 14px;">Composition <span class="sub">(sex + dominant ancestry)</span></div>
+      <div class="bdmi-summary" id="fhdComposition"></div>
+      <div class="table-section-title" style="margin-top: 14px;">Within-hub edges <span class="sub">(strong PO / possible PO / ambiguous / Mendelian conflict)</span></div>
+      <div id="fhdEdges"></div>
+      <div class="table-section-title" style="margin-top: 14px;">Triads in this hub <span class="sub">(parent_a × parent_b → offspring)</span></div>
+      <div id="fhdTriads"></div>
+      <div class="table-section-title" style="margin-top: 14px;">Karyotype informativeness <span class="sub">(% non-NA per member across all candidates)</span></div>
+      <div id="fhdInformativeness"></div>
+      <div class="ie-conclusion tier-weak" id="fhdJumpLinks" style="margin-top: 14px;">
+        <div class="verdict">USE THIS FAMILY FOR</div>
+        <div id="fhdJumpBody" style="font-size: 10.5px; line-height: 1.6;"></div>
+      </div>
+    </div>
+
+    <!-- Catalogue handshake / self-test — sub-tab #17. Diagnostic only. -->
+    <div id="subpage-catalogue_handshake" class="subpage" data-subtab-page>
+      <div class="page-subtitle" style="font-size: 10.5px; color: var(--ink-dim); margin-bottom: 12px;">
+        <b>Atlas-core Catalogue handshake.</b> Reads the four JSONL files exposed to atlas-core's master workflow catalogue (<code>toolkit_registries/relatedness/01_registry/</code>) and verifies the three smoke-test constraints client-side. Surfaces the module → analyses → layers dependency tree. Diagnostic — no compute.
+      </div>
+      <div class="recomb-config">
+        <div class="row"><label></label>
+          <div class="bdmi-actions">
+            <button class="primary" id="chkLoadBtn">Reload registry</button>
+            <button id="chkExportBtn" title="Export the handshake report as JSON">⤓ Export report</button>
+          </div></div>
+      </div>
+      <div class="bdmi-summary" id="chkFileStatus"></div>
+      <div id="chkConstraints"></div>
+      <div class="table-section-title" style="margin-top: 14px;">Modules → analyses</div>
+      <div id="chkModuleTree"></div>
+      <div class="table-section-title" style="margin-top: 14px;">Analyses by status</div>
+      <div id="chkAnalyses"></div>
+      <div class="table-section-title" style="margin-top: 14px;">CHAIN workflow <span class="sub">(manuscript-path target)</span></div>
+      <div id="chkChain"></div>
+      <div class="table-section-title" style="margin-top: 14px;">Output layers</div>
+      <div id="chkLayers"></div>
+    </div>
+
+    <!-- Per-individual portrait — sub-tab #18. -->
+    <div id="subpage-individual_portrait" class="subpage" data-subtab-page>
+      <div class="page-subtitle" style="font-size: 10.5px; color: var(--ink-dim); margin-bottom: 12px;">
+        <b>Per-individual portrait.</b> Single-sample dossier consolidating every signal the atlas already knows about one fish.
+      </div>
+      <div class="recomb-config">
+        <div class="row"><label>Sample</label><select id="ipSample"></select></div>
+      </div>
+      <div class="bdmi-summary" id="ipIdentity"></div>
+      <div class="table-section-title" style="margin-top: 14px;">Ancestry composition <span class="sub">(K=8 Q-vector)</span></div>
+      <div id="ipAncestry"></div>
+      <div class="table-section-title" style="margin-top: 14px;">Pairwise relationships</div>
+      <div id="ipRelationships"></div>
+      <div class="table-section-title" style="margin-top: 14px;">Karyotype profile <span class="sub">(across all inversion candidates)</span></div>
+      <div class="bdmi-summary" id="ipKaryoSummary"></div>
+      <div id="ipKaryoBreakdown"></div>
+      <div class="table-section-title" style="margin-top: 14px;">Triad role</div>
+      <div id="ipTriads"></div>
+      <div class="table-section-title" style="margin-top: 14px;">Burden flags</div>
+      <div class="bdmi-summary" id="ipBurden"></div>
+      <div class="ie-conclusion tier-weak" id="ipJump" style="margin-top: 14px;">
+        <div class="verdict">USEFUL FOR</div>
+        <div id="ipJumpBody" style="font-size: 10.5px; line-height: 1.6;"></div>
+      </div>
+    </div>
+
+    <!-- Per-inversion dossier — sub-tab #19. -->
+    <div id="subpage-inversion_dossier" class="subpage" data-subtab-page>
+      <div class="page-subtitle" style="font-size: 10.5px; color: var(--ink-dim); margin-bottom: 12px;">
+        <b>Per-inversion dossier.</b> Single-candidate aggregation view: identity, karyotype distribution, carrier roster, family-hub spread, Mendelian distortion, regime context, downstream readiness.
+      </div>
+      <div class="recomb-config">
+        <div class="row"><label>Candidate</label><select id="idoCandidate"></select></div>
+      </div>
+      <div class="bdmi-summary" id="idoIdentity"></div>
+      <div class="table-section-title" style="margin-top: 14px;">Karyotype distribution <span class="sub">(observed vs HWE 2pq)</span></div>
+      <div class="bdmi-summary" id="idoKaryoDist"></div>
+      <div id="idoHWE"></div>
+      <div class="table-section-title" style="margin-top: 14px;">Carrier roster</div>
+      <div id="idoCarriers"></div>
+      <div class="table-section-title" style="margin-top: 14px;">Family-hub spread</div>
+      <div id="idoHubSpread"></div>
+      <div class="table-section-title" style="margin-top: 14px;">Mendelian distortion <span class="sub">(BDMI Test A)</span></div>
+      <div id="idoMendel"></div>
+      <div class="table-section-title" style="margin-top: 14px;">Same-chromosome companions</div>
+      <div id="idoCompanions"></div>
+      <div class="table-section-title" style="margin-top: 14px;">Downstream readiness</div>
+      <div id="idoReadiness"></div>
+      <div class="ie-conclusion tier-weak" id="idoJump" style="margin-top: 14px;">
+        <div class="verdict">USE THIS CANDIDATE FOR</div>
+        <div id="idoJumpBody" style="font-size: 10.5px; line-height: 1.6;"></div>
+      </div>
+    </div>
+
+    <!-- Cohort summary — sub-tab #20. -->
+    <div id="subpage-cohort_summary" class="subpage" data-subtab-page>
+      <div class="page-subtitle" style="font-size: 10.5px; color: var(--ink-dim); margin-bottom: 12px;">
+        <b>Cohort summary.</b> Single-screen overview of the 226-sample hatchery cohort: scale, sex, ancestry, families, candidates, frequency spectrum, call rate, edges, per-analysis runnability matrix.
+      </div>
+      <div class="table-section-title">Cohort scale</div>
+      <div class="bdmi-summary" id="csScale"></div>
+      <div class="table-section-title" style="margin-top: 14px;">Sex composition</div>
+      <div class="bdmi-summary" id="csSex"></div>
+      <div class="table-section-title" style="margin-top: 14px;">Ancestry mix</div>
+      <div id="csAncestry"></div>
+      <div class="table-section-title" style="margin-top: 14px;">Family-hub distribution</div>
+      <div id="csFamilies"></div>
+      <div class="table-section-title" style="margin-top: 14px;">Inversion candidates by status</div>
+      <div class="bdmi-summary" id="csInvStatus"></div>
+      <div class="table-section-title" style="margin-top: 14px;">Frequency spectrum</div>
+      <div id="csFreqSpectrum"></div>
+      <div class="table-section-title" style="margin-top: 14px;">Karyotype call rate</div>
+      <div class="bdmi-summary" id="csCallRate"></div>
+      <div class="table-section-title" style="margin-top: 14px;">Relationship edges</div>
+      <div class="bdmi-summary" id="csEdges"></div>
+      <div class="table-section-title" style="margin-top: 14px;">Per-analysis runnability</div>
+      <div id="csRunnability"></div>
+      <div class="ie-conclusion tier-weak" style="margin-top: 14px;">
+        <div class="verdict">MANUSCRIPT-READY ONE-LINER</div>
+        <div id="csManuscriptBody" style="font-size: 10.5px; line-height: 1.55;"></div>
+      </div>
+    </div>
+
+    <!-- Batch cross planner — sub-tab #21. -->
+    <div id="subpage-cross_planner" class="subpage" data-subtab-page>
+      <div class="page-subtitle" style="font-size: 10.5px; color: var(--ink-dim); margin-bottom: 12px;">
+        <b>Batch cross planner.</b> Multi-pair extension of the Compatibility tab. Generates every candidate parent pair under the chosen filters and ranks by a composite cross_utility_score: +0.35 opposite-sex, +0.25 cross-family, +0.15 fraction of PASS candidates with differing karyotypes, +0.15 (1 − mean hub confound), +0.10 fraction-of-PASS-candidates-where-both-parents-typed (coverage).
+      </div>
+      <div class="recomb-config">
+        <div class="row"><label>Pair generation</label><select id="cpMode">
+          <option value="all" selected>all individual pairs</option>
+          <option value="cross_family">cross-family pairs only</option>
+          <option value="opposite_sex">opposite-sex pairs only</option>
+          <option value="opposite_sex_cross_family">opposite-sex × cross-family</option>
+        </select></div>
+        <div class="row"><label>Filters</label>
+          <div class="toggle-row">
+            <label class="bdmi-toggle"><input type="checkbox" id="cpExcludeKin" checked />
+              <span>exclude PO/FS kin</span></label>
+            <label class="bdmi-toggle"><input type="checkbox" id="cpExcludeFail" />
+              <span>exclude carrier of any FAIL inversion</span></label>
+            <label class="bdmi-toggle"><input type="checkbox" id="cpRequireDiff" />
+              <span>require ≥1 differing karyotype on PASS candidates</span></label>
+          </div></div>
+        <div class="row"><label>Top N</label><select id="cpTopN">
+          <option value="10">10</option><option value="25" selected>25</option>
+          <option value="50">50</option><option value="100">100</option>
+        </select></div>
+        <div class="row"><label></label>
+          <div class="bdmi-actions">
+            <button class="primary" id="cpRunBtn">Run planner</button>
+            <button id="cpResetBtn">Reset</button>
+            <button id="cpExportBtn" title="Export top-N pairs as TSV">⤓ Export top-N</button>
+          </div></div>
+      </div>
+      <div class="bdmi-summary" id="cpSummary"></div>
+      <div class="table-section-title" style="margin-top: 14px;">Ranked cross pairs</div>
+      <div id="cpResults"></div>
+    </div>
+
+    <!-- Atlas-wide export bundle — sub-tab #23. -->
+    <div id="subpage-export_bundle" class="subpage" data-subtab-page>
+      <div class="page-subtitle" style="font-size: 10.5px; color: var(--ink-dim); margin-bottom: 12px;">
+        <b>Export bundle.</b> Single-click snapshot of every cohort-wide result this atlas can compute without picking specific dyads / triads / focal individuals. 7 sections in one file.
+      </div>
+      <div class="recomb-config">
+        <div class="row"><label>Top-N for marker + focal scan</label><select id="ebTopN">
+          <option value="3">3</option><option value="5" selected>5</option>
+          <option value="10">10</option><option value="20">20</option>
+        </select></div>
+        <div class="row"><label>Focal scan permutations</label><select id="ebPerm">
+          <option value="100">100 (fast)</option>
+          <option value="200" selected>200 (default)</option>
+          <option value="1000">1000 (slow)</option>
+        </select></div>
+        <div class="row"><label></label>
+          <div class="bdmi-actions">
+            <button class="primary" id="ebBuildBtn">Build bundle</button>
+            <button id="ebTsvBtn">⤓ Download TSV</button>
+            <button id="ebJsonBtn">⤓ Download JSON</button>
+          </div></div>
+      </div>
+      <div class="bdmi-summary" id="ebSummary"></div>
+      <div id="ebStaticSnapshot"></div>
+      <div class="table-section-title" style="margin-top: 14px;">Sections</div>
+      <div id="ebSections"></div>
+      <div class="ie-conclusion tier-weak" style="margin-top: 14px;">
+        <div class="verdict">SECTIONS</div>
+        <ol style="margin: 6px 0 0 18px; padding: 0; font-size: 10.5px; line-height: 1.55;">
+          <li>cohort_overview · 1 row</li>
+          <li>per_individual · one row per sample (ancestry K, burden, call rate, triad role)</li>
+          <li>per_candidate · one row per inversion (HWE p, hub share, Mendelian Test A, marker readiness)</li>
+          <li>per_family · one row per hub</li>
+          <li>inversion_priority · full priority scan (SHIP/HOLD/DROP)</li>
+          <li>marker_designs · top-N priority × tested chrom × interval triplets</li>
+          <li>focal_meiosis_scans · top-N priority × every tested chromosome</li>
+        </ol>
+        Sections 5–7 use the meiosis stack which is <b>GATED</b> on a real ngsTracts CO-call adapter — bundle marks this in its meta header.
+      </div>
+    </div>
+
+    <!-- Side-by-side comparison — sub-tab #22. -->
+    <div id="subpage-inversion_compare" class="subpage" data-subtab-page>
+      <div class="page-subtitle" style="font-size: 10.5px; color: var(--ink-dim); margin-bottom: 12px;">
+        <b>Inversion comparison.</b> Side-by-side view of 2–4 candidates lined up across identity, karyotype distribution, HWE, hub spread, Mendelian Test A, regime context, marker readiness.
+      </div>
+      <div class="recomb-config">
+        <div class="row"><label>Candidate 1</label><select id="cmpC1"></select></div>
+        <div class="row"><label>Candidate 2</label><select id="cmpC2"></select></div>
+        <div class="row"><label>Candidate 3 (optional)</label><select id="cmpC3"></select></div>
+        <div class="row"><label>Candidate 4 (optional)</label><select id="cmpC4"></select></div>
+        <div class="row"><label></label>
+          <div class="bdmi-actions">
+            <button class="primary" id="cmpRunBtn">Compare</button>
+            <button id="cmpResetBtn">Reset</button>
+            <button id="cmpExportBtn" title="Export the side-by-side table as TSV">⤓ Export TSV</button>
+          </div></div>
+      </div>
+      <div id="cmpTable"></div>
+    </div>
   </div>
 
   <!-- ── Right column: Inspector / Stats ──────────────────────────────── -->
@@ -2285,5 +2523,116 @@
 
 <!-- The page logic lives in a sibling .js file as the user requested. -->
 <script src="Relatedness_atlas.js"></script>
+
+<!-- ─────────────────────────────────────────────────────────────────────
+     Round-2+ page bootstrap (2026-05-27). The 17 sub-tabs added after the
+     round-1 migration (bdmi, regimes, meiosis, eligibility, resolution,
+     coincidence, inversion_signature, focal_meiosis_scan, inversion_priority,
+     marker_test_designer, family_hub_detail, catalogue_handshake,
+     individual_portrait, inversion_dossier, cohort_summary, cross_planner,
+     inversion_compare) all ship as ES modules under
+     atlases/relatedness/pages/hub/<id>.js with mount() / unmount()
+     lifecycles. The legacy shell here doesn't know about those modules, so
+     before this bootstrap their sub-tabs rendered as empty / dark blocks.
+     This script hooks into the existing #subTabBar click router and
+     dynamically imports the right module, calling mount(rootEl, {}, {})
+     against the matching #subpage-<id> div.
+
+     Round-1 pages (network, karyotypes, inversions, mendelian, compatibility)
+     are deliberately NOT in this map — Relatedness_atlas.js already
+     populates them inline. ──────────────────────────────────────────── -->
+<script type="module">
+  const ROUND2_PAGES = {
+    'bdmi':                  './atlases/relatedness/pages/hub/bdmi.js',
+    'regimes':               './atlases/relatedness/pages/hub/regimes.js',
+    'meiosis':               './atlases/relatedness/pages/hub/meiosis.js',
+    'eligibility':           './atlases/relatedness/pages/hub/eligibility.js',
+    'resolution':            './atlases/relatedness/pages/hub/resolution.js',
+    'coincidence':           './atlases/relatedness/pages/hub/coincidence.js',
+    'inversion_signature':   './atlases/relatedness/pages/hub/inversion_signature.js',
+    'focal_meiosis_scan':    './atlases/relatedness/pages/hub/focal_meiosis_scan.js',
+    'inversion_priority':    './atlases/relatedness/pages/hub/inversion_priority.js',
+    'marker_test_designer':  './atlases/relatedness/pages/hub/marker_test_designer.js',
+    'family_hub_detail':     './atlases/relatedness/pages/hub/family_hub_detail.js',
+    'catalogue_handshake':   './atlases/relatedness/pages/hub/catalogue_handshake.js',
+    'individual_portrait':   './atlases/relatedness/pages/hub/individual_portrait.js',
+    'inversion_dossier':     './atlases/relatedness/pages/hub/inversion_dossier.js',
+    'cohort_summary':        './atlases/relatedness/pages/hub/cohort_summary.js',
+    'cross_planner':         './atlases/relatedness/pages/hub/cross_planner.js',
+    'inversion_compare':     './atlases/relatedness/pages/hub/inversion_compare.js',
+    'export_bundle':         './atlases/relatedness/pages/hub/export_bundle.js',
+  };
+
+  const _mounted = new Map();     // id → module
+  let _activeId = null;
+
+  async function _activateSubpage(target) {
+    if (!(target in ROUND2_PAGES)) return;          // round-1 already handled
+    if (_activeId === target && _mounted.has(target)) return;
+
+    // Unmount the previously-active round-2 page if any.
+    if (_activeId && _mounted.has(_activeId)) {
+      const prev = _mounted.get(_activeId);
+      try {
+        if (prev && prev.unmount) await prev.unmount(document.getElementById('subpage-' + _activeId));
+      } catch (err) {
+        console.warn('[bootstrap] unmount failed for', _activeId, err);
+      }
+      _mounted.delete(_activeId);
+    }
+
+    // Dynamic-import and mount the new page.
+    const root = document.getElementById('subpage-' + target);
+    if (!root) { console.warn('[bootstrap] no subpage container for', target); return; }
+    try {
+      const mod = await import(ROUND2_PAGES[target]);
+      _mounted.set(target, mod);
+      _activeId = target;
+      if (mod.mount) await mod.mount(root, {}, {});
+    } catch (err) {
+      console.error('[bootstrap] failed to mount', target, err);
+      root.innerHTML = `<div class="ie-conclusion tier-conflict" style="margin: 14px;">`
+        + `<div class="verdict">PAGE LOAD ERROR · ${target}</div>`
+        + `<div style="font-size: 10.5px;">`
+        + `Failed to import the page module. Most common cause: the atlas is being served`
+        + ` from <code>file://</code>, which blocks ES-module imports. Serve via`
+        + ` <code>python3 -m http.server</code> from the repo root, or via atlas-core.<br/><br/>`
+        + `<code>${String(err)}</code></div></div>`;
+    }
+  }
+
+  // Hook every #subTabBar button. Capture-phase listener so we run AFTER the
+  // legacy click handler has toggled the .active class on the subpage block.
+  document.querySelectorAll('#subTabBar button[data-subtab]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      _activateSubpage(btn.getAttribute('data-subtab'));
+    });
+  });
+
+  // Activate the currently-active sub-tab on first load (the legacy script
+  // restores localStorage selection at line 535 — we catch up after it).
+  function _activateCurrent() {
+    const cur = document.querySelector('#subTabBar button[data-subtab].active');
+    if (cur) _activateSubpage(cur.getAttribute('data-subtab'));
+    else {
+      // No active button yet — try the hash.
+      const h = (location.hash || '').replace(/^#/, '').trim();
+      if (h) _activateSubpage(h);
+    }
+  }
+  // Defer one tick so the legacy script's localStorage restore + hash-route
+  // logic has finished setting .active on the right button.
+  setTimeout(_activateCurrent, 0);
+
+  // Also respond to hashchange so URLs like #bdmi still work.
+  window.addEventListener('hashchange', () => {
+    const h = (location.hash || '').replace(/^#/, '').trim();
+    if (h) _activateSubpage(h);
+  });
+
+  // Expose for debugging.
+  window._RA_round2_bootstrap = { activate: _activateSubpage, mounted: _mounted,
+                                    get active() { return _activeId; } };
+</script>
 </body>
 </html>

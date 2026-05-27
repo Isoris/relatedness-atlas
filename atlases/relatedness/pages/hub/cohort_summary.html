@@ -1,0 +1,53 @@
+  <!-- atlases/relatedness/pages/hub/cohort_summary.html
+       Cohort summary (#20). Landing-page-style overview of the 226-sample
+       hatchery cohort. Pulls together cohort-level counts: samples, sex,
+       ancestry mix, families, triads, inversion candidates, karyotype
+       call rate, edge counts. Useful for manuscript intro figures + as a
+       single-screen QC check after a new data load. -->
+  <div id="cohort_summary" class="page subpage" data-subtab-page>
+    <div class="page-subtitle" style="font-size: 10.5px; color: var(--ink-dim); margin-bottom: 12px;">
+      <b>Cohort summary.</b> Single-screen overview of the 226-sample hatchery cohort: sample / sex / ancestry composition, family-hub distribution, triad / edge counts, inversion-candidate status breakdown, frequency-spectrum histogram, karyotype-call rate, and a per-analysis runnability matrix. Read-only — no compute. Use as a manuscript-intro source-of-truth or as a post-load QC sanity check.
+    </div>
+
+    <!-- Sample / sex / family / triad counts -->
+    <div class="table-section-title">Cohort scale</div>
+    <div class="bdmi-summary" id="csScale"></div>
+
+    <!-- Sex composition -->
+    <div class="table-section-title" style="margin-top: 14px;">Sex composition</div>
+    <div class="bdmi-summary" id="csSex"></div>
+
+    <!-- Ancestry composition -->
+    <div class="table-section-title" style="margin-top: 14px;">Ancestry mix <span class="sub">(mean Q across cohort)</span></div>
+    <div id="csAncestry"></div>
+
+    <!-- Family-hub distribution -->
+    <div class="table-section-title" style="margin-top: 14px;">Family-hub distribution</div>
+    <div id="csFamilies"></div>
+
+    <!-- Inversion candidate status breakdown -->
+    <div class="table-section-title" style="margin-top: 14px;">Inversion candidates by status</div>
+    <div class="bdmi-summary" id="csInvStatus"></div>
+
+    <!-- Frequency spectrum -->
+    <div class="table-section-title" style="margin-top: 14px;">Frequency spectrum <span class="sub">(histogram across 248 candidates)</span></div>
+    <div id="csFreqSpectrum"></div>
+
+    <!-- Karyotype call rate -->
+    <div class="table-section-title" style="margin-top: 14px;">Karyotype call rate <span class="sub">(% non-NA across cohort × candidates)</span></div>
+    <div class="bdmi-summary" id="csCallRate"></div>
+
+    <!-- Edge counts -->
+    <div class="table-section-title" style="margin-top: 14px;">Relationship edges <span class="sub">(DEMO.network_edges classes)</span></div>
+    <div class="bdmi-summary" id="csEdges"></div>
+
+    <!-- Compute readiness -->
+    <div class="table-section-title" style="margin-top: 14px;">Per-analysis runnability</div>
+    <div id="csRunnability"></div>
+
+    <!-- Manuscript phrasing footer -->
+    <div class="ie-conclusion tier-weak" style="margin-top: 14px;">
+      <div class="verdict">MANUSCRIPT-READY ONE-LINER</div>
+      <div id="csManuscriptBody" style="font-size: 10.5px; line-height: 1.55;"></div>
+    </div>
+  </div>

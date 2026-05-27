@@ -107,6 +107,62 @@
       "requires_layers": [],
       "requires_slots": [],
       "preloads": []
+    },
+    "family_hub_detail": {
+      "_label": "family_hub_detail — per-family deep-dive (pedigree-side)",
+      "_doc": "Per-family roster + sex composition + ancestry composition + within-hub edge classes + triad QC + per-candidate karyotype informativeness. Pure pedigree-side; no meiosis / recomb dependency. Source data: DEMO.families, DEMO.sex, DEMO.ancestry_q, DEMO.network_edges, DEMO.triads, DEMO.trio_qc, DEMO.karyotype_matrix, DEMO.pairwise_stats. Use to decide whether a hub is usable as an analysis anchor (>= 2 members for dyads, >= 1 triad for BDMI Test A, >= 4 members + >= 1 triad for the family-aware permutation null in the meiosis stack).",
+      "requires_layers": [],
+      "requires_slots": [],
+      "preloads": []
+    },
+    "catalogue_handshake": {
+      "_label": "catalogue_handshake — atlas-core Catalogue self-test",
+      "_doc": "Diagnostic page that reads the four JSONL files in toolkit_registries/relatedness/01_registry/ (module_registry, analysis_registry, analysis_modes, layer_registry) and verifies atlas-core's three smoke-test constraints client-side: (1) analysis_modes.analysis_type ∈ analysis_registry.analysis_id; (2) analysis_modes.produces single-valued AND matches that registry row's declared produces; (3) analysis_modes.module_name ∈ module_registry.module_name. Plus bonus: analysis_registry.produces ∈ layer_registry.layer_id. Surfaces the module → analyses → layers dependency tree and the manuscript-path CHAIN workflow inversion_karyotype_meiosis_pipeline. Diagnostic only — no compute.",
+      "requires_layers": [],
+      "requires_slots": [],
+      "preloads": []
+    },
+    "individual_portrait": {
+      "_label": "individual_portrait — per-sample dossier",
+      "_doc": "Single-sample read-only aggregation. Sections: identity (sex, family, role), ancestry composition (Q-vector + per-K table), pairwise relationships (incident edges from DEMO.network_edges + DEMO.pairwise_stats), karyotype profile (counts of 0/0, 0/1, 1/1, NA, plus a top-10 carried-arrangements table), triad role (parent_a / parent_b / offspring), burden flags (inversion load + carries-PASS/WARN/FAIL counts), cross-page jump-links. No new compute.",
+      "requires_layers": [],
+      "requires_slots": [],
+      "preloads": []
+    },
+    "inversion_dossier": {
+      "_label": "inversion_dossier — per-candidate dossier",
+      "_doc": "Single-candidate read-only aggregation. Sections: identity, karyotype distribution + HWE chi-square (BDMI Test C feeds off this), class-balance bar, carrier roster (up to 50 rows), family-hub spread + FAMILY CONFOUNDED warning when one hub holds >=80% of carriers, Mendelian distortion (BDMI Test A binomial p across triads), same-chromosome companions (potential regime partners), downstream-analysis readiness matrix (READY/PARTIAL/GATED/BLOCKED per analysis), cross-page jump-links.",
+      "requires_layers": [],
+      "requires_slots": [],
+      "preloads": []
+    },
+    "cohort_summary": {
+      "_label": "cohort_summary — single-screen cohort overview",
+      "_doc": "Read-only cohort dashboard. Sections: scale (species, cohort, n samples / families / unassigned / triads / candidates / chromosomes-with-candidates), sex composition, ancestry mean Q with stripe + per-K table, family-hub distribution, inversion-candidate status breakdown, frequency spectrum histogram (7 bins), karyotype call rate, edge counts by class, per-analysis runnability matrix (READY/PARTIAL/WARN/GATED/BLOCKED) for all 22 registered analyses, manuscript-ready one-liner. Use as manuscript-intro source-of-truth or post-load QC.",
+      "requires_layers": [],
+      "requires_slots": [],
+      "preloads": []
+    },
+    "cross_planner": {
+      "_label": "cross_planner — batch multi-pair cross ranking",
+      "_doc": "Multi-pair extension of the Compatibility tab. Generates every candidate parent pair under the chosen filters (sex-aware, exclude PO/FS kin, exclude carrier-of-any-FAIL inversion, require >=1 differing karyotype on PASS candidates) and ranks them by a composite cross_utility_score: +0.35 opposite-sex, +0.25 cross-family, +0.15 fraction of PASS candidates with differing karyotypes, +0.15 (1 - mean hub confound across the pair's heterokaryotypes), +0.10 impossibility-free. Decorates each row with breeding-AI flags (same-or-unknown-sex, same-family, redundant-cross, heterokaryote-CO-suppression, hub-confounded, close-kin). Read-only — no analytical compute, just an aggregation over karyotype + family + sex.",
+      "requires_layers": [],
+      "requires_slots": [],
+      "preloads": []
+    },
+    "inversion_compare": {
+      "_label": "inversion_compare — side-by-side candidate comparison",
+      "_doc": "Picks 2-4 candidates and lines them up across signal rows: chromosome, span, length, status, frequency, n_typed, hom-ref/het/hom-alt counts, NA count, allele freq p, HWE chi-square p (BDMI Test C feeds off this), n_carriers, top-hub carrier share (FAMILY CONFOUNDED at >=80%), Mendelian Test A p, same-chromosome companions, marker readiness (status=PASS AND frequency>=0.10). Read-only — pure aggregation. Use when narrowing the inversion list before the Pass-2 marker-validation phase.",
+      "requires_layers": [],
+      "requires_slots": [],
+      "preloads": []
+    },
+    "export_bundle": {
+      "_label": "export_bundle — atlas-wide one-click snapshot",
+      "_doc": "Single-click cohort-wide snapshot. Builds 7 sections in one multi-section TSV (or one JSON blob): cohort_overview (1 row), per_individual (n_samples rows), per_candidate (n_candidates rows with karyotype counts, HWE chi-square p, hub share, Mendelian Test A p, parental-meiosis counts, marker readiness), per_family (n_families rows), inversion_priority (full runPriorityScan output with SHIP/HOLD/DROP buckets), marker_designs (top-N priority × tested chromosomes × interval triplets), focal_meiosis_scans (top-N priority × every tested chromosome). Sections 5-7 use the meiosis stack which is GATED on a real ngsTracts CO-call adapter — bundle marks this in its '# meta:' header. Per-page TSV exports remain available for analyses that need user choices (Mendelian dyad/triad, Compatibility focal, BDMI scope, Regime focal, Inv x meiosis full).",
+      "requires_layers": [],
+      "requires_slots": [],
+      "preloads": []
     }
   }
 }

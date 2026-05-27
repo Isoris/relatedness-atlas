@@ -1,0 +1,75 @@
+  <!-- atlases/relatedness/pages/hub/export_bundle.html
+       Export bundle (#23). One click → one file containing every
+       cohort-wide result the atlas can derive without picking dyads /
+       triads / focal candidates. Per-page TSV exports remain available
+       for analyses that DO need user choices. -->
+  <div id="export_bundle" class="page subpage" data-subtab-page>
+    <div class="page-subtitle" style="font-size: 10.5px; color: var(--ink-dim); margin-bottom: 12px;">
+      <b>Export bundle.</b> Single-click snapshot of every cohort-wide result this atlas can compute without picking specific dyads / triads / focal individuals. Generates 7 sections in one multi-section TSV (or one JSON blob): cohort overview, per-individual summary, per-candidate summary (with HWE + Mendelian Test A), per-family summary, full inversion-priority ranking, marker-panel design for top-N priority candidates, focal × meiosis scan for the same top-N. Per-page TSV exports remain available for analyses that <em>do</em> need user choices (Mendelian dyad/triad picks, Compatibility focal, BDMI scope, Regime focal).
+    </div>
+
+    <div class="recomb-config">
+      <div class="row">
+        <label>Top-N for marker + focal scan</label>
+        <select id="ebTopN">
+          <option value="3">3</option>
+          <option value="5" selected>5</option>
+          <option value="10">10</option>
+          <option value="20">20</option>
+        </select>
+      </div>
+      <div class="row">
+        <label>Focal scan permutations</label>
+        <select id="ebPerm">
+          <option value="100">100 (fast)</option>
+          <option value="200" selected>200 (default)</option>
+          <option value="1000">1000 (slow)</option>
+        </select>
+      </div>
+      <div class="row">
+        <label></label>
+        <div class="bdmi-actions">
+          <button class="primary" id="ebBuildBtn">Build bundle</button>
+          <button id="ebTsvBtn">⤓ Download TSV</button>
+          <button id="ebJsonBtn">⤓ Download JSON</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bundle preview / status -->
+    <div class="bdmi-summary" id="ebSummary"></div>
+
+    <!-- Pre-built static snapshot (if static/snapshots/index.json exists) -->
+    <div id="ebStaticSnapshot"></div>
+
+    <!-- Per-section row counts -->
+    <div class="table-section-title" style="margin-top: 14px;">Sections</div>
+    <div id="ebSections"></div>
+
+    <!-- Reference card -->
+    <div class="ie-conclusion tier-weak" style="margin-top: 14px;">
+      <div class="verdict">WHAT'S IN THE BUNDLE</div>
+      <ol style="margin: 6px 0 0 18px; padding: 0; font-size: 10.5px; line-height: 1.55;">
+        <li><b>cohort_overview</b> · one row · cohort meta + scale + sex / status counts + call rate</li>
+        <li><b>per_individual</b> · one row per sample · sex, family, role, ancestry, burden, call rate, triad role</li>
+        <li><b>per_candidate</b> · one row per inversion · karyotype counts, HWE, hub share, Mendelian Test A, parental-meiosis counts, marker readiness</li>
+        <li><b>per_family</b> · one row per hub · members, sex composition, triads, within-hub edges</li>
+        <li><b>inversion_priority</b> · full <code>runPriorityScan</code> output · priority_score + SHIP/HOLD/DROP bucket</li>
+        <li><b>marker_designs</b> · top-N priority candidates × all tested chromosomes × interval triplets · expected_DCO + status</li>
+        <li><b>focal_meiosis_scans</b> · top-N priority candidates × every tested chromosome · ΔC + p_perm + status</li>
+      </ol>
+      Sections 5–7 use the meiosis stack, which is <b>GATED</b> on a real ngsTracts CO-call adapter (see <code>_handoff_docs/AUDIT_2026-05-15_meiosis_stack.md</code>). Numbers there are synthetic until the adapter ships — the bundle marks this in its <code># meta:</code> header.
+    </div>
+
+    <!-- NOT in the bundle, by design -->
+    <div class="ie-conclusion tier-weak" style="margin-top: 14px;">
+      <div class="verdict">NOT IN THE BUNDLE (USE PER-PAGE TSV EXPORTS INSTEAD)</div>
+      <ul style="margin: 6px 0 0 18px; padding: 0; font-size: 10.5px; line-height: 1.55;">
+        <li>Mendelian dyad / triad tests — picks specific samples</li>
+        <li>Compatibility search — picks a focal individual + target karyotype</li>
+        <li>BDMI screen detail rows — needs scope + toggles</li>
+        <li>Regime inheritance — picks a focal candidate + chromosome</li>
+        <li>Inv × meiosis scan (full) — picks a focal candidate + scope (the bundle uses defaults for the top-N only)</li>
+      </ul>
+    </div>
+  </div>

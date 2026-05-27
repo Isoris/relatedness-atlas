@@ -1,0 +1,52 @@
+  <!-- atlases/relatedness/pages/hub/inversion_dossier.html
+       Per-inversion dossier (#19). Single-candidate aggregation view:
+       identity, karyotype distribution + HWE, carrier roster, family-
+       hub spread, Mendelian distortion (Test A), BDMI atomic test
+       outcomes, regime status, focal-scan status (gated), priority
+       bucket (gated), marker design preview. -->
+  <div id="inversion_dossier" class="page subpage" data-subtab-page>
+    <div class="page-subtitle" style="font-size: 10.5px; color: var(--ink-dim); margin-bottom: 12px;">
+      <b>Per-inversion dossier.</b> Single-candidate aggregation view: identity (chrom, span, frequency, status), karyotype distribution + HWE chi-square, carrier roster, family-hub spread, BDMI atomic outcomes, regime status (linked partners on the same chromosome), focal-scan readiness, marker-design preview, priority bucket. Real numbers where the underlying signal is real; gated signals are clearly flagged.
+    </div>
+
+    <div class="recomb-config">
+      <div class="row">
+        <label>Candidate</label>
+        <select id="idoCandidate"></select>
+      </div>
+    </div>
+
+    <!-- Identity -->
+    <div class="bdmi-summary" id="idoIdentity"></div>
+
+    <!-- Karyotype distribution + HWE -->
+    <div class="table-section-title" style="margin-top: 14px;">Karyotype distribution <span class="sub">(observed vs HWE 2pq)</span></div>
+    <div class="bdmi-summary" id="idoKaryoDist"></div>
+    <div id="idoHWE"></div>
+
+    <!-- Carrier roster -->
+    <div class="table-section-title" style="margin-top: 14px;">Carrier roster <span class="sub">(het + hom-alt; up to 50 rows)</span></div>
+    <div id="idoCarriers"></div>
+
+    <!-- Family-hub spread -->
+    <div class="table-section-title" style="margin-top: 14px;">Family-hub spread <span class="sub">(carriers per family)</span></div>
+    <div id="idoHubSpread"></div>
+
+    <!-- Mendelian distortion (Test A) -->
+    <div class="table-section-title" style="margin-top: 14px;">Mendelian distortion <span class="sub">(BDMI Test A · binomial p across triads)</span></div>
+    <div id="idoMendel"></div>
+
+    <!-- Same-chrom companions -->
+    <div class="table-section-title" style="margin-top: 14px;">Same-chromosome companions <span class="sub">(potential regime partners)</span></div>
+    <div id="idoCompanions"></div>
+
+    <!-- Gated readiness -->
+    <div class="table-section-title" style="margin-top: 14px;">Downstream readiness</div>
+    <div id="idoReadiness"></div>
+
+    <!-- Jump-links -->
+    <div class="ie-conclusion tier-weak" id="idoJump" style="margin-top: 14px;">
+      <div class="verdict">USE THIS CANDIDATE FOR</div>
+      <div id="idoJumpBody" style="font-size: 10.5px; line-height: 1.6;"></div>
+    </div>
+  </div>

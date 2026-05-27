@@ -1,0 +1,70 @@
+  <!-- atlases/relatedness/pages/hub/cross_planner.html
+       Batch cross planner (#21). Multi-pair extension of the existing
+       Compatibility page. Given a set of candidate parent pairs (full
+       grid, sex-aware, family-aware), ranks them by inversion
+       compatibility + relatedness + breeding-AI flags. The first non-
+       speculative seed of the breeding-AI advisor. -->
+  <div id="cross_planner" class="page subpage" data-subtab-page>
+    <div class="page-subtitle" style="font-size: 10.5px; color: var(--ink-dim); margin-bottom: 12px;">
+      <b>Batch cross planner.</b> Multi-pair extension of the single-focal Compatibility tab. Generates every candidate parent pair under the chosen filters (sex-aware, exclude close kin, exclude same family hub, exclude carrier-of-FAIL inversions), ranks the pairs by a composite cross-utility score, and flags inheritance-side warnings on each (heterokaryote → CO suppression, shared-arrangement redundancy, family-only crosses). Read-only — no compute beyond aggregating the existing karyotype + family + sex inputs.
+    </div>
+
+    <div class="recomb-config">
+      <div class="row">
+        <label>Pair generation</label>
+        <select id="cpMode">
+          <option value="all" selected>all individual pairs</option>
+          <option value="cross_family">cross-family pairs only</option>
+          <option value="opposite_sex">opposite-sex pairs only</option>
+          <option value="opposite_sex_cross_family">opposite-sex × cross-family</option>
+        </select>
+      </div>
+      <div class="row">
+        <label>Filters</label>
+        <div class="toggle-row">
+          <label class="bdmi-toggle"><input type="checkbox" id="cpExcludeKin" checked />
+            <span>exclude PO/FS kin</span></label>
+          <label class="bdmi-toggle"><input type="checkbox" id="cpExcludeFail" />
+            <span>exclude carrier of any FAIL inversion</span></label>
+          <label class="bdmi-toggle"><input type="checkbox" id="cpRequireDiff" />
+            <span>require ≥1 differing karyotype on PASS candidates</span></label>
+        </div>
+      </div>
+      <div class="row">
+        <label>Top N</label>
+        <select id="cpTopN">
+          <option value="10">10</option>
+          <option value="25" selected>25</option>
+          <option value="50">50</option>
+          <option value="100">100</option>
+        </select>
+      </div>
+      <div class="row">
+        <label></label>
+        <div class="bdmi-actions">
+          <button class="primary" id="cpRunBtn">Run planner</button>
+          <button id="cpResetBtn">Reset</button>
+          <button id="cpExportBtn" title="Export top-N pairs as TSV">⤓ Export top-N</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="bdmi-summary" id="cpSummary"></div>
+    <div class="table-section-title" style="margin-top: 14px;">Ranked cross pairs</div>
+    <div id="cpResults"></div>
+
+    <div class="ie-conclusion tier-weak" style="margin-top: 14px;">
+      <div class="verdict">SCORING</div>
+      <div style="font-size: 10.5px; line-height: 1.55;">
+        Each pair receives a <em>cross_utility_score</em> ∈ [0, 1]:
+        <ul style="margin: 4px 0 0 18px; padding: 0;">
+          <li><b>+0.35</b> opposite-sex (when sex data exists for both)</li>
+          <li><b>+0.25</b> cross-family</li>
+          <li><b>+0.15</b> fraction of PASS candidates with differing karyotypes (recombination potential)</li>
+          <li><b>+0.15</b> 1 − (top-hub-share confound) — averaged across each parent's heterokaryotypes</li>
+          <li><b>+0.10</b> fraction of PASS candidates where both parents are typed (coverage)</li>
+        </ul>
+        Then breeding-AI flags decorate the row (heterokaryote, redundancy, etc.) without changing the score.
+      </div>
+    </div>
+  </div>

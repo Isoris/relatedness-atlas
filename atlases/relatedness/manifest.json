@@ -81,6 +81,70 @@
       "fragment": "atlases/relatedness/pages/hub/marker_test_designer.html",
       "module": "atlases/relatedness/pages/hub/marker_test_designer.js",
       "tooltip": "Interchromosomal Marker Test Designer — converts a candidate interchromosomal meiosis effect into a practical marker panel: focal inversion classifier markers in parents + transmission/recombination markers on tested chromosomes for offspring panels (CO/DCO/coincidence)."
+    },
+    {
+      "id": "family_hub_detail",
+      "label": "family deep-dive",
+      "stage": "hub",
+      "fragment": "atlases/relatedness/pages/hub/family_hub_detail.html",
+      "module": "atlases/relatedness/pages/hub/family_hub_detail.js",
+      "tooltip": "Family-hub deep-dive — per-hub roster, sex + ancestry composition, within-hub edges, triad QC, karyotype informativeness. Pure pedigree-side. Use to decide whether a hub is large enough / clean enough to anchor a downstream analysis."
+    },
+    {
+      "id": "catalogue_handshake",
+      "label": "catalogue",
+      "stage": "hub",
+      "fragment": "atlases/relatedness/pages/hub/catalogue_handshake.html",
+      "module": "atlases/relatedness/pages/hub/catalogue_handshake.js",
+      "tooltip": "Atlas-core Catalogue handshake / self-test — reads the four JSONL files exposed to the master workflow catalogue and verifies the smoke-test constraints client-side. Diagnostic, not analytical."
+    },
+    {
+      "id": "individual_portrait",
+      "label": "sample portrait",
+      "stage": "hub",
+      "fragment": "atlases/relatedness/pages/hub/individual_portrait.html",
+      "module": "atlases/relatedness/pages/hub/individual_portrait.js",
+      "tooltip": "Per-individual portrait — single-sample dossier consolidating identity, ancestry vector, pairwise relationships, karyotype profile, triad role, inversion burden, cross-page jump-links. Read-only aggregation."
+    },
+    {
+      "id": "inversion_dossier",
+      "label": "candidate dossier",
+      "stage": "hub",
+      "fragment": "atlases/relatedness/pages/hub/inversion_dossier.html",
+      "module": "atlases/relatedness/pages/hub/inversion_dossier.js",
+      "tooltip": "Per-inversion dossier — single-candidate aggregation: identity, karyotype distribution + HWE, carrier roster, family-hub spread, Mendelian distortion, same-chrom companions, downstream-analysis readiness."
+    },
+    {
+      "id": "cohort_summary",
+      "label": "cohort",
+      "stage": "hub",
+      "fragment": "atlases/relatedness/pages/hub/cohort_summary.html",
+      "module": "atlases/relatedness/pages/hub/cohort_summary.js",
+      "tooltip": "Cohort summary — single-screen overview of the 226-sample hatchery cohort: scale, sex, ancestry, families, candidates, frequency spectrum, call rate, edges, per-analysis runnability matrix."
+    },
+    {
+      "id": "cross_planner",
+      "label": "cross planner",
+      "stage": "hub",
+      "fragment": "atlases/relatedness/pages/hub/cross_planner.html",
+      "module": "atlases/relatedness/pages/hub/cross_planner.js",
+      "tooltip": "Batch cross planner — multi-pair extension of Compatibility. Generates every candidate parent pair under chosen filters, ranks by composite cross_utility_score, flags inheritance-side warnings (heterokaryote → CO suppression, redundancy, hub confounding, close-kin). Seed of the breeding-AI advisor."
+    },
+    {
+      "id": "inversion_compare",
+      "label": "compare",
+      "stage": "hub",
+      "fragment": "atlases/relatedness/pages/hub/inversion_compare.html",
+      "module": "atlases/relatedness/pages/hub/inversion_compare.js",
+      "tooltip": "Side-by-side comparison of 2–4 inversion candidates: identity, karyotype distribution + HWE, hub spread, Mendelian Test A p, regime context, marker readiness. Use when narrowing down which inversions ship to Pass-2 marker validation."
+    },
+    {
+      "id": "export_bundle",
+      "label": "export",
+      "stage": "hub",
+      "fragment": "atlases/relatedness/pages/hub/export_bundle.html",
+      "module": "atlases/relatedness/pages/hub/export_bundle.js",
+      "tooltip": "Atlas-wide export bundle. One click → one file containing all 7 cohort-wide sections (cohort overview, per-individual, per-candidate, per-family, inversion priority, marker designs for top-N, focal × meiosis scans for top-N). TSV or JSON. Per-page TSV exports remain available for analyses that need user choices."
     }
   ],
   "registries": {
@@ -109,7 +173,8 @@
     "recomb_track":    "atlases/relatedness/shared/recomb_track.js",
     "inversion_meiosis": "atlases/relatedness/shared/inversion_meiosis.js",
     "inversion_priority": "atlases/relatedness/shared/inversion_priority.js",
-    "marker_designer":   "atlases/relatedness/shared/marker_designer.js"
+    "marker_designer":   "atlases/relatedness/shared/marker_designer.js",
+    "export_bundle":     "atlases/relatedness/shared/export_bundle.js"
   },
   "server": {
     "_doc": "Relatedness Atlas does NOT ship its own server binary — it consumes the atlas-core unified server (atlas-core/server/atlas_server.py) via three contracts: (1) static reads of the assembled workspace for ngsPedigree data files; (2) sandboxed reads via GET /file/{path}; (3) POST /compute/<name> dispatch for Mendelian / Compatibility computes (see atlases/relatedness/server/RELATEDNESS_ENDPOINTS.md for the per-endpoint contract — the source of truth for the sister chat working on atlas_server.py). The atlas-side falls back to in-browser compute when an endpoint is missing, so the atlas is fully usable today without the server-side handlers.",
