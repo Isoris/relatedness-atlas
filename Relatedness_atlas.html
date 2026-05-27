@@ -1430,6 +1430,11 @@
       <button data-subtab="marker_test_designer" title="Interchromosomal Marker Test Designer — focal classifier + recombination-marker triplets">Marker designer</button>
       <button data-subtab="family_hub_detail" title="Family-hub deep-dive — per-hub roster, ancestry, triads, karyotype informativeness">Family deep-dive</button>
       <button data-subtab="catalogue_handshake" title="Atlas-core Catalogue self-test — verify the four JSONL registry files">Catalogue</button>
+      <button data-subtab="individual_portrait" title="Per-individual portrait — single-sample dossier across every page's data">Sample portrait</button>
+      <button data-subtab="inversion_dossier" title="Per-inversion dossier — single-candidate aggregation view">Candidate dossier</button>
+      <button data-subtab="cohort_summary" title="Cohort summary — single-screen overview of the 226-sample cohort">Cohort</button>
+      <button data-subtab="cross_planner" title="Batch cross planner — multi-pair extension of Compatibility, ranked by composite cross_utility">Cross planner</button>
+      <button data-subtab="inversion_compare" title="Side-by-side candidate comparison — pick 2–4 inversions, line up signals">Compare</button>
       <div class="sub-tab-spacer"></div>
       <div class="chr-filter">
         <span>Chr filter:</span>
@@ -2207,6 +2212,146 @@
       <div id="chkChain"></div>
       <div class="table-section-title" style="margin-top: 14px;">Output layers</div>
       <div id="chkLayers"></div>
+    </div>
+
+    <!-- Per-individual portrait — sub-tab #18. -->
+    <div id="subpage-individual_portrait" class="subpage" data-subtab-page>
+      <div class="page-subtitle" style="font-size: 10.5px; color: var(--ink-dim); margin-bottom: 12px;">
+        <b>Per-individual portrait.</b> Single-sample dossier consolidating every signal the atlas already knows about one fish.
+      </div>
+      <div class="recomb-config">
+        <div class="row"><label>Sample</label><select id="ipSample"></select></div>
+      </div>
+      <div class="bdmi-summary" id="ipIdentity"></div>
+      <div class="table-section-title" style="margin-top: 14px;">Ancestry composition <span class="sub">(K=8 Q-vector)</span></div>
+      <div id="ipAncestry"></div>
+      <div class="table-section-title" style="margin-top: 14px;">Pairwise relationships</div>
+      <div id="ipRelationships"></div>
+      <div class="table-section-title" style="margin-top: 14px;">Karyotype profile <span class="sub">(across all inversion candidates)</span></div>
+      <div class="bdmi-summary" id="ipKaryoSummary"></div>
+      <div id="ipKaryoBreakdown"></div>
+      <div class="table-section-title" style="margin-top: 14px;">Triad role</div>
+      <div id="ipTriads"></div>
+      <div class="table-section-title" style="margin-top: 14px;">Burden flags</div>
+      <div class="bdmi-summary" id="ipBurden"></div>
+      <div class="ie-conclusion tier-weak" id="ipJump" style="margin-top: 14px;">
+        <div class="verdict">USEFUL FOR</div>
+        <div id="ipJumpBody" style="font-size: 10.5px; line-height: 1.6;"></div>
+      </div>
+    </div>
+
+    <!-- Per-inversion dossier — sub-tab #19. -->
+    <div id="subpage-inversion_dossier" class="subpage" data-subtab-page>
+      <div class="page-subtitle" style="font-size: 10.5px; color: var(--ink-dim); margin-bottom: 12px;">
+        <b>Per-inversion dossier.</b> Single-candidate aggregation view: identity, karyotype distribution, carrier roster, family-hub spread, Mendelian distortion, regime context, downstream readiness.
+      </div>
+      <div class="recomb-config">
+        <div class="row"><label>Candidate</label><select id="idoCandidate"></select></div>
+      </div>
+      <div class="bdmi-summary" id="idoIdentity"></div>
+      <div class="table-section-title" style="margin-top: 14px;">Karyotype distribution <span class="sub">(observed vs HWE 2pq)</span></div>
+      <div class="bdmi-summary" id="idoKaryoDist"></div>
+      <div id="idoHWE"></div>
+      <div class="table-section-title" style="margin-top: 14px;">Carrier roster</div>
+      <div id="idoCarriers"></div>
+      <div class="table-section-title" style="margin-top: 14px;">Family-hub spread</div>
+      <div id="idoHubSpread"></div>
+      <div class="table-section-title" style="margin-top: 14px;">Mendelian distortion <span class="sub">(BDMI Test A)</span></div>
+      <div id="idoMendel"></div>
+      <div class="table-section-title" style="margin-top: 14px;">Same-chromosome companions</div>
+      <div id="idoCompanions"></div>
+      <div class="table-section-title" style="margin-top: 14px;">Downstream readiness</div>
+      <div id="idoReadiness"></div>
+      <div class="ie-conclusion tier-weak" id="idoJump" style="margin-top: 14px;">
+        <div class="verdict">USE THIS CANDIDATE FOR</div>
+        <div id="idoJumpBody" style="font-size: 10.5px; line-height: 1.6;"></div>
+      </div>
+    </div>
+
+    <!-- Cohort summary — sub-tab #20. -->
+    <div id="subpage-cohort_summary" class="subpage" data-subtab-page>
+      <div class="page-subtitle" style="font-size: 10.5px; color: var(--ink-dim); margin-bottom: 12px;">
+        <b>Cohort summary.</b> Single-screen overview of the 226-sample hatchery cohort: scale, sex, ancestry, families, candidates, frequency spectrum, call rate, edges, per-analysis runnability matrix.
+      </div>
+      <div class="table-section-title">Cohort scale</div>
+      <div class="bdmi-summary" id="csScale"></div>
+      <div class="table-section-title" style="margin-top: 14px;">Sex composition</div>
+      <div class="bdmi-summary" id="csSex"></div>
+      <div class="table-section-title" style="margin-top: 14px;">Ancestry mix</div>
+      <div id="csAncestry"></div>
+      <div class="table-section-title" style="margin-top: 14px;">Family-hub distribution</div>
+      <div id="csFamilies"></div>
+      <div class="table-section-title" style="margin-top: 14px;">Inversion candidates by status</div>
+      <div class="bdmi-summary" id="csInvStatus"></div>
+      <div class="table-section-title" style="margin-top: 14px;">Frequency spectrum</div>
+      <div id="csFreqSpectrum"></div>
+      <div class="table-section-title" style="margin-top: 14px;">Karyotype call rate</div>
+      <div class="bdmi-summary" id="csCallRate"></div>
+      <div class="table-section-title" style="margin-top: 14px;">Relationship edges</div>
+      <div class="bdmi-summary" id="csEdges"></div>
+      <div class="table-section-title" style="margin-top: 14px;">Per-analysis runnability</div>
+      <div id="csRunnability"></div>
+      <div class="ie-conclusion tier-weak" style="margin-top: 14px;">
+        <div class="verdict">MANUSCRIPT-READY ONE-LINER</div>
+        <div id="csManuscriptBody" style="font-size: 10.5px; line-height: 1.55;"></div>
+      </div>
+    </div>
+
+    <!-- Batch cross planner — sub-tab #21. -->
+    <div id="subpage-cross_planner" class="subpage" data-subtab-page>
+      <div class="page-subtitle" style="font-size: 10.5px; color: var(--ink-dim); margin-bottom: 12px;">
+        <b>Batch cross planner.</b> Multi-pair extension of the Compatibility tab. Generates every candidate parent pair under the chosen filters and ranks by a composite cross-utility score.
+      </div>
+      <div class="recomb-config">
+        <div class="row"><label>Pair generation</label><select id="cpMode">
+          <option value="all" selected>all individual pairs</option>
+          <option value="cross_family">cross-family pairs only</option>
+          <option value="opposite_sex">opposite-sex pairs only</option>
+          <option value="opposite_sex_cross_family">opposite-sex × cross-family</option>
+        </select></div>
+        <div class="row"><label>Filters</label>
+          <div class="toggle-row">
+            <label class="bdmi-toggle"><input type="checkbox" id="cpExcludeKin" checked />
+              <span>exclude PO/FS kin</span></label>
+            <label class="bdmi-toggle"><input type="checkbox" id="cpExcludeFail" />
+              <span>exclude carrier of any FAIL inversion</span></label>
+            <label class="bdmi-toggle"><input type="checkbox" id="cpRequireDiff" />
+              <span>require ≥1 differing karyotype on PASS candidates</span></label>
+          </div></div>
+        <div class="row"><label>Top N</label><select id="cpTopN">
+          <option value="10">10</option><option value="25" selected>25</option>
+          <option value="50">50</option><option value="100">100</option>
+        </select></div>
+        <div class="row"><label></label>
+          <div class="bdmi-actions">
+            <button class="primary" id="cpRunBtn">Run planner</button>
+            <button id="cpResetBtn">Reset</button>
+            <button id="cpExportBtn" title="Export top-N pairs as TSV">⤓ Export top-N</button>
+          </div></div>
+      </div>
+      <div class="bdmi-summary" id="cpSummary"></div>
+      <div class="table-section-title" style="margin-top: 14px;">Ranked cross pairs</div>
+      <div id="cpResults"></div>
+    </div>
+
+    <!-- Side-by-side comparison — sub-tab #22. -->
+    <div id="subpage-inversion_compare" class="subpage" data-subtab-page>
+      <div class="page-subtitle" style="font-size: 10.5px; color: var(--ink-dim); margin-bottom: 12px;">
+        <b>Inversion comparison.</b> Side-by-side view of 2–4 candidates lined up across identity, karyotype distribution, HWE, hub spread, Mendelian Test A, regime context, marker readiness.
+      </div>
+      <div class="recomb-config">
+        <div class="row"><label>Candidate 1</label><select id="cmpC1"></select></div>
+        <div class="row"><label>Candidate 2</label><select id="cmpC2"></select></div>
+        <div class="row"><label>Candidate 3 (optional)</label><select id="cmpC3"></select></div>
+        <div class="row"><label>Candidate 4 (optional)</label><select id="cmpC4"></select></div>
+        <div class="row"><label></label>
+          <div class="bdmi-actions">
+            <button class="primary" id="cmpRunBtn">Compare</button>
+            <button id="cmpResetBtn">Reset</button>
+            <button id="cmpExportBtn" title="Export the side-by-side table as TSV">⤓ Export TSV</button>
+          </div></div>
+      </div>
+      <div id="cmpTable"></div>
     </div>
   </div>
 

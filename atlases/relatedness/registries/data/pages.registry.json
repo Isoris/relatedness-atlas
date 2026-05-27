@@ -121,6 +121,41 @@
       "requires_layers": [],
       "requires_slots": [],
       "preloads": []
+    },
+    "individual_portrait": {
+      "_label": "individual_portrait — per-sample dossier",
+      "_doc": "Single-sample read-only aggregation. Sections: identity (sex, family, role), ancestry composition (Q-vector + per-K table), pairwise relationships (incident edges from DEMO.network_edges + DEMO.pairwise_stats), karyotype profile (counts of 0/0, 0/1, 1/1, NA, plus a top-10 carried-arrangements table), triad role (parent_a / parent_b / offspring), burden flags (inversion load + carries-PASS/WARN/FAIL counts), cross-page jump-links. No new compute.",
+      "requires_layers": [],
+      "requires_slots": [],
+      "preloads": []
+    },
+    "inversion_dossier": {
+      "_label": "inversion_dossier — per-candidate dossier",
+      "_doc": "Single-candidate read-only aggregation. Sections: identity, karyotype distribution + HWE chi-square (BDMI Test C feeds off this), class-balance bar, carrier roster (up to 50 rows), family-hub spread + FAMILY CONFOUNDED warning when one hub holds >=80% of carriers, Mendelian distortion (BDMI Test A binomial p across triads), same-chromosome companions (potential regime partners), downstream-analysis readiness matrix (READY/PARTIAL/GATED/BLOCKED per analysis), cross-page jump-links.",
+      "requires_layers": [],
+      "requires_slots": [],
+      "preloads": []
+    },
+    "cohort_summary": {
+      "_label": "cohort_summary — single-screen cohort overview",
+      "_doc": "Read-only cohort dashboard. Sections: scale (species, cohort, n samples / families / unassigned / triads / candidates / chromosomes-with-candidates), sex composition, ancestry mean Q with stripe + per-K table, family-hub distribution, inversion-candidate status breakdown, frequency spectrum histogram (7 bins), karyotype call rate, edge counts by class, per-analysis runnability matrix (READY/PARTIAL/WARN/GATED/BLOCKED) for all 22 registered analyses, manuscript-ready one-liner. Use as manuscript-intro source-of-truth or post-load QC.",
+      "requires_layers": [],
+      "requires_slots": [],
+      "preloads": []
+    },
+    "cross_planner": {
+      "_label": "cross_planner — batch multi-pair cross ranking",
+      "_doc": "Multi-pair extension of the Compatibility tab. Generates every candidate parent pair under the chosen filters (sex-aware, exclude PO/FS kin, exclude carrier-of-any-FAIL inversion, require >=1 differing karyotype on PASS candidates) and ranks them by a composite cross_utility_score: +0.35 opposite-sex, +0.25 cross-family, +0.15 fraction of PASS candidates with differing karyotypes, +0.15 (1 - mean hub confound across the pair's heterokaryotypes), +0.10 impossibility-free. Decorates each row with breeding-AI flags (same-or-unknown-sex, same-family, redundant-cross, heterokaryote-CO-suppression, hub-confounded, close-kin). Read-only — no analytical compute, just an aggregation over karyotype + family + sex.",
+      "requires_layers": [],
+      "requires_slots": [],
+      "preloads": []
+    },
+    "inversion_compare": {
+      "_label": "inversion_compare — side-by-side candidate comparison",
+      "_doc": "Picks 2-4 candidates and lines them up across signal rows: chromosome, span, length, status, frequency, n_typed, hom-ref/het/hom-alt counts, NA count, allele freq p, HWE chi-square p (BDMI Test C feeds off this), n_carriers, top-hub carrier share (FAMILY CONFOUNDED at >=80%), Mendelian Test A p, same-chromosome companions, marker readiness (status=PASS AND frequency>=0.10). Read-only — pure aggregation. Use when narrowing the inversion list before the Pass-2 marker-validation phase.",
+      "requires_layers": [],
+      "requires_slots": [],
+      "preloads": []
     }
   }
 }

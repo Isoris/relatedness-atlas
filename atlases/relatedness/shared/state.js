@@ -146,6 +146,28 @@ export const state = {
     last_load: null,
   },
 
+  // Per-individual portrait (read-only aggregation; tracks selection in
+  // addition to state.selected_individual so the portrait keeps its own
+  // focus when the user navigates back).
+  individual_portrait: {
+    focus_individual: null,    // populated on mount from selected_individual or DEMO.individuals[0]
+  },
+
+  // Per-inversion dossier (read-only aggregation).
+  inversion_dossier: {
+    focus_candidate: null,
+  },
+
+  // Batch cross planner (#21).
+  cross_planner: {
+    last_results: null,
+  },
+
+  // Side-by-side inversion comparison (#22).
+  inversion_compare: {
+    candidates: null,           // array of candidate ids; null = use first 2 from picker
+  },
+
   // pillBar source state (round 1: mock).
   loaded_files: [
     { kind: 'res',    path: '/data/project/population.res',     loaded: true },

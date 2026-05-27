@@ -144,6 +144,46 @@
       "fragment": "atlases/relatedness/pages/hub/catalogue_handshake.html",
       "module": "atlases/relatedness/pages/hub/catalogue_handshake.js",
       "tooltip": "Atlas-core Catalogue handshake / self-test — reads the four JSONL files exposed to the master workflow catalogue and verifies the smoke-test constraints client-side. Diagnostic, not analytical."
+    },
+    {
+      "id": "individual_portrait",
+      "label": "sample portrait",
+      "stage": "hub",
+      "fragment": "atlases/relatedness/pages/hub/individual_portrait.html",
+      "module": "atlases/relatedness/pages/hub/individual_portrait.js",
+      "tooltip": "Per-individual portrait — single-sample dossier consolidating identity, ancestry vector, pairwise relationships, karyotype profile, triad role, inversion burden, cross-page jump-links. Read-only aggregation."
+    },
+    {
+      "id": "inversion_dossier",
+      "label": "candidate dossier",
+      "stage": "hub",
+      "fragment": "atlases/relatedness/pages/hub/inversion_dossier.html",
+      "module": "atlases/relatedness/pages/hub/inversion_dossier.js",
+      "tooltip": "Per-inversion dossier — single-candidate aggregation: identity, karyotype distribution + HWE, carrier roster, family-hub spread, Mendelian distortion, same-chrom companions, downstream-analysis readiness."
+    },
+    {
+      "id": "cohort_summary",
+      "label": "cohort",
+      "stage": "hub",
+      "fragment": "atlases/relatedness/pages/hub/cohort_summary.html",
+      "module": "atlases/relatedness/pages/hub/cohort_summary.js",
+      "tooltip": "Cohort summary — single-screen overview of the 226-sample hatchery cohort: scale, sex, ancestry, families, candidates, frequency spectrum, call rate, edges, per-analysis runnability matrix."
+    },
+    {
+      "id": "cross_planner",
+      "label": "cross planner",
+      "stage": "hub",
+      "fragment": "atlases/relatedness/pages/hub/cross_planner.html",
+      "module": "atlases/relatedness/pages/hub/cross_planner.js",
+      "tooltip": "Batch cross planner — multi-pair extension of Compatibility. Generates every candidate parent pair under chosen filters, ranks by composite cross_utility_score, flags inheritance-side warnings (heterokaryote → CO suppression, redundancy, hub confounding, close-kin). Seed of the breeding-AI advisor."
+    },
+    {
+      "id": "inversion_compare",
+      "label": "compare",
+      "stage": "hub",
+      "fragment": "atlases/relatedness/pages/hub/inversion_compare.html",
+      "module": "atlases/relatedness/pages/hub/inversion_compare.js",
+      "tooltip": "Side-by-side comparison of 2–4 inversion candidates: identity, karyotype distribution + HWE, hub spread, Mendelian Test A p, regime context, marker readiness. Use when narrowing down which inversions ship to Pass-2 marker validation."
     }
   ],
   "registries": {
