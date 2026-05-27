@@ -56,7 +56,7 @@ function _evaluatePair(a, b) {
   const cross_family = fA && fB && fA !== fB;
 
   // Per-candidate cross outcomes.
-  let n_pass = 0, n_pass_diff = 0, n_pass_impossible = 0;
+  let n_pass = 0, n_pass_diff = 0, n_pass_both_typed = 0;
   let n_het_a = 0, n_het_b = 0;
   let n_redundant = 0;            // identical karyotype at every PASS candidate
   for (const c of candidates) {
@@ -65,15 +65,13 @@ function _evaluatePair(a, b) {
     const ka = (DEMO.karyotype_matrix[a] || {})[c.candidate];
     const kb = (DEMO.karyotype_matrix[b] || {})[c.candidate];
     if (!ka || ka === 'NA' || !kb || kb === 'NA') continue;
+    n_pass_both_typed++;
     if (ka === '0/1') n_het_a++;
     if (kb === '0/1') n_het_b++;
     if (ka !== kb) n_pass_diff++; else n_redundant++;
-    // Impossible: 0/0 × 1/1 can only produce 0/1, so this isn't impossible.
-    // Track the real impossibility check: a target karyotype unachievable.
-    // The classic redundancy is 0/0 × 0/0 → only 0/0; not "impossible"
-    // but recombinationally dead.
   }
-  const frac_diff = n_pass > 0 ? n_pass_diff / n_pass : 0;
+  const frac_diff     = n_pass > 0 ? n_pass_diff       / n_pass : 0;
+  const frac_coverage = n_pass > 0 ? n_pass_both_typed / n_pass : 0;
 
   // Composite cross_utility_score per the page-level description.
   let score = 0;
@@ -104,7 +102,7 @@ function _evaluatePair(a, b) {
   }
   const mean_confound = n_het_total > 0 ? hubConfound / n_het_total : 0;
   score += 0.15 * (1 - mean_confound);
-  score += 0.10 * (1 - 0);  // no detected impossible (placeholder)
+  score += 0.10 * frac_coverage;   // both parents typed at PASS candidates
 
   // Flags (decorative, don't affect score).
   const flags = [];

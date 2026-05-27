@@ -2300,7 +2300,7 @@
     <!-- Batch cross planner — sub-tab #21. -->
     <div id="subpage-cross_planner" class="subpage" data-subtab-page>
       <div class="page-subtitle" style="font-size: 10.5px; color: var(--ink-dim); margin-bottom: 12px;">
-        <b>Batch cross planner.</b> Multi-pair extension of the Compatibility tab. Generates every candidate parent pair under the chosen filters and ranks by a composite cross-utility score.
+        <b>Batch cross planner.</b> Multi-pair extension of the Compatibility tab. Generates every candidate parent pair under the chosen filters and ranks by a composite cross_utility_score: +0.35 opposite-sex, +0.25 cross-family, +0.15 fraction of PASS candidates with differing karyotypes, +0.15 (1 − mean hub confound), +0.10 fraction-of-PASS-candidates-where-both-parents-typed (coverage).
       </div>
       <div class="recomb-config">
         <div class="row"><label>Pair generation</label><select id="cpMode">
