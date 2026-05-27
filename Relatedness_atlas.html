@@ -2481,5 +2481,115 @@
 
 <!-- The page logic lives in a sibling .js file as the user requested. -->
 <script src="Relatedness_atlas.js"></script>
+
+<!-- ─────────────────────────────────────────────────────────────────────
+     Round-2+ page bootstrap (2026-05-27). The 17 sub-tabs added after the
+     round-1 migration (bdmi, regimes, meiosis, eligibility, resolution,
+     coincidence, inversion_signature, focal_meiosis_scan, inversion_priority,
+     marker_test_designer, family_hub_detail, catalogue_handshake,
+     individual_portrait, inversion_dossier, cohort_summary, cross_planner,
+     inversion_compare) all ship as ES modules under
+     atlases/relatedness/pages/hub/<id>.js with mount() / unmount()
+     lifecycles. The legacy shell here doesn't know about those modules, so
+     before this bootstrap their sub-tabs rendered as empty / dark blocks.
+     This script hooks into the existing #subTabBar click router and
+     dynamically imports the right module, calling mount(rootEl, {}, {})
+     against the matching #subpage-<id> div.
+
+     Round-1 pages (network, karyotypes, inversions, mendelian, compatibility)
+     are deliberately NOT in this map — Relatedness_atlas.js already
+     populates them inline. ──────────────────────────────────────────── -->
+<script type="module">
+  const ROUND2_PAGES = {
+    'bdmi':                  './atlases/relatedness/pages/hub/bdmi.js',
+    'regimes':               './atlases/relatedness/pages/hub/regimes.js',
+    'meiosis':               './atlases/relatedness/pages/hub/meiosis.js',
+    'eligibility':           './atlases/relatedness/pages/hub/eligibility.js',
+    'resolution':            './atlases/relatedness/pages/hub/resolution.js',
+    'coincidence':           './atlases/relatedness/pages/hub/coincidence.js',
+    'inversion_signature':   './atlases/relatedness/pages/hub/inversion_signature.js',
+    'focal_meiosis_scan':    './atlases/relatedness/pages/hub/focal_meiosis_scan.js',
+    'inversion_priority':    './atlases/relatedness/pages/hub/inversion_priority.js',
+    'marker_test_designer':  './atlases/relatedness/pages/hub/marker_test_designer.js',
+    'family_hub_detail':     './atlases/relatedness/pages/hub/family_hub_detail.js',
+    'catalogue_handshake':   './atlases/relatedness/pages/hub/catalogue_handshake.js',
+    'individual_portrait':   './atlases/relatedness/pages/hub/individual_portrait.js',
+    'inversion_dossier':     './atlases/relatedness/pages/hub/inversion_dossier.js',
+    'cohort_summary':        './atlases/relatedness/pages/hub/cohort_summary.js',
+    'cross_planner':         './atlases/relatedness/pages/hub/cross_planner.js',
+    'inversion_compare':     './atlases/relatedness/pages/hub/inversion_compare.js',
+  };
+
+  const _mounted = new Map();     // id → module
+  let _activeId = null;
+
+  async function _activateSubpage(target) {
+    if (!(target in ROUND2_PAGES)) return;          // round-1 already handled
+    if (_activeId === target && _mounted.has(target)) return;
+
+    // Unmount the previously-active round-2 page if any.
+    if (_activeId && _mounted.has(_activeId)) {
+      const prev = _mounted.get(_activeId);
+      try {
+        if (prev && prev.unmount) await prev.unmount(document.getElementById('subpage-' + _activeId));
+      } catch (err) {
+        console.warn('[bootstrap] unmount failed for', _activeId, err);
+      }
+      _mounted.delete(_activeId);
+    }
+
+    // Dynamic-import and mount the new page.
+    const root = document.getElementById('subpage-' + target);
+    if (!root) { console.warn('[bootstrap] no subpage container for', target); return; }
+    try {
+      const mod = await import(ROUND2_PAGES[target]);
+      _mounted.set(target, mod);
+      _activeId = target;
+      if (mod.mount) await mod.mount(root, {}, {});
+    } catch (err) {
+      console.error('[bootstrap] failed to mount', target, err);
+      root.innerHTML = `<div class="ie-conclusion tier-conflict" style="margin: 14px;">`
+        + `<div class="verdict">PAGE LOAD ERROR · ${target}</div>`
+        + `<div style="font-size: 10.5px;">`
+        + `Failed to import the page module. Most common cause: the atlas is being served`
+        + ` from <code>file://</code>, which blocks ES-module imports. Serve via`
+        + ` <code>python3 -m http.server</code> from the repo root, or via atlas-core.<br/><br/>`
+        + `<code>${String(err)}</code></div></div>`;
+    }
+  }
+
+  // Hook every #subTabBar button. Capture-phase listener so we run AFTER the
+  // legacy click handler has toggled the .active class on the subpage block.
+  document.querySelectorAll('#subTabBar button[data-subtab]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      _activateSubpage(btn.getAttribute('data-subtab'));
+    });
+  });
+
+  // Activate the currently-active sub-tab on first load (the legacy script
+  // restores localStorage selection at line 535 — we catch up after it).
+  function _activateCurrent() {
+    const cur = document.querySelector('#subTabBar button[data-subtab].active');
+    if (cur) _activateSubpage(cur.getAttribute('data-subtab'));
+    else {
+      // No active button yet — try the hash.
+      const h = (location.hash || '').replace(/^#/, '').trim();
+      if (h) _activateSubpage(h);
+    }
+  }
+  // Defer one tick so the legacy script's localStorage restore + hash-route
+  // logic has finished setting .active on the right button.
+  setTimeout(_activateCurrent, 0);
+
+  // Also respond to hashchange so URLs like #bdmi still work.
+  window.addEventListener('hashchange', () => {
+    const h = (location.hash || '').replace(/^#/, '').trim();
+    if (h) _activateSubpage(h);
+  });
+
+  // Expose for debugging.
+  window._RA_round2_bootstrap = { activate: _activateSubpage, mounted: _mounted,
+                                    get active() { return _activeId; } };
+</script>
 </body>
 </html>
