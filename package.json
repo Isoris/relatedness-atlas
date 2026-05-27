@@ -3,5 +3,11 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "description": "relatedness-atlas — ES-module flag so 'node atlases/relatedness/shared/test_*.js' can load the page modules under test. There is no npm dependency graph; the browser imports atlases/relatedness/**/*.js directly."
+  "description": "relatedness-atlas — ES-module flag so 'node atlases/relatedness/shared/test_*.js' can load the page modules under test. There is no npm dependency graph; the browser imports atlases/relatedness/**/*.js directly.",
+  "scripts": {
+    "bundle":       "node scripts/build_bundle.mjs",
+    "bundle:tsv":   "node scripts/build_bundle.mjs --tsv",
+    "bundle:json":  "node scripts/build_bundle.mjs --json",
+    "bundle:help":  "node scripts/build_bundle.mjs --help"
+  }
 }
