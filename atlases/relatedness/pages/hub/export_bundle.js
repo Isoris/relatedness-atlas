@@ -10,6 +10,47 @@ import { state } from '../../shared/state.js';
 import { buildBundle, bundleToTsv, bundleToJson } from '../../shared/export_bundle.js';
 import { _setActiveState } from './export_bundle/_state.js';
 
+// Try to surface a pre-built static snapshot (from scripts/build_static.mjs)
+// next to the in-browser bundler. Fetches static/snapshots/index.json once
+// on mount; if present + readable, renders the download links. If absent
+// (no snapshot built yet, or running off file://), silently skips.
+async function _renderStaticSnapshot() {
+  const slot = $('#ebStaticSnapshot');
+  if (!slot) return;
+  slot.innerHTML = '';
+  let idx;
+  try {
+    const res = await fetch('static/snapshots/index.json');
+    if (!res.ok) return;
+    idx = await res.json();
+  } catch (_e) { return; }
+  if (!idx || !idx.latest) return;
+  const html = `<div class="ie-conclusion tier-moderate" style="margin-top: 10px;">`
+    + `<div class="verdict">PRE-BUILT SNAPSHOT AVAILABLE · ${idx.latest.date}</div>`
+    + `<div style="font-size: 10.5px; line-height: 1.55;">`
+    + `Built by <code>npm run snapshot</code> on ${new Date(idx.built_at).toLocaleString()}. `
+    + `Direct downloads (no Build click required):</div>`
+    + `<div style="margin-top: 6px; display: flex; gap: 8px; flex-wrap: wrap;">`
+    + `<a href="static/snapshots/${idx.latest.tsv}" class="status-pill-cell pass" `
+    + `style="text-decoration: none; padding: 4px 10px;">⤓ latest.tsv</a>`
+    + (idx.latest.json
+        ? `<a href="static/snapshots/${idx.latest.json}" class="status-pill-cell pass" `
+          + `style="text-decoration: none; padding: 4px 10px;">⤓ latest.json</a>`
+        : '')
+    + `</div>`
+    + (idx.snapshots && idx.snapshots.length > 1
+        ? `<div style="margin-top: 8px; font-size: 9.5px; color: var(--ink-dim);">`
+          + `${idx.snapshots.length} snapshot${idx.snapshots.length === 1 ? '' : 's'} in `
+          + `<code>static/snapshots/</code> · history: `
+          + idx.snapshots.slice(0, 7).map(s =>
+              `<a href="static/snapshots/${s.tsv || s.json}">${s.date}</a>`).join(' · ')
+          + (idx.snapshots.length > 7 ? ' · …' : '')
+          + `</div>`
+        : '')
+    + `</div>`;
+  slot.innerHTML = html;
+}
+
 function _sumCell(label, value, severity = null, sub = '') {
   const cell = el('div', { class: 'mend-summary-cell' },
     el('div', { class: 'lbl', text: label }),
@@ -114,6 +155,7 @@ export async function mount(root, atlasState, registry) {
   }
   _renderSummary();
   _renderSections();
+  _renderStaticSnapshot();
 }
 
 export async function unmount(root) {

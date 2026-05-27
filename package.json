@@ -5,9 +5,12 @@
   "type": "module",
   "description": "relatedness-atlas — ES-module flag so 'node atlases/relatedness/shared/test_*.js' can load the page modules under test. There is no npm dependency graph; the browser imports atlases/relatedness/**/*.js directly.",
   "scripts": {
+    "test":         "node tests/run_all.mjs",
     "bundle":       "node scripts/build_bundle.mjs",
     "bundle:tsv":   "node scripts/build_bundle.mjs --tsv",
     "bundle:json":  "node scripts/build_bundle.mjs --json",
-    "bundle:help":  "node scripts/build_bundle.mjs --help"
+    "bundle:help":  "node scripts/build_bundle.mjs --help",
+    "snapshot":     "node scripts/build_static.mjs",
+    "snapshot:tsv": "node scripts/build_static.mjs --no-json"
   }
 }
