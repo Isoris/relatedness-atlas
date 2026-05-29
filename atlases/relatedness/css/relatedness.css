@@ -399,7 +399,15 @@
     padding: 3px 6px; font-family: var(--mono); font-size: 10.5px;
   }
 
-  .subpage { display: none; padding: 14px 16px; flex: 1; overflow-y: auto;
+  /* 2026-05-20: the atlas-core router swaps #app-root.innerHTML per page
+     and mounts exactly ONE fragment at a time — it never toggles a
+     `.active` class on the subpage (that was the legacy single-file
+     mockup's tab-switcher behaviour). Under the router, hiding all
+     non-active subpages left every fragment blank EXCEPT network.html,
+     which is the only one that hard-codes `class="page subpage active"`.
+     Fix: default `.subpage` to visible. `.subpage.active` is kept as a
+     harmless alias so network.html's baked-in `active` still matches. */
+  .subpage { display: block; padding: 14px 16px; flex: 1; overflow-y: auto;
              min-height: 0; }
   .subpage.active { display: block; }
 
